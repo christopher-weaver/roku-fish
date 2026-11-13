@@ -1,0 +1,6 @@
+Pillow==13.0.0
+numpy==2.3.5
+scipy==1.16.3
+moderngl==5.13.0
+
+imagequant==1.1.6

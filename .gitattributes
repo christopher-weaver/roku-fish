@@ -1,0 +1,2 @@
+# Keep the sideload ZIP as actual binary contents, never an LFS pointer.
+/dist/deep-reef-screensaver.zip -text -diff -merge -filter

@@ -1,0 +1,47 @@
+{
+  "checks": [
+    "All 25 preview runtime images and production snapshots loaded in Chromium",
+    {
+      "lighting": "Daylight",
+      "sample_pixel": [
+        0,
+        156,
+        200,
+        255
+      ]
+    },
+    {
+      "lighting": "Dusk",
+      "sample_pixel": [
+        21,
+        116,
+        154,
+        255
+      ]
+    },
+    {
+      "lighting": "Moonlight",
+      "sample_pixel": [
+        4,
+        83,
+        126,
+        255
+      ]
+    },
+    {
+      "lighting": "Sunset",
+      "sample_pixel": [
+        169,
+        82,
+        109,
+        255
+      ]
+    },
+    "Seeking pauses at selected time",
+    "Pause holds frame",
+    "Play advances native-world recording"
+  ],
+  "page_errors": [],
+  "passed": true,
+  "scope": "Desktop development preview only; not Roku GPU or hardware validation"
+}

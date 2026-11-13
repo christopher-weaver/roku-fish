@@ -1,0 +1,7 @@
+SOAK simulated seconds= 600  bounds violations= 0
+SOAK simulated seconds= 1200  bounds violations= 0
+SOAK simulated seconds= 1800  bounds violations= 0
+SOAK simulated seconds= 2400  bounds violations= 0
+SOAK simulated seconds= 3000  bounds violations= 0
+SOAK simulated seconds= 3600  bounds violations= 0
+SOAK RESULT violations= 0  fish= 6  effects= 72  x= 110.12166650540267 , 1912.0350357294142  z= 0.05790652918159575 , 0.9675969134915183

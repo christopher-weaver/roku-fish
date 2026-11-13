@@ -1,0 +1,6 @@
+[[90m04:26:21:669 AM[39m] Using config file: "bsconfig.json"
+[[90m04:26:21:671 AM[39m] Loading 0 plugins for cwd "/workspace/work/deep-reef" []
+[[90m04:26:21:677 AM[39m] Parsing files
+[[90m04:26:21:777 AM[39m] Parsing files finished. ([34m99.623ms[39m)
+[[90m04:26:21:778 AM[39m] Validating project
+[[90m04:26:21:808 AM[39m] Validating project finished. ([34m29.420ms[39m)

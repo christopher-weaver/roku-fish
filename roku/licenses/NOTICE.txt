@@ -1,0 +1,5 @@
+Deep Reef — original application code MIT, original reef/effects CC0.
+Fish portrait artwork and derived textured meshes: Copyright (c) 2026 Paul Robello, MIT.
+Guarded memory-monitor pattern adapted from Tim Saucer's Reef Glass, Apache-2.0.
+See the bundled license files and full source distribution CREDITS.md.
+No Roku proprietary artwork or AquariumTV material is included.

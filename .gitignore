@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.venv/
+__pycache__/
+work/
+*.pyc
+
+# The ready-to-install Roku package is intentionally committed.
+!/dist/
+!/dist/deep-reef-screensaver.zip
+!/dist/build-report.json

@@ -1,0 +1,47 @@
+{
+  "designWidth": 1920,
+  "designHeight": 1080,
+  "plateWidth": 2048,
+  "plateHeight": 1152,
+  "plateY": -36,
+  "seed": 47831,
+  "fps": 30,
+  "dawn": 7.0,
+  "dusk": 18.5,
+  "occlusionDepths": [
+    0.48,
+    0.78
+  ],
+  "camera": {
+    "center": 64,
+    "Subtle": {
+      "amplitude": 12,
+      "period": 480
+    },
+    "Slow": {
+      "amplitude": 48,
+      "period": 360
+    }
+  },
+  "softCoral": {
+    "x": 375,
+    "y": 569,
+    "frameWidth": 350,
+    "frameHeight": 370,
+    "frames": 3
+  },
+  "notes": "Source photograph has a deliberately restrained 128px horizontal overscan. All reef planes share image registration; fish and particles have depth-dependent parallax.",
+  "speciesOrder": [
+    "ocellaris_clownfish",
+    "yellow_tang",
+    "royal_gramma",
+    "emperor_angelfish",
+    "moorish_idol",
+    "green_chromis"
+  ],
+  "populations": {
+    "Low": 12,
+    "Medium": 18,
+    "High": 24
+  }
+}

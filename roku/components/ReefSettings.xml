@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="ReefSettings" extends="Scene">
+  <interface>
+    <field id="preferences" type="assocarray" onChange="refreshRows" alwaysNotify="true" />
+    <field id="done" type="boolean" alwaysNotify="true" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/source/settings-model.brs" />
+  <script type="text/brightscript" uri="ReefSettings.brs" />
+  <children>
+    <Rectangle width="1920" height="1080" color="0x211829FF" />
+    <Label translation="[145,83]" text="Deep Reef" color="0xF5D1BCFF" font="font:LargeBoldSystemFont" />
+    <Label translation="[145,155]" text="Make the aquarium your own. Changes save automatically." color="0xC4B0C3FF" font="font:SmallSystemFont" />
+    <Rectangle id="highlight" translation="[125,240]" width="1660" height="60" color="0x804955FF" />
+    <Group id="rows" translation="[145,250]" />
+    <Label translation="[145,990]" text="↑ ↓ Choose a setting     ← → or OK Change     Back Return" color="0xC4B0C3FF" font="font:SmallSystemFont" />
+  </children>
+</component>

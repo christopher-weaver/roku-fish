@@ -1,0 +1,37 @@
+"""Run structural tests plus direct production BrightScript tests. Fail on interpreter diagnostics."""
+from pathlib import Path
+import os,subprocess,sys,shutil,re
+ROOT=Path(__file__).resolve().parents[1]
+SOURCES=['math','camera','aquarium','fish','schooling','effects']
+def binary(name):
+    env=os.environ.get(name.upper()+'_BIN')
+    if env:return env
+    local=ROOT/'node_modules/.bin'/name
+    if local.exists():return str(local)
+    found=shutil.which(name)
+    if found:return found
+    raise RuntimeError(f'{name} unavailable: run npm install or set {name.upper()}_BIN')
+def brs_run(test,log):
+    work=ROOT/'work';work.mkdir(exist_ok=True)
+    settings=(ROOT/'roku/source/settings-model.brs').read_text().replace('CreateObject("roRegistrySection", "deep-reef-v1")','ReefTestRegistry("deep-reef-v1")')
+    (work/'settings-test.brs').write_text(settings)
+    args=[binary('brs'),'--root','roku']+[f'roku/source/{s}.brs'for s in SOURCES]+['work/settings-test.brs','tests/registry-stub.brs',f'tests/{test}.brs']
+    result=subprocess.run(args,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    (ROOT/log).write_text(result.stdout)
+    if result.returncode or re.search(r'(?m)^FAIL|not a function|Attempting to return|Syntax|Error|error:',result.stdout):raise RuntimeError(result.stdout[-5000:])
+    return result.stdout
+if __name__=='__main__':
+    try:
+        check=subprocess.run([binary('bsc'),'--project','bsconfig.json'],cwd=ROOT,capture_output=True,text=True)
+        (ROOT/'docs/compiler-results.txt').write_text(check.stdout+check.stderr)
+        if check.returncode:raise RuntimeError(check.stdout+check.stderr)
+        subprocess.run([sys.executable,'-m','unittest','discover','-s','tests','-p','test_*.py','-v'],cwd=ROOT,check=True)
+        output=brs_run('simulation','docs/simulation-results.txt')
+        if not re.search(r'RESULT passed=\s*25\s+failed=\s*0',output):raise RuntimeError('Simulation did not complete 25 checks')
+        print(output)
+        if '--soak'in sys.argv:
+            output=brs_run('soak','docs/soak-results.txt')
+            if not re.search(r'SOAK RESULT violations=\s*0',output):raise RuntimeError(output[-2000:])
+            print(output)
+        print('All requested checks passed')
+    except (RuntimeError,subprocess.CalledProcessError)as e:raise SystemExit(str(e))

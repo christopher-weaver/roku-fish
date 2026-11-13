@@ -1,0 +1,7 @@
+{
+  "name": "deep-reef-screensaver",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {"check": "bsc --project bsconfig.json", "test": "python tools/test.py"},
+  "devDependencies": {"brighterscript": "0.73.8", "brs": "0.45.0"}
+}

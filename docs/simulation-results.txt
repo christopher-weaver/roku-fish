@@ -1,0 +1,26 @@
+PASS  sunset defaults
+PASS  invalid settings recover
+PASS  registry write flush read roundtrip
+PASS  medium population
+PASS  seed initialization repeats
+PASS  low population
+PASS  high population
+PASS  species speed limits over 60 seconds
+PASS  acceleration capped
+PASS  heading turns capped
+PASS  soft wall bounds over 60 seconds
+PASS  whole simulation seed repeatability
+PASS  stalled frame timestep cap
+PASS  perspective size speed and camera parallax
+PASS  reef occupancy behind rock
+PASS  open water occupancy
+PASS  camera covers viewport at all boundaries
+PASS  local clock lighting levels
+PASS  lighting thresholds continuous
+PASS  auto quality degrades optional effects
+PASS  fixed effect pools recycle
+PASS  school alignment and cohesion
+PASS  short range separation
+PASS  coral depth plane crossing blocked
+PASS  daily phase rollover
+RESULT passed= 25  failed= 0
