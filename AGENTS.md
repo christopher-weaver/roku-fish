@@ -9,3 +9,5 @@ The user requires the sideloadable ZIP to remain included on GitHub.
 - Native screensaver requirements remain authoritative: keep `RunScreenSaver()` and `RunScreenSaverSettings()`, no `Main()` or `RunUserInterface()`, no video playback or runtime network dependency.
 
 - Roku objects have one shared `ifEnum` cursor. Use indexed loops when visiting fish, including across neighbor/behavior calls; nested `for each` over the same array can update only the first fish. Run `python tools/test.py` with the single-cursor compatibility adapter after movement changes.
+
+- Prefer short targeted regression checks for routine updates. Extended soaks are optional and should not delay routine delivery; the user asked to stop the ten-minute soak.

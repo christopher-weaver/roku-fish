@@ -17,15 +17,27 @@ def paste(canvas,im,x,y,sx=1,sy=None,opacity=1):
     if opacity!=1:im=im.copy();im.putalpha(im.getchannel('A').point(lambda v:round(v*opacity)))
     canvas.alpha_composite(im,(round(x),round(y)))
 def fish(canvas,f,mode):
-    sp=SPEC[f['name']];yaw=int((f['heading']%(2*math.pi))*sp['yawCount']/(2*math.pi)+.5)%sp['yawCount']
-    pose=int((math.sin(f['phase'])+1)*.5*(sp['poseCount']-1)+.5);fr=sp['frames'][yaw*sp['poseCount']+pose]
+    sp=SPEC[f['name']]
+    position=(f['heading']%(2*math.pi))*sp['yawCount']/(2*math.pi)
+    lo=int(position)%sp['yawCount'];blend=position-int(position)
+    width=sp['viewWidths'][lo]*(1-blend)+sp['viewWidths'][(lo+1)%sp['yawCount']]*blend
     im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
-    body=asset(sp['image'].split('/')[-1]).crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
-    im.alpha_composite(body,(round(sp['frameW']/2-fr['anchorX']),round(sp['frameH']/2-fr['anchorY'])))
-    finpose=int((math.sin(f.get('finPhase',f['phase']*.6))+1)*.5*(sp['finPoseCount']-1)+.5)
-    fr=sp['finFrames'][yaw*sp['finPoseCount']+finpose]
-    fin=asset(sp['finImage'].split('/')[-1]).crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
-    im.alpha_composite(fin,(round(sp['frameW']/2-fr['anchorX']),round(sp['frameH']/2-fr['anchorY'])))
+    for part in ['body','fin']:
+        count=sp['poseCount']if part=='body'else sp['finPoseCount']
+        phase=f['phase']if part=='body'else f.get('finPhase',f['phase']*.6)
+        pose=int((math.sin(phase)+1)*.5*(count-1)+.5)
+        atlas=asset(sp['image'if part=='body'else 'finImage'].split('/')[-1])
+        for view,opacity in [(lo,1),((lo+1)%sp['yawCount'],blend)]:
+            if opacity<=0:continue
+            fr=sp['frames'if part=='body'else 'finFrames'][view*count+pose]
+            layer=Image.new('RGBA',im.size)
+            piece=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
+            layer.alpha_composite(piece,(round(sp['frameW']/2-fr['anchorX']),round(sp['frameH']/2-fr['anchorY'])))
+            if fr.get('flipX'):layer=layer.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            width_scale=width/sp['viewWidths'][view]
+            layer=layer.resize((round(layer.width*width_scale),layer.height),Image.Resampling.BICUBIC)
+            if opacity<1:layer.putalpha(layer.getchannel('A').point(lambda v:round(v*opacity)))
+            im.alpha_composite(layer,(round((im.width-layer.width)/2),0))
     haze=1-f['z'];tint=(255,int(239-haze*25),int(240-haze*10))if mode=='Sunset'else(int(255-haze*65),int(247-haze*32),255)
     im=ImageChops.multiply(im,Image.new('RGBA',im.size,(*tint,255)))
     sc=f['scale']*sp['length']/sp['renderLength']*f['size'];im=im.resize((max(1,round(im.width*sc)),max(1,round(im.height*sc))),Image.Resampling.LANCZOS)
@@ -54,31 +66,25 @@ def render(frame,mode='Sunset',density='Medium'):
             elif e['active']<24:
                 sc=.25+e['z']*.4
                 paste(img,asset('mote.png'),e['x']-cam*(.4+e['z']*.6),e['y'],sc,opacity=105/255)
-    effects(0,.48)
-    for f in fs:
-        if f['z']<.48:fish(img,f,mode)
-    tint=Image.new('RGBA',(1,1),(221,235,255,255))
-    def reef_layer(name):
-        layer=asset('reef-'+name+'.webp')
+    previous=0;fish_index=0
+    for formation in TANK['formations']:
+        depth=formation['z'];effects(previous,depth);previous=depth
+        while fish_index<len(fs) and fs[fish_index]['z']<depth:
+            fish(img,fs[fish_index],mode);fish_index+=1
+        layer=asset(formation['image'].split('/')[-1])
         if mode!='Sunset':layer=ImageChops.multiply(layer,Image.new('RGBA',layer.size,(221,235,255,255)))
-        location=TANK['layers'][name]
-        paste(img,layer,location['x']-cam,location['y']-36)
-    reef_layer('mid')
-    cfg=TANK['softCoral'];cor=asset(cfg['image'].split('/')[-1]);sway=math.sin(t*2*math.pi/18);width_scale=1+sway*.003
-    if mode!='Sunset':cor=ImageChops.multiply(cor,Image.new('RGBA',cor.size,(221,235,255,255)))
-    paste(img,cor,cfg['x']-cam+sway*1.5-cfg['frameWidth']*(width_scale-1)*.5,cfg['y'],width_scale,1)
-    for f in fs:
-        if .48<=f['z']<.78:fish(img,f,mode)
-    reef_layer('front')
+        offset=64+(cam-64)*formation['parallax']
+        sway=math.sin(t*math.pi/9)*.7 if formation['id']=='white-crown'else 0
+        width_scale=1+sway*.0015
+        paste(img,layer,formation['x']-offset+sway-formation['width']*(width_scale-1)*.5,formation['y']-36,width_scale,1)
     phase=t%WAVES['period']*WAVES['frames']/WAVES['period'];first=int(phase);blend=phase-first
     cfg=WAVES['sand'];sand=asset('sand-caustics.png')
     for j in range(2):
         index=(first+j)%WAVES['frames'];x=index%cfg['columns']*cfg['width'];y=index//cfg['columns']*cfg['height']
         piece=sand.crop((x,y,x+cfg['width'],y+cfg['height']))
         paste(img,piece,cfg['x']-cam,cfg['y']-36,cfg['scale'],opacity=(blend if j else 1-blend)*225/255*day)
-    for f in fs:
-        if f['z']>=.78:fish(img,f,mode)
-    effects(.48,1.01)
+    for f in fs[fish_index:]:fish(img,f,mode)
+    effects(previous,1.01)
     for k in range(3):paste(img,asset('ray.png'),150+k*590+math.sin(t*.07+k)*24-cam*.25,-70,2,1.8,(65+18*math.sin(t*.13+k))/255*day)
     phase=t%8*4;first=int(phase);blend=phase-first
     surface=asset('surface-waves.png')
@@ -108,7 +114,7 @@ def make_previews():
     import copy
     f=copy.deepcopy(frame);f['fish']=[]
     for z,x,label in [(.25,270,'behind'),(.92,360,'front')]:
-        sample=copy.deepcopy(frame['fish'][0]);sample.update(name='yellow_tang',z=z,sx=x,sy=670,scale=.56+.44*z,heading=0,phase=1,size=1.25)
+        sample=copy.deepcopy(frame['fish'][0]);sample.update(name='yellow_tang',z=z,sx=x,sy=670,scale=.70+.30*z,heading=0,phase=1,size=1.25)
         f['fish']=[sample];render(f).save(PRE/('occlusion-'+label+'.png'))
     sample.update(z=.95,sx=1000,sy=430,scale=.978,heading=math.pi/4,size=2.0)
     f['fish']=[sample];render(f).save(PRE/'three-quarter.png')

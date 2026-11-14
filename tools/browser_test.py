@@ -20,7 +20,7 @@ with sync_playwright()as p:
     page.evaluate('window.reefPreview.seek(20)')
     page.wait_for_timeout(120)
     page.locator('canvas').screenshot(path=str(ROOT/'docs/previews/browser-sunset.png'))
-    checks.append('All 22 preview runtime images and production snapshots loaded in Chromium')
+    checks.append('All 27 preview runtime images and production snapshots loaded in Chromium')
     for mode in ['Daylight','Dusk','Moonlight','Sunset']:
         page.select_option('#mode',mode)
         page.wait_for_timeout(90)

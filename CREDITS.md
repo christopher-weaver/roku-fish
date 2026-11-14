@@ -37,3 +37,5 @@ Python/Pillow, NumPy, SciPy, ModernGL/glcontext, libimagequant, Blender, Brighte
 Version 1.0.2 derives separate pectoral-fin cutouts and hinged fin meshes from the same MIT-attributed photographic fish sources. Body textures are underpainted beneath the moving fins. The new surface-wave sprites are original procedural artwork.
 
 The active 1.0.5 close-reef background is generated artwork based on the user's composition reference. Its original pixels and provenance are in `assets/source/reef-close-reference.png` and `assets/source/PROVENANCE.md`. It preserves the requested sunset palette and contains no baked-in fish.
+
+The 1.0.6 transparent mid-ground reef is a generated RGBA edit of the same reference-inspired source, retained as `assets/source/reef-midground-cutout.png`. Its generation identifier and prompt intent are recorded in PROVENANCE. Offline builds use the checked-in pixels and require no generation service.

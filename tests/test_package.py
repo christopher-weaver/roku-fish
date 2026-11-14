@@ -33,8 +33,8 @@ class PackageChecks(unittest.TestCase):
             self.assertIsNotNone(ImageChops.difference(crop(first),crop(second)).getbbox(), 'Side-view tail poses must visibly differ')
     def test_occlusion_masks_have_alpha(self):
         from PIL import Image
-        for name in ['reef-mid.webp','reef-front.webp']:
-            im=Image.open(ROOT/'roku/images'/name).convert('RGBA');ext=im.getchannel('A').getextrema();self.assertEqual(ext,(0,255))
+        for formation in json.loads((ROOT/'roku/scenes/tank.json').read_text())['formations']:
+            im=Image.open(ROOT/'roku'/formation['image'][5:]).convert('RGBA');ext=im.getchannel('A').getextrema();self.assertEqual(ext,(0,255))
     def test_all_textures_within_hardware_limit(self):
         for p in (ROOT/'roku/images').iterdir():
             w,h=build.dimensions(p);self.assertLessEqual(max(w,h),2048)
@@ -122,9 +122,8 @@ class PackageChecks(unittest.TestCase):
         import statistics
         self.assertGreater(statistics.mean(center.getdata()),220)
         cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
-        for name in ['mid','front']:
-            layer=cfg['layers'][name]
-            self.assertEqual(Image.open(ROOT/'roku/images'/('reef-'+name+'.webp')).size,(layer['width'],layer['height']))
+        for layer in cfg['formations']:
+            self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['width'],layer['height']))
             self.assertLessEqual(layer['x']+layer['width'],2048)
             self.assertLessEqual(layer['y']+layer['height'],1152)
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
@@ -146,10 +145,30 @@ class PackageChecks(unittest.TestCase):
     def test_fine_per_plane_collision_masks(self):
         occ=json.loads((ROOT/'roku/scenes/occupancy.json').read_text())
         self.assertEqual(occ['cell'],8)
-        self.assertEqual([p['z']for p in occ['planes']],[.48,.78])
+        self.assertEqual(len(occ['planes']),8)
+        cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
+        self.assertEqual([(p['id'],p['z'],p['parallax'])for p in occ['planes']],[(p['id'],p['z'],p['parallax'])for p in cfg['formations']])
         for plane in occ['planes']:
             self.assertEqual(len(plane['rows']),144)
             self.assertTrue(all(len(row)==256 for row in plane['rows']))
+    def test_connected_reef_navigation(self):
+        nodes=json.loads((ROOT/'roku/scenes/navigation.json').read_text())['nodes']
+        seen={0};queue=[0]
+        for i in queue:
+            for j in nodes[i]['edges']:
+                self.assertIn(i,nodes[j]['edges'])
+                if j not in seen:seen.add(j);queue.append(j)
+        self.assertEqual(len(seen),len(nodes))
+        self.assertTrue(any(n['z']<.2 and n['y']>600 for n in nodes))
+        self.assertTrue(any(n['z']>.9 and n['y']>600 for n in nodes))
+        self.assertTrue(any(.3<n['z']<.8 and n['y']<150 for n in nodes))
+    def test_turn_views_reuse_texture_without_losing_bends(self):
+        species=json.loads((ROOT/'roku/scenes/species.json').read_text())
+        for sp in species.values():
+            self.assertEqual(sp['yawCount'],64)
+            self.assertEqual(len(sp['viewWidths']),64)
+            self.assertTrue(any(f['flipX']for f in sp['frames']))
+            self.assertEqual(len({(f['x'],f['y'])for f in sp['frames']}),33*8)
     def test_surface_atlas_and_larger_bubble(self):
         self.assertEqual(build.dimensions(ROOT/'roku/images/surface-waves.png'),(2048,512))
         self.assertEqual(build.dimensions(ROOT/'roku/images/bubble.png'),(32,32))

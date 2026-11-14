@@ -96,3 +96,54 @@ function ReefFractionalPixelsValid(pixels as object) as boolean
     end for
     return false
 end function
+
+
+' Match the silhouette width continuously between densely sampled mesh views.
+' The texture selects a 5.625-degree view, but its apparent width no longer pops
+' each time the atlas index changes. Tail motion remains independent.
+function ReefFishView(heading as double, species as object) as object
+    position = ReefWrap(heading, 6.283185307) * species.yawCount / 6.283185307
+    first = Int(position) mod species.yawCount
+    second = (first + 1) mod species.yawCount
+    nearest = Int(position + 0.5) mod species.yawCount
+    blend = position - Int(position)
+    width = species.viewWidths[first] + (species.viewWidths[second] - species.viewWidths[first]) * blend
+    return {index:nearest, first:first, second:second, blend:blend, widthScale:width / species.viewWidths[nearest], width:width}
+end function
+
+
+' Floating scales carry the small remainder lost by integer draw coordinates.
+' A shorter anchor bounds rotated float32 error and shape stretch for fish.
+function ReefFishTransform(x as double, y as double, sx as double, sy as double, angle as double, result = invalid as dynamic) as object
+    anchor = 4096#
+    angle = Int(angle * 256 + 0.5) / 256#
+    c = Cos(angle / 57.295779513#) : sn = Sin(angle / 57.295779513#)
+    px = Int(x - anchor * (c * sx + sn * sy))
+    py = Int(y - anchor * (c * sy - sn * sx))
+    dx = x - px - anchor * (c * sx + sn * sy)
+    dy = y - py - anchor * (c * sy - sn * sx)
+    if result = invalid then result = {}
+    result.x = px : result.y = py : result.angle = angle
+    result.sx = sx + (c * dx - sn * dy) / anchor
+    result.sy = sy + (sn * dx + c * dy) / anchor
+    return result
+end function
+
+function ReefFishPixelsValid(pixels as object) as boolean
+    if pixels.Count() <> 1536 then return false
+    for channel = 0 to 3
+        totalA = 0# : totalB = 0# : weightedA = 0# : weightedB = 0#
+        for column = 0 to 23
+            a = pixels[(4 * 24 + column) * 4 + channel]
+            b = pixels[(11 * 24 + column) * 4 + channel]
+            totalA = totalA + a : totalB = totalB + b
+            weightedA = weightedA + column * a : weightedB = weightedB + column * b
+        end for
+        if totalA >= 128 and totalB >= 128
+            centerA = weightedA / totalA : centerB = weightedB / totalB
+            movement = Abs(centerB - centerA)
+            if ReefMin(centerA,centerB) > 7.5 and ReefMax(centerA,centerB) < 11 and movement > 0.12 and movement < 0.45 then return true
+        end if
+    end for
+    return false
+end function

@@ -41,7 +41,7 @@ sub Main()
     Check(Abs(a.time-before-0.1)<0.00001,"stalled frame timestep cap")
     pfar=ReefProjection({x:1500#,y:600#,z:0.1},64#) : pnear=ReefProjection({x:1500#,y:600#,z:0.9},64#)
     farMoved=ReefProjection({x:1500#,y:600#,z:0.1},74#) : nearMoved=ReefProjection({x:1500#,y:600#,z:0.9},74#)
-    Check(pnear.scale>pfar.scale and pnear.x>pfar.x and Abs(pnear.x-nearMoved.x)>Abs(pfar.x-farMoved.x),"perspective size speed and camera parallax")
+    Check(pnear.scale>pfar.scale and Abs(pnear.x-nearMoved.x)>Abs(pfar.x-farMoved.x),"perspective size speed and camera parallax")
     Check(ReefSolid(a,40#,850#),"reef occupancy behind rock")
     Check(not ReefSolid(a,1100#,90#),"open water occupancy")
     cameraGood=true

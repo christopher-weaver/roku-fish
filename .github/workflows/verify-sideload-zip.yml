@@ -67,3 +67,17 @@ jobs:
         run: |
           node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs tests/pan_precision.brs > /tmp/pan-check.txt
           python tools/pan_check.py /tmp/pan-check.txt
+
+      - name: Check continuous fish turning
+        run: >-
+          node tests/roku_runner.cjs --root roku
+          roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs
+          roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs
+          roku/source/effects.brs tests/turn_smoothness.brs
+
+      - name: Check fish and formation draw ordering
+        run: >-
+          node tests/roku_runner.cjs --root roku
+          roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs
+          roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs
+          roku/source/effects.brs roku/source/renderer.brs tests/render_depth.brs

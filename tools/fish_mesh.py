@@ -22,7 +22,7 @@ FIN_RIGS={
  'emperor_angelfish': ([(.75,.57),(.68,.55),(.59,.66),(.65,.78),(.74,.68)],(.75,.58)),
  'moorish_idol': ([(.76,.64),(.69,.61),(.60,.68),(.64,.80),(.74,.73)],(.76,.65)),
  'green_chromis': ([(.69,.45),(.62,.46),(.53,.57),(.58,.70),(.67,.61)],(.69,.47))}
-YAW_COUNT=32;BODY_BENDS=list(np.linspace(-.19,.19,8));FIN_ANGLES=list(np.linspace(0,.8,9))
+YAW_COUNT=64;UNIQUE_VIEWS=YAW_COUNT//2+1;BODY_BENDS=list(np.linspace(-.19,.19,8));FIN_ANGLES=list(np.linspace(0,.8,9))
 VS='''#version 330
 in vec3 pos;in vec2 uv;uniform float yaw;uniform float bend;
 uniform float finAngle;uniform float finPass;uniform vec2 hinge;
@@ -105,7 +105,7 @@ def cropped(shot,yaw,pose,fw,fh):
     alpha=shot.getchannel('A').point(lambda v:0 if v<4 else v);shot.putalpha(alpha)
     box=alpha.getbbox() or (fw//2,fh//2,fw//2+1,fh//2+1)
     x0,y0,x1,y1=box;box=(max(0,x0-2),max(0,y0-2),min(fw,x1+2),min(fh,y1+2))
-    return shot.crop(box),{'yaw':yaw*360/YAW_COUNT,'pose':pose,'anchorX':fw/2-box[0],'anchorY':fh/2-box[1]}
+    return shot.crop(box),{'yaw':-90+yaw*360/YAW_COUNT,'pose':pose,'anchorX':fw/2-box[0],'anchorY':fh/2-box[1]}
 
 def build(species_list=None):
     import moderngl
@@ -126,8 +126,8 @@ def build(species_list=None):
         p['hinge'].value=(hinge[0]*2-1,0)
         def read():return Image.frombytes('RGBA',fbo.size,fbo.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).resize((fw,fh),Image.Resampling.LANCZOS)
         shots=[];finshots=[]
-        for yaw in range(YAW_COUNT):
-            p['yaw'].value=yaw*2*math.pi/YAW_COUNT
+        for yaw in range(UNIQUE_VIEWS):
+            p['yaw'].value=-math.pi/2+yaw*2*math.pi/YAW_COUNT
             for pose,bend in enumerate(BODY_BENDS):
                 p['bend'].value=bend;p['finPass'].value=0;p['finAngle'].value=0;p['depthOnly'].value=0;tex.use()
                 fbo.color_mask=(True,True,True,True);fbo.clear(0,0,0,0,depth=1);vao.render();shot=read()
@@ -139,11 +139,27 @@ def build(species_list=None):
                 p['bend'].value=0;p['finPass'].value=0;p['depthOnly'].value=1;tex.use();vao.render()
                 p['depthOnly'].value=0;p['finPass'].value=1;p['finAngle'].value=angle;ftex.use();fvao.render()
                 finshots.append(cropped(read(),yaw,pose,fw,fh))
-        atlas,frames=pack(shots);finatlas,finframes=pack(finshots,512)
+        atlas,unique=pack(shots);finatlas,unique_fins=pack(finshots,512)
+        # Bilateral geometry uses the same texture on both flanks. Reflect the
+        # opposite-facing views and reverse the bend, preserving head/tail depth.
+        # This doubles yaw density without doubling decoded texture memory.
+        frames=[];finframes=[];view_widths=[]
+        for yaw in range(YAW_COUNT):
+            angle=yaw*2*math.pi/YAW_COUNT
+            flipped=math.cos(angle)<-1e-8
+            source_angle=math.pi-angle if flipped else angle
+            source_angle=(source_angle+math.pi)%(2*math.pi)-math.pi
+            source_yaw=round((source_angle+math.pi/2)*YAW_COUNT/(2*math.pi))
+            for pose in range(len(BODY_BENDS)):
+                src_pose=len(BODY_BENDS)-1-pose if flipped else pose
+                frames.append(dict(unique[source_yaw*len(BODY_BENDS)+src_pose],yaw=yaw*360/YAW_COUNT,pose=pose,flipX=flipped))
+            for pose in range(len(FIN_ANGLES)):
+                finframes.append(dict(unique_fins[source_yaw*len(FIN_ANGLES)+pose],yaw=yaw*360/YAW_COUNT,pose=pose,flipX=flipped))
+            view_widths.append(max(f['w']-4 for f in frames[-len(BODY_BENDS):]))
         atlas.save(OUT/(name+'-atlas.png'),optimize=True);finatlas.save(OUT/(name+'-fins.png'),optimize=True)
         raw=ROOT/'work/fish-raw';raw.mkdir(parents=True,exist_ok=True)
         for suffix in ['-atlas.png','-fins.png']:shutil.copy2(OUT/(name+suffix),raw/(name+suffix))
-        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.webp','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'poseCount':len(BODY_BENDS),'length':size*1.6,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finImage':'pkg:/images/'+name+'-fins.webp','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick,'collisionHalfWidth':max(max(f['anchorX'],f['w']-f['anchorX']) for f in frames+finframes),'collisionHalfHeight':max(max(f['anchorY'],f['h']-f['anchorY']) for f in frames+finframes)}
+        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.webp','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'viewWidths':view_widths,'poseCount':len(BODY_BENDS),'length':size*1.6,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finImage':'pkg:/images/'+name+'-fins.webp','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick,'collisionHalfWidth':max(max(f['anchorX'],f['w']-f['anchorX']) for f in frames+finframes),'collisionHalfHeight':max(max(f['anchorY'],f['h']-f['anchorY']) for f in frames+finframes)}
         for obj in [vao,vb,ib,fvao,fb,fi,tex,ftex]:obj.release()
         print(name,len(frames),'body poses,',len(finframes),'independent fin poses; atlas',atlas.size,flush=True)
     (ROOT/'roku/scenes/species.json').write_text(json.dumps(atlasdata,indent=2))

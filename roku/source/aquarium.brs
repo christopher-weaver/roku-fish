@@ -4,6 +4,7 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
     s.cfg = ParseJson(ReadAsciiFile("pkg:/scenes/tank.json"))
     if s.cfg = invalid then s.cfg = {speciesOrder: species.Keys(), populations: {Low:12,Medium:18,High:24}, occlusionDepths:[0.48,0.78], dawn:7#,dusk:18.5}
     s.camera = ReefCamera(0#, settings.camera, s.cfg.camera)
+    s.navigation = ParseJson(ReadAsciiFile("pkg:/scenes/navigation.json"))
     names = s.cfg.speciesOrder
     count = s.cfg.populations[settings.density]
     if settings.quality = "Performance"
@@ -22,6 +23,12 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
             if name = "ocellaris_clownfish" then f.x = 1000 + i * 9 : f.y = 800 : f.z = 0.94
             f.speed = sp.speed * 0.6
             f.yawVelocity = 0#
+            f.yawAcceleration = 0#
+            f.speedAcceleration = 0#
+            f.route = []
+            f.routeIndex = 0
+            f.routeVisits = 0
+            f.steeringHeading = f.heading
             f.avoidance = 0#
             f.finPhase = ReefRange(s, 0, 6.283185307)
             f.finRate = ReefRange(s, 0.85, 1.15)
@@ -53,7 +60,7 @@ end sub
 
 sub ReefSavePose(f as object)
     f.previousX = f.x : f.previousY = f.y : f.previousZ = f.z
-    f.previousHeading = f.heading : f.previousPitch = f.pitch
+    f.previousHeading = f.heading : f.previousYawVelocity = f.yawVelocity : f.previousPitch = f.pitch
     f.previousPhase = f.phase : f.previousFinPhase = f.finPhase
 end sub
 

@@ -9,7 +9,7 @@ function ReefLoadAssets(s as object) as object
     warm = s.settings.lighting = "Sunset"
     plate = "water-day.webp"
     if warm then plate = "water-sunset.webp"
-    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), mid: ReefLayer(ReefBitmap("pkg:/images/reef-mid.webp")), front: ReefLayer(ReefBitmap("pkg:/images/reef-front.webp")), mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), coral: [], caustics: [], fish: {}, fins: {}, surface: [] }
+    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), formations: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), coral: [], caustics: [], fish: {}, fins: {}, surface: [] }
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
     surface = ReefBitmap("pkg:/images/surface-waves.png")
     sand = ReefBitmap("pkg:/images/sand-caustics.png")
@@ -25,37 +25,16 @@ function ReefLoadAssets(s as object) as object
             end if
         end for
     end if
-    cfg = s.cfg.softCoral
-    b = ReefBitmap(cfg.image)
-    if b <> invalid
-        for i = 0 to cfg.frames - 1
-            a.coral.Push(ReefLayer(b, i * cfg.frameWidth, 0, cfg.frameWidth, cfg.frameHeight))
-        end for
-    end if
+    for index = 0 to s.cfg.formations.Count() - 1
+        cfg = s.cfg.formations[index]
+        a.formations.Push(ReefLayer(ReefBitmap(cfg.image)))
+    end for
     for each name in s.species
         sp = s.species[name]
         b = ReefBitmap(sp.image)
-        if b <> invalid
-            frames = []
-            for each frame in sp.frames
-                reg = CreateObject("roRegion", b, frame.x, frame.y, frame.w, frame.h)
-                reg.SetPretranslation(-frame.anchorX, -frame.anchorY)
-                if s.settings.quality <> "Performance" then reg.SetScaleMode(1)
-                frames.Push(reg)
-            end for
-            a.fish[name] = frames
-        end if
+        if b <> invalid then a.fish[name] = ReefFishFrames(b,sp.frames,s.settings.quality)
         b = ReefBitmap(sp.finImage)
-        if b <> invalid
-            frames = []
-            for each frame in sp.finFrames
-                reg = CreateObject("roRegion", b, frame.x, frame.y, frame.w, frame.h)
-                reg.SetPretranslation(-frame.anchorX, -frame.anchorY)
-                if s.settings.quality <> "Performance" then reg.SetScaleMode(1)
-                frames.Push(reg)
-            end for
-            a.fins[name] = frames
-        end if
+        if b <> invalid then a.fins[name] = ReefFishFrames(b,sp.finFrames,s.settings.quality)
     end for
     return a
 end function
@@ -72,4 +51,24 @@ function ReefLayer(bitmap as dynamic, x = 0 as integer, y = 0 as integer, width 
     fractional.SetScaleMode(1)
     fractional.SetPretranslation(65536, 65536)
     return {normal:normal, fractional:fractional}
+end function
+
+
+function ReefFishFrames(bitmap as object, metadata as object, quality as string) as object
+    frames = [] : cache = {}
+    for index = 0 to metadata.Count()-1
+        frame = metadata[index]
+        key = frame.x.ToStr()+":"+frame.y.ToStr()
+        if not cache.DoesExist(key)
+            reg = CreateObject("roRegion",bitmap,frame.x,frame.y,frame.w,frame.h)
+            reg.SetPretranslation(-frame.anchorX,-frame.anchorY)
+            if quality <> "Performance" then reg.SetScaleMode(1)
+            fractional = CreateObject("roRegion",bitmap,frame.x,frame.y,frame.w,frame.h)
+            fractional.SetPretranslation(4096-frame.anchorX,4096-frame.anchorY)
+            fractional.SetScaleMode(1)
+            cache[key] = {normal:reg,fractional:fractional}
+        end if
+        frames.Push(cache[key])
+    end for
+    return frames
 end function

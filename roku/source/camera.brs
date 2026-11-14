@@ -11,7 +11,11 @@ end function
 
 function ReefDisplayPose(f as object, alpha as double) as object
     pose = { x: f.previousX + (f.x - f.previousX) * alpha, y: f.previousY + (f.y - f.previousY) * alpha, z: f.previousZ + (f.z - f.previousZ) * alpha }
-    pose.heading = f.previousHeading + ReefAngleDelta(f.previousHeading, f.heading) * alpha
+    delta = ReefAngleDelta(f.previousHeading, f.heading)
+    ' Cubic heading interpolation keeps angular velocity continuous at 30Hz ticks.
+    a2 = alpha * alpha : a3 = a2 * alpha
+    pose.heading = f.previousHeading + delta * (3*a2-2*a3)
+    pose.heading = pose.heading + (a3-2*a2+alpha) * f.previousYawVelocity / 30# + (a3-a2) * f.yawVelocity / 30#
     pose.pitch = f.previousPitch + (f.pitch - f.previousPitch) * alpha
     pose.phase = f.previousPhase + ReefAngleDelta(f.previousPhase, f.phase) * alpha
     pose.finPhase = f.previousFinPhase + ReefAngleDelta(f.previousFinPhase, f.finPhase) * alpha
@@ -19,8 +23,8 @@ function ReefDisplayPose(f as object, alpha as double) as object
 end function
 
 function ReefProjection(f as object, camera as double) as object
-    scale = 0.56 + 0.44 * f.z
-    return { x: 1024 + (f.x - 1024) * scale - camera * scale, y: 480 + (f.y - 480) * scale + (1 - f.z) * 70, scale: scale }
+    scale = 0.70 + 0.30 * f.z
+    return { x: f.x - camera * scale, y: f.y + (1 - f.z) * 30, scale: scale }
 end function
 
 function ReefSolid(s as object, x as double, y as double) as boolean
@@ -51,8 +55,14 @@ function ReefCoralBlocked(s as object, f as object, fromPose as object, toPose a
             hh = (f.sp.collisionHalfHeight + f.sp.collisionHalfWidth * 0.22) * scale + 8
             ' Reef coordinates are screen + camera, while fish have depth parallax.
             ' Reserve the whole camera sweep, so panning cannot push a fish into rock.
-            x0 = ReefMin(first.x + 8 * (1 - first.scale), last.x + 8 * (1 - last.scale)) - hw
-            x1 = ReefMax(first.x + 120 * (1 - first.scale), last.x + 120 * (1 - last.scale)) + hw
+            parallax = 1#
+            if plane.parallax <> invalid then parallax = plane.parallax
+            firstPan = ReefMin(8 * (parallax - first.scale), 120 * (parallax - first.scale))
+            lastPan = ReefMin(8 * (parallax - last.scale), 120 * (parallax - last.scale))
+            x0 = ReefMin(first.x + firstPan, last.x + lastPan) + 64 * (1 - parallax) - hw
+            firstPan = ReefMax(8 * (parallax - first.scale), 120 * (parallax - first.scale))
+            lastPan = ReefMax(8 * (parallax - last.scale), 120 * (parallax - last.scale))
+            x1 = ReefMax(first.x + firstPan, last.x + lastPan) + 64 * (1 - parallax) + hw
             y0 = ReefMin(first.y, last.y) + 36 - hh
             y1 = ReefMax(first.y, last.y) + 36 + hh
             if ReefSolidRect(plane.rows, s.occupancy.cell, x0, y0, x1, y1) then return true
@@ -77,7 +87,7 @@ end function
 sub ReefSafeSpawn(s as object, f as object)
     if not ReefCoralBlocked(s, f, f, f) then return
     original = f.z : best = 10# : chosen = 0.3
-    for each lane in [0.30, 0.63, 0.95]
+    for each lane in [0.12, 0.94]
         candidate = {x:f.x, y:f.y, z:lane}
         distance = Abs(lane - original)
         if distance < best and not ReefCoralBlocked(s, f, candidate, candidate)

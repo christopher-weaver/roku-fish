@@ -8,7 +8,11 @@ A close-view, continuous coral reef aquarium with larger fish and sharp sand rid
 
 ![Default sunset aquarium](docs/previews/sunset.png)
 
-The aquarium includes ocellaris clownfish, yellow tang, royal gramma, emperor angelfish, Moorish idol and blue-green chromis. Each has 32 mesh-rendered yaw orientations, eight body/tail poses, and nine independently animated pectoral-fin poses per view. Bodies retain their slimmer proportions and now appear 60% larger. The three larger species use 224×196 rendering canvases; the others use 208×182, with sharper photographic textures. Fish cruise, explore, hover, hide, turn and loosely school. Depth changes their scale, apparent speed, tint and position relative to two transparent reef surfaces. Soft coral moves; wave-driven sand caustics, light shafts, a rolling wave surface, particles and larger sparse bubbles animate independently. Fixed simulation ticks, interpolated fish and bubble positions, continuous effect timing and gradually applied avoidance keep swimming smooth. Frame waiting occurs before presentation so a blocking buffer swap does not delay the next render. Auto/High target 60 fps; Auto settles at 30 fps if the device cannot sustain it. Performance targets 30 fps at 720p. Full fish footprints and swept movement stay clear of both coral layers, including during camera travel. The reference-inspired reef fills the middle and both sides of the frame, and the original sharp sand-ridge detail is retained under subtle wave-linked lighting.
+The aquarium includes ocellaris clownfish, yellow tang, royal gramma, emperor angelfish, Moorish idol and blue-green chromis. Each has 64 mesh-rendered turning views, eight body/tail poses and nine independent pectoral-fin poses. Neighboring views blend with continuous silhouette width; bounded turn acceleration/jerk and cubic heading interpolation smooth direction changes. Fractional fish positioning, including pitch, is enabled after a startup GPU pixel check. Slim proportions, larger fish and detailed photographic textures are retained.
+
+The reef is eight separate mid-ground formations with their own depth, thickness, camera parallax and transparent silhouettes. A connected clearance graph guides fish around the formations, across their crests, and between front and rear swimming space. Full body/tail/fin footprints are checked against swept coral volumes. Clownfish favor the central clam area; grammas seek rear shelter; chromis retain loose schooling. The background contains water and photographed sand. Waves, wave-linked sand lighting, coral sway and larger sparse bubbles remain.
+
+Auto/High target 60 fps with interpolated display motion; Auto settles at 30 fps after sustained missed frames. Performance targets 30 fps at 720p. The slow four-minute camera sweep, sunset colors, full-width reef and defined sand ridges are retained.
 
 The settings menu uses readable system fonts, a translucent highlight behind the text, and explicit Back/Done closure. Settings persist in the Roku registry: lighting (Sunset, Daylight, Dusk, Moonlight, Automatic), 12/18/24-fish populations, camera Off/Subtle/Slow, bubbles, particles, movement, quality, clock, FPS, and Restore Defaults. Clock and FPS default off. Camera movement defaults to Slow, sweeping left to right and back over four minutes. Existing saved settings are retained; choose Camera movement → Slow to enable the widest sweep. Automatic uses the device's local time. All interaction belongs to the separate settings entry point.
 
@@ -40,7 +44,6 @@ The helper does not read `.env` automatically. `.env.example` documents the vari
 npm install
 python -m pip install -r tools/requirements.txt
 python tools/test.py
-python tools/test.py --soak
 ```
 
 `tools/test.py` compiles the native sources, runs package/asset checks, and executes production BrightScript simulation tests. The optional soak runs one simulated hour with six principal fish; it is a host test, not a Roku performance test. Device storage is represented by a small registry adapter in the host interpreter.
@@ -97,3 +100,8 @@ Removes dappled reef lighting. A shared eight-second water-height cycle drives 3
 ## Version 1.0.5
 
 Keeps the existing pan rate and four-minute Slow cycle, but places scenery fractionally instead of rounding its travel to whole pixels. A startup pixel-readback check chooses a working floating-point drawing path and retains a safe fallback on unsupported hardware. The scene is rebuilt around the user's fuller, closer reef reference, with coral across the center and 60% larger fish. Higher-resolution fish textures retain 32 yaw views, eight tail bends and nine independent fin poses. Sand grain and defined ridges remain photographic; only a restrained light modulation changes with the waves. The rebuilt ZIP remains tracked and directly downloadable.
+
+
+## Version 1.0.6
+
+Replaces the two broad reef planes with eight independent mid-ground formations, a clean transparent reef source and clearance-validated routes through open water. Fish explore both sides of the reef rather than only repelling upward. Turning now uses 64 views with width-matched view blending, gentler angular acceleration and jerk, continuous display heading velocity, and GPU-probed fractional placement while pitched. Bilateral view reuse keeps decoded texture memory close to the previous release. The updated installation ZIP remains tracked on GitHub.

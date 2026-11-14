@@ -1,0 +1,12 @@
+{
+  "float32_max_center_error_px": 0.0005859374999772626,
+  "peak_frame_change_ratio_vs_snapped_views": {
+    "ocellaris_clownfish": 0.152,
+    "yellow_tang": 0.298,
+    "royal_gramma": 0.224,
+    "emperor_angelfish": 0.156,
+    "moorish_idol": 0.191,
+    "green_chromis": 0.239
+  },
+  "scope": "Host math and raster comparison; actual Roku GPU/frame rate require device validation."
+}

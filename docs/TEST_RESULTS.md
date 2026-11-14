@@ -1,32 +1,31 @@
-# Deep Reef 1.0.5 — verification results
+# Deep Reef 1.0.6 — verification results
 
-The camera's four-minute Slow cycle and ±56px amplitude are unchanged. Scenery/effects now retain fractional placement instead of whole-pixel stepping. The composition uses a close, continuous reef, 60% larger fish and photographic sand ridges with subtle wave-linked lighting.
+Fish turning uses 64 views, width-matched view blending, bounded angular acceleration/jerk and cubic heading interpolation. A startup GPU readback probe selects fractional placement for pitched fish. Eight separate mid-ground reef formations use registered collision volumes, individual parallax and a connected 185-node/400-edge navigation graph. The background contains water and photographic sand.
 
 | Check | Result |
 |---|---|
 | Native/settings compiler | PASS, BrighterScript 0.73.8 |
-| Package, artwork, detail and tracking checks | PASS, 26 Python tests |
-| Production behavior/timing | PASS, 32 native-cursor checks |
-| Fish update/animation regression | PASS, every fish/body/fin phase at Low/Medium/High density |
-| Coral collision | PASS, safe spawns, swept body/tail contact and clear physics/interpolated poses for 18 enlarged fish |
-| Scene soak | PASS, 600 simulated seconds, six enlarged principal fish, zero boundary or coral intersections |
-| Settings | PASS, HD/FHD layout, readable row data, navigation, Back/Done, defaults |
-| Pan geometry | PASS, production transforms quantized to float32 at HD/FHD |
-| GPU-probe classifier | PASS, fractional samples accepted, flipped/channel-varied readback accepted, integer-only samples rejected |
-| Wave/display timing | PASS, shared 32-frame/eight-second wave cycle, interpolated bubbles and 60/30Hz scheduling |
-| Browser inspection | PASS, 601 production-world snapshots, 22 images, four lighting modes and play/pause/seek; no page errors |
+| Package, artwork and tracking checks | PASS, 28 Python tests |
+| Production behavior/timing | PASS, 32 checks, including a rerun after arrival/hover adjustments |
+| Fish animation | PASS, every fish/body/fin phase at Low/Medium/High density |
+| Coral collision | PASS, 30 simulated seconds with 18 fish; safe spawns, swept contact, clear physics/interpolated poses and no position jumps |
+| Draw ordering | PASS, production renderer interleaves rear/middle/front fish with eight formations and blends reflected body/fin views |
+| Turn smoothness | PASS, bounded angular speed/acceleration/jerk, cubic endpoint velocities, continuous widths and fractional pitched/mirrored centers |
+| Settings | PASS, HD/FHD layout, labels, navigation and Back/Done |
+| Waves/pacing | PASS, interpolated effects, shared wave phase and simulated 60/30Hz presentation |
+| Pan placement | PASS, float32 HD/FHD transforms and GPU-probe classifier |
+| Browser inspection | PASS, 27 images, four lighting modes, play/pause/seek and no page errors |
+| Extended scene soak | Canceled at the user's request; no completed soak claimed for this final build |
 | Actual Roku GPU/FPS | Not measured in this environment |
 
-The float32 transform gate measured maximum placement error **0.003886px**, maximum frame increment **0.031250px**, and maximum stretch across a 2048px layer **0.031006px** in the tested 60Hz camera segment. The old whole-pixel draw placement stepped by 1px. A startup readback probe checks the actual device's scaled/transformed path before enabling fractional drawing; unsupported paths retain ordinary placement. The math test does not establish native GPU precision or sustained device frame rate.
+The controlled host yaw sweep reduces peak frame-to-frame image changes to 15–30% of nearest-view snapping for the same 64-view data. Float32 fish-transform center error is at most 0.000586px in the tested HD/FHD pitched/mirrored cases. The existing pan test remains below 0.004px placement error with a maximum 0.03125px frame step. These are host math/raster checks, not measurements of device presentation or FPS.
 
-The new reference-inspired source fills the center and both sides with coral. Shared photographic reef layers have recorded crop bounds, and conservative per-plane occupancy includes the crown sway envelope. The 32-yaw/eight-tail/nine-fin animation remains; larger species use 224×196 canvases and others 208×182, with improved source contrast/sharpness and clean palettes. The 60% display-length increase is covered by the collision tests.
+Active Sunset textures are approximately 98.0 MiB decoded RGBA: 62.5 MiB body atlases and 13.4 MiB fins, plus scenery/effects. FHD double buffers bring the estimate to 113.8 MiB; HD to 105.0 MiB, before driver/interpreter overhead. Bilateral view reuse and cached regions avoid a separate decoded texture for every full-circle view.
 
-The sand photo is preserved. Tests compare grain energy against its source and limit the animated lighting alpha to 48/255. The low-resolution light overlay contains only subtle brightness variation, not replacement sand texture. Its phase comes from the same periodic field as the surface waves. No dapple layer is present.
+Photographic sand grain and defined ridges remain; the restrained lighting overlay changes with the same wave phase as the surface. The sunset palette, larger slim fish, independent pectoral animation and slow four-minute camera sweep are retained. No dapple asset is shipped.
 
-Estimated decoded storage: **62.5 MiB** body atlases, **12.9 MiB** fins, **99.5 MiB** active Sunset textures; about **115.3 MiB** with FHD double buffers or **106.6 MiB** with HD buffers, before driver/interpreter overhead. Two cached regions share each scenery bitmap; fractional placement does not allocate another image. These are dimension-based estimates, not measured residency.
+The browser preview records 601 production-world snapshots. It illustrates the current artwork, formation ordering, view reflection/blending and width interpolation; it is an inspection aid rather than a Roku GPU reference. Its capture preceded the final small arrival-radius/hover-state adjustment. Earlier scene-soak logs are historical, not final-build evidence.
 
-Current logs: compiler, package, simulation, movement-regression, collision, settings, wave-smoothness, pan-precision, scene-soak and browser results under `docs/`. The older one-hour soak/Blender logs are historical checks, not new hardware results.
+Tracked installation ZIP: **3,872,032 bytes**. SHA-256: `d190ee5044981a99b80efa57c5b5b078616555f47b9ca9a642b0dd7d443fd2bf`.
 
-Still requires the user's Roku: startup probe result, visible pan smoothness, sustained FPS, graphics memory, native menu rendering/remote behavior, repeated activation and registry persistence.
-
-Tracked install ZIP: **3,990,704 bytes**. SHA-256: `ac8e6619cf5f3561b58cfedd2891ddded691f693ea5cac5a7dd43843dc7105fb`.
+Still requires the user's Roku: startup probe outcomes, visible smoothness, sustained FPS/memory, native settings rendering, remote dismissal and activation/persistence across sessions.

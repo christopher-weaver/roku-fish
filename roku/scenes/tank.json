@@ -9,8 +9,14 @@
   "dawn": 7.0,
   "dusk": 18.5,
   "occlusionDepths": [
+    0.38,
+    0.43,
     0.48,
-    0.78
+    0.57,
+    0.61,
+    0.66,
+    0.7,
+    0.76
   ],
   "camera": {
     "center": 64,
@@ -23,16 +29,8 @@
       "period": 240
     }
   },
-  "softCoral": {
-    "x": 530,
-    "y": 44,
-    "frameWidth": 560,
-    "frameHeight": 390,
-    "frames": 1,
-    "depth": 0.48,
-    "image": "pkg:/images/soft-coral.webp"
-  },
-  "notes": "Close continuous reef composed from the user reference. Fractional placement keeps the existing 240-second horizontal camera cycle smooth.",
+  "softCoral": null,
+  "notes": "Eight finite mid-ground formations with registered swept collision volumes, depth parallax and a clearance-validated navigation graph. Water/sand background contains no reef.",
   "speciesOrder": [
     "ocellaris_clownfish",
     "yellow_tang",
@@ -46,18 +44,94 @@
     "Medium": 18,
     "High": 24
   },
-  "layers": {
-    "mid": {
+  "formations": [
+    {
+      "id": "sea-fan",
       "x": 0,
-      "y": 58,
-      "width": 2048,
-      "height": 622
+      "y": 288,
+      "width": 515,
+      "height": 730,
+      "z": 0.38,
+      "halfDepth": 0.035,
+      "parallax": 0.8636,
+      "image": "pkg:/images/reef-sea-fan.webp"
     },
-    "front": {
+    {
+      "id": "branching-coral",
+      "x": 1125,
+      "y": 220,
+      "width": 923,
+      "height": 450,
+      "z": 0.43,
+      "halfDepth": 0.045,
+      "parallax": 0.8746,
+      "image": "pkg:/images/reef-branching-coral.webp"
+    },
+    {
+      "id": "white-crown",
+      "x": 505,
+      "y": 297,
+      "width": 630,
+      "height": 413,
+      "z": 0.48,
+      "halfDepth": 0.045,
+      "parallax": 0.8856,
+      "image": "pkg:/images/reef-white-crown.webp"
+    },
+    {
+      "id": "center-rock",
+      "x": 505,
+      "y": 661,
+      "width": 671,
+      "height": 358,
+      "z": 0.57,
+      "halfDepth": 0.045,
+      "parallax": 0.9054,
+      "image": "pkg:/images/reef-center-rock.webp"
+    },
+    {
+      "id": "right-garden",
+      "x": 1352,
+      "y": 661,
+      "width": 696,
+      "height": 356,
+      "z": 0.61,
+      "halfDepth": 0.045,
+      "parallax": 0.9142,
+      "image": "pkg:/images/reef-right-garden.webp"
+    },
+    {
+      "id": "green-cup",
       "x": 0,
-      "y": 473,
-      "width": 2048,
-      "height": 575
+      "y": 622,
+      "width": 540,
+      "height": 392,
+      "z": 0.66,
+      "halfDepth": 0.045,
+      "parallax": 0.9252,
+      "image": "pkg:/images/reef-green-cup.webp"
+    },
+    {
+      "id": "brain-coral",
+      "x": 1126,
+      "y": 570,
+      "width": 589,
+      "height": 384,
+      "z": 0.7,
+      "halfDepth": 0.045,
+      "parallax": 0.934,
+      "image": "pkg:/images/reef-brain-coral.webp"
+    },
+    {
+      "id": "central-clam",
+      "x": 886,
+      "y": 822,
+      "width": 509,
+      "height": 204,
+      "z": 0.76,
+      "halfDepth": 0.025,
+      "parallax": 0.9472,
+      "image": "pkg:/images/reef-central-clam.webp"
     }
-  }
+  ]
 }
