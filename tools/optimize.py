@@ -6,6 +6,7 @@ ROOT=Path(__file__).resolve().parents[1]
 def optimize(atlases_only=False):
     for p in sorted((ROOT/'roku/images').glob('*.png')):
         if atlases_only and 'atlas' not in p.name and '-fins' not in p.name:continue
+        if Image.open(p).mode=='P':continue
         im=Image.open(p).convert('RGBA')
         if 'reef-' in p.name:colors=256;dither=.75
         elif 'atlas' in p.name or '-fins' in p.name:colors=160;dither=.3

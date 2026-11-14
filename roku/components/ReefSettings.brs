@@ -1,23 +1,18 @@
 sub init()
     m.schema = ReefSettingsSchema()
+    ' All menu coordinates use FHD design units; keep every row/value on HD screens.
+    resolution = m.top.currentDesignResolution
+    if resolution <> invalid
+        layout = m.top.FindNode("layout")
+        layout.scale = [resolution.width / 1920.0, resolution.height / 1080.0]
+    end if
     m.index = 0
     m.rows = m.top.FindNode("rows")
     m.highlight = m.top.FindNode("highlight")
     m.labels = [] : m.values = []
     for i = 0 to 10
-        label = m.rows.CreateChild("Label")
-        label.translation = [0, i * 64]
-        label.width = 900 : label.height = 48
-        label.font = CreateObject("roSGNode", "Font")
-        label.font.size = 28
-        label.color = "0xF5E0DBFF"
-        value = m.rows.CreateChild("Label")
-        value.translation = [1080, i * 64]
-        value.width = 420 : value.height = 48
-        value.font = CreateObject("roSGNode", "Font")
-        value.font.size = 28
-        value.color = "0xFFD3A8FF"
-        m.labels.Push(label) : m.values.Push(value)
+        m.labels.Push(m.top.FindNode("label" + i.ToStr()))
+        m.values.Push(m.top.FindNode("value" + i.ToStr()))
     end for
     refreshRows()
     m.top.SetFocus(true)
@@ -37,12 +32,18 @@ end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
     if not press then return false
-    if key = "back" then m.top.done = true : return true
+    if key = "back"
+        m.top.closeRequested = true
+        return true
+    end if
     if key = "up" then m.index = (m.index + 10) mod 11
     if key = "down" then m.index = (m.index + 1) mod 11
     m.highlight.translation = [125, 240 + m.index * 64]
     if key = "OK" or key = "left" or key = "right"
-        if m.index = 10 then m.top.done = true : return true
+        if m.index = 10
+            m.top.closeRequested = true
+            return true
+        end if
         prefs = ReefValidateSettings(m.top.preferences)
         if m.index = 9
             m.top.preferences = ReefValidateSettings(invalid)

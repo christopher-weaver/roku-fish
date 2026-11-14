@@ -137,6 +137,7 @@ sub ReefRender(r as object, s as object, a as object)
     while i < s.sorted.Count()
         ReefDrawFish(r, s, a, s.sorted[i]) : i = i + 1
     end while
+    ReefDrawDapple(r, s, a)
     ReefDrawEffects(r, s, a, 0.48, 1.01)
     for k = 0 to 2
         ReefDraw(r, 150 + k * 590 + Sin(s.time * 0.07 + k) * 24 - s.camera * 0.25, -70, 2.0, 1.8, a.ray, ReefRGBA(255, 223, 210, Int((65 + 18 * Sin(s.time * 0.13 + k)) * s.lighting[0])))
@@ -146,4 +147,21 @@ sub ReefRender(r as object, s as object, a as object)
     if s.lighting[3] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(241, 105, 108, Int(s.lighting[3])))
     if s.settings.clock = "On" then screen.DrawText(s.clockText, Int(1660 * r.scale), Int(970 * r.scale), &hF6DFD4B0, r.font)
     if s.settings.fps = "On" then screen.DrawText(Int(s.fps).ToStr() + " FPS", Int(110 * r.scale), Int(95 * r.scale), &hF6DFD4D0, r.font)
+end sub
+
+sub ReefDrawDapple(r as object, s as object, a as object)
+    if a.dapple.Count() = 0 then return
+    cfg = a.dappleConfig
+    phase = ReefWrap(s.time, cfg.period) * cfg.frames / cfg.period
+    first = Int(phase) : blend = phase - first
+    for pass = 0 to 1
+        weight = 1 - blend
+        if pass = 1 then weight = blend
+        color = ReefRGBA(255, 244, 225, Int(255 * weight * s.lighting[0] * s.lighting[0] * s.quality))
+        frame = a.dapple[(first + pass) mod cfg.frames]
+        for patch = 0 to cfg.positions.Count() - 1
+            patchPosition = cfg.positions[patch]
+            ReefDraw(r, patchPosition[0] - s.camera, patchPosition[1] - 36, cfg.scale, cfg.scale, frame[patch], color)
+        end for
+    end for
 end sub

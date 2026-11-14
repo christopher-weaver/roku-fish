@@ -53,6 +53,18 @@ sub ReefQualitySample(s as object, seconds as double, frameCount as integer)
     if seconds <= 0 then return
     s.fps = frameCount / seconds
     if s.settings.quality <> "Auto" then return
+    if s.renderFps = invalid then s.renderFps = 60#
+    if s.pacingPressure = invalid then s.pacingPressure = 0#
+    if s.renderFps = 60 and s.fps < 50
+        s.pacingPressure = s.pacingPressure + seconds
+        if s.pacingPressure >= 12
+            ' Lock to an even 30Hz cadence rather than oscillating between frame caps.
+            s.renderFps = 30#
+            s.adaptation = 0#
+        end if
+    else
+        s.pacingPressure = ReefMax(0#, s.pacingPressure - seconds)
+    end if
     if s.fps < 25
         s.adaptation = s.adaptation + seconds
     else

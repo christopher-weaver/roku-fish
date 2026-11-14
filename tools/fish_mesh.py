@@ -22,7 +22,7 @@ FIN_RIGS={
  'emperor_angelfish': ([(.75,.57),(.68,.55),(.59,.66),(.65,.78),(.74,.68)],(.75,.58)),
  'moorish_idol': ([(.76,.64),(.69,.61),(.60,.68),(.64,.80),(.74,.73)],(.76,.65)),
  'green_chromis': ([(.69,.45),(.62,.46),(.53,.57),(.58,.70),(.67,.61)],(.69,.47))}
-YAW_COUNT=20;BODY_BENDS=[-.19,-.063333,.063333,.19];FIN_ANGLES=[0,.20,.40,.60,.80]
+YAW_COUNT=24;BODY_BENDS=list(np.linspace(-.19,.19,6));FIN_ANGLES=list(np.linspace(0,.8,7))
 VS='''#version 330
 in vec3 pos;in vec2 uv;uniform float yaw;uniform float bend;
 uniform float finAngle;uniform float finPass;uniform vec2 hinge;
@@ -54,7 +54,7 @@ def prepare_texture(name):
 
 def make_mesh(name,thick):
     original,body,fin,finmask,hinge=prepare_texture(name)
-    w=200;h=max(40,round(w*original.height/original.width))
+    w=320;h=max(40,round(w*original.height/original.width))
     a=np.asarray(original.resize((w,h),Image.Resampling.LANCZOS).getchannel('A'))
     mask=a>50;dist=distance_transform_edt(mask);depth=gaussian_filter(dist,.65);depth=depth/max(depth.max(),1)*thick
     verts=[];uv=[];faces=[];ids={}
@@ -110,7 +110,7 @@ def cropped(shot,yaw,pose,fw,fh):
 def build():
     import moderngl
     ctx=moderngl.create_standalone_context(backend='egl');p=ctx.program(vertex_shader=VS,fragment_shader=FS)
-    fw,fh=192,168;fbo=ctx.simple_framebuffer((fw*2,fh*2),components=4);fbo.use();ctx.enable(moderngl.DEPTH_TEST)
+    fw,fh=192,168;fbo=ctx.simple_framebuffer((fw*3,fh*3),components=4);fbo.use();ctx.enable(moderngl.DEPTH_TEST)
     contact=Image.new('RGB',(6*256,6*150),(27,45,58));atlasdata={}
     for row,(name,label,size,speed,beat,school,thick,finbeat)in enumerate(SPECIES):
         v,uv,faces,fv,fins,body,fin,hinge=make_mesh(name,thick)
@@ -127,8 +127,8 @@ def build():
                 p['bend'].value=bend;p['finPass'].value=0;p['finAngle'].value=0;p['depthOnly'].value=0;tex.use()
                 fbo.color_mask=(True,True,True,True);fbo.clear(0,0,0,0,depth=1);vao.render();shot=read()
                 shots.append(cropped(shot,yaw,pose,fw,fh))
-                if pose==1 and yaw in [0,2,5,8,10,15]:
-                    col=[0,2,5,8,10,15].index(yaw);thumb=shot.copy();thumb.thumbnail((250,142));contact.paste(thumb,(col*256,row*150),thumb)
+                if pose==1 and yaw in [0,3,6,9,12,18]:
+                    col=[0,3,6,9,12,18].index(yaw);thumb=shot.copy();thumb.thumbnail((250,142));contact.paste(thumb,(col*256,row*150),thumb)
             for pose,angle in enumerate(FIN_ANGLES):
                 fbo.color_mask=(True,True,True,True);fbo.clear(0,0,0,0,depth=1)
                 p['bend'].value=0;p['finPass'].value=0;p['depthOnly'].value=1;tex.use();vao.render()
@@ -136,7 +136,7 @@ def build():
                 finshots.append(cropped(read(),yaw,pose,fw,fh))
         atlas,frames=pack(shots);finatlas,finframes=pack(finshots,512)
         atlas.save(OUT/(name+'-atlas.png'),optimize=True);finatlas.save(OUT/(name+'-fins.png'),optimize=True)
-        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.png','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'poseCount':len(BODY_BENDS),'length':size,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finImage':'pkg:/images/'+name+'-fins.png','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick}
+        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.png','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'poseCount':len(BODY_BENDS),'length':size,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finImage':'pkg:/images/'+name+'-fins.png','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick,'collisionHalfWidth':max(max(f['anchorX'],f['w']-f['anchorX']) for f in frames+finframes),'collisionHalfHeight':max(max(f['anchorY'],f['h']-f['anchorY']) for f in frames+finframes)}
         for obj in [vao,vb,ib,fvao,fb,fi,tex,ftex]:obj.release()
         print(name,len(frames),'body poses,',len(finframes),'independent fin poses; atlas',atlas.size,flush=True)
     (ROOT/'roku/scenes/species.json').write_text(json.dumps(atlasdata,indent=2))

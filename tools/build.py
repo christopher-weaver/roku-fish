@@ -6,6 +6,11 @@ ROOT=Path(__file__).resolve().parents[1];ROKU=ROOT/'roku'
 def dimensions(p):
     b=p.read_bytes()
     if b[:8]==b'\x89PNG\r\n\x1a\n':return struct.unpack('>II',b[16:24])
+    if b[:4]==b'RIFF' and b[8:12]==b'WEBP':
+        # Extended WebP stores its canvas dimensions in VP8X (24-bit LE, minus one).
+        if b[12:16]==b'VP8X':return (int.from_bytes(b[24:27],'little')+1,int.from_bytes(b[27:30],'little')+1)
+        if b[12:16]==b'VP8L':
+            packed=int.from_bytes(b[21:25],'little');return ((packed&0x3fff)+1,((packed>>14)&0x3fff)+1)
     if b[:2]==b'\xff\xd8':
         i=2
         while i<len(b):
@@ -83,7 +88,7 @@ def build(increment=False):
             if not p.is_file() or p.name.startswith('.'):continue
             rel=p.relative_to(ROKU)
             if rel.parts[0] not in ['manifest','source','components','scenes','images','licenses']:continue
-            if p.suffix.lower() not in ['','.brs','.xml','.json','.jpg','.png','.txt']:continue
+            if p.suffix.lower() not in ['','.brs','.xml','.json','.jpg','.png','.webp','.txt']:continue
             info=zipfile.ZipInfo(rel.as_posix(),(2026,1,1,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o100644<<16
             z.writestr(info,p.read_bytes())
     size=path.stat().st_size

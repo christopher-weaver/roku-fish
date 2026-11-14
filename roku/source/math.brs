@@ -42,3 +42,13 @@ function ReefRGBA(r as integer, g as integer, b as integer, a as integer) as int
     if r > 127 then r = r - 256
     return r * &h1000000 + g * &h10000 + b * &h100 + a
 end function
+
+function ReefMin(a as double, b as double) as double
+    if a < b then return a
+    return b
+end function
+
+function ReefMax(a as double, b as double) as double
+    if a > b then return a
+    return b
+end function

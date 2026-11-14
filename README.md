@@ -8,9 +8,9 @@ A self-contained native Roku aquarium screensaver with a pink, orange and red **
 
 ![Default sunset aquarium](docs/previews/sunset.png)
 
-The aquarium includes ocellaris clownfish, yellow tang, royal gramma, emperor angelfish, Moorish idol and blue-green chromis. Each has 20 mesh-rendered yaw orientations, four body/tail poses, and five independently animated pectoral-fin poses per view. Bodies are slightly slimmer. Fish cruise, explore, hover, hide, turn and loosely school. Depth changes their scale, apparent speed, tint and position relative to two transparent reef surfaces. Soft coral moves; caustics, light shafts, a rippling water surface, particles and larger sparse bubbles animate independently. Fixed simulation ticks, interpolated positions and damped turns keep swimming smooth. The background uses richer, more saturated sunset colors.
+The aquarium includes ocellaris clownfish, yellow tang, royal gramma, emperor angelfish, Moorish idol and blue-green chromis. Each has 24 mesh-rendered yaw orientations, six body/tail poses, and seven independently animated pectoral-fin poses per view. Bodies are slightly slimmer. Fish cruise, explore, hover, hide, turn and loosely school. Depth changes their scale, apparent speed, tint and position relative to two transparent reef surfaces. Soft coral moves; terrain-clipped dappled sunlight, caustics, light shafts, a rippling water surface, particles and larger sparse bubbles animate independently. Fixed simulation ticks, interpolated positions and damped turns keep swimming smooth. Auto/High target 60 fps; Auto settles at 30 fps if the device cannot sustain it. Performance targets 30 fps at 720p. Full fish footprints and swept movement stay clear of both coral layers, including during camera travel. The background uses richer, more saturated sunset colors.
 
-Settings persist in the Roku registry: lighting (Sunset, Daylight, Dusk, Moonlight, Automatic), 12/18/24-fish populations, camera Off/Subtle/Slow, bubbles, particles, movement, quality, clock, FPS, and Restore Defaults. Clock and FPS default off. Camera movement defaults to Slow, sweeping left to right and back over four minutes. Existing saved settings are retained; choose Camera movement → Slow to enable the widest sweep. Automatic uses the device's local time. All interaction belongs to the separate settings entry point.
+The settings menu uses readable system fonts, a translucent highlight behind the text, and explicit Back/Done closure. Settings persist in the Roku registry: lighting (Sunset, Daylight, Dusk, Moonlight, Automatic), 12/18/24-fish populations, camera Off/Subtle/Slow, bubbles, particles, movement, quality, clock, FPS, and Restore Defaults. Clock and FPS default off. Camera movement defaults to Slow, sweeping left to right and back over four minutes. Existing saved settings are retained; choose Camera movement → Slow to enable the widest sweep. Automatic uses the device's local time. All interaction belongs to the separate settings entry point.
 
 ## Build
 
@@ -64,7 +64,7 @@ Open `http://localhost:8000/docs/preview.html`. It displays snapshots exported f
 
 See [ARCHITECTURE.md](ARCHITECTURE.md), [PERFORMANCE.md](PERFORMANCE.md), [TESTING.md](TESTING.md) and [CREDITS.md](CREDITS.md).
 
-**Validation boundary:** local compilation, direct simulation, asset checks, preview inspection and ZIP integrity are covered. Roku registration, actual GPU output, 30 FPS, memory consumption, remote dismissal and reboot persistence require testing on a real device. The fish meshes are silhouette-derived textured volumes; a future artist can replace them with sculpted anatomical models using the supplied atlas interface. Camera travel deliberately uses 128 pixels of overscan instead of a stretched two-screen panorama.
+**Validation boundary:** local compilation, direct simulation, asset checks, preview inspection and ZIP integrity are covered. Roku registration, actual GPU output, sustained 60/30 FPS, memory consumption, remote dismissal and reboot persistence require testing on a real device. The fish meshes are silhouette-derived textured volumes; a future artist can replace them with sculpted anatomical models using the supplied atlas interface. Camera travel deliberately uses 128 pixels of overscan instead of a stretched two-screen panorama.
 
 ## Keep the install ZIP on GitHub
 
@@ -85,3 +85,7 @@ For a new release version, use `python tools/build.py --increment` instead. The 
 ## Version 1.0.2
 
 Fixes the Roku shared-array iterator issue that advanced only the first fish. All 12/18/24 fish now update independently. Adds smoother swimming, moving pectoral fins, slimmer fish, larger bubbles, animated surface ripples, a wider slow camera sweep and more saturated reef colors. The host tests now emulate Roku’s single enumeration cursor so this device-specific regression cannot silently pass the JavaScript interpreter again.
+
+## Version 1.0.3
+
+Fixes invisible settings rows, fits the full menu on both 720p and 1080p screens, and repairs Back/Done exit handling. Prevents body, tail and fin clipping using fine per-layer coral masks, swept full-fish collision checks and early avoidance. Adds moving dappled sunlight on reef and sand, a 60 fps render target with stable automatic fallback, denser yaw/tail/fin poses, finer meshes and 3× supersampling. The tracked ZIP is rebuilt with every runtime change. Reef alpha plates use WebP with lossless alpha, supported since [Roku OS 9.4](https://developer.roku.com/dev/docs/media); this project targets modern Roku OS 16 devices.

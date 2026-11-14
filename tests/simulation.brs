@@ -69,9 +69,8 @@ sub Main()
     Check(steering.count=1 and steering.x>0,"school alignment and cohesion")
     group.fish[1].x=530 : steering=ReefNeighbors(group,group.fish[0])
     Check(steering.x<0,"short range separation")
-    f=a.fish[0] : f.x=70 : f.y=870 : f.z=0.4799 : f.heading=1.57 : f.tx=70 : f.ty=870 : f.tz=0.9 : f.speed=20
-    ReefFishStep(a,f,0.1)
-    Check(f.z<0.48,"coral depth plane crossing blocked")
+    f=a.fish[0]
+    Check(ReefCoralBlocked(a,f,{x:70#,y:870#,z:0.62},{x:70#,y:870#,z:0.9}),"coral depth plane crossing blocked")
     a.time=86399.98 : ReefStep(a,0.1)
     Check(a.time>=0 and a.time<1,"daily phase rollover")
     Check(ReefCamera(0#,"Slow")=8 and Abs(ReefCamera(120#,"Slow")-120)<0.0001 and ReefCamera(240#,"Slow")=8,"camera sweeps left right left with smooth endpoints")

@@ -61,9 +61,10 @@ sub RunScreenSaver()
             end if
             msg = port.GetMessage()
         end while
-        nextFrame = nextFrame + 1000# / 30#
+        frameMs = 1000# / s.renderFps
+        nextFrame = nextFrame + frameMs
         current = CDbl(timer.TotalMilliseconds())
-        if nextFrame < current - 34 then nextFrame = current
+        if nextFrame < current - frameMs then nextFrame = current
         remaining = Int(nextFrame - current)
         if remaining > 0 then Sleep(remaining)
     end while

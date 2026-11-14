@@ -5,7 +5,7 @@ from pathlib import Path
 import json, math, hashlib
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
-from scipy.ndimage import gaussian_filter, binary_fill_holes
+from scipy.ndimage import gaussian_filter, binary_fill_holes, binary_closing, binary_erosion, label
 ROOT=Path(__file__).resolve().parents[1]
 SRC=ROOT/'assets/source'; OUT=ROOT/'roku/images'; OUT.mkdir(parents=True,exist_ok=True)
 W,H=2048,1152
@@ -49,23 +49,31 @@ def build():
     mask=np.clip(gaussian_filter(mask,.6)*1.8,0,1)
     base=np.clip((v-.82)/.11,0,1)*np.array(env)/255
     mask=np.maximum(mask,base)
+    # Close tiny cyan texture holes inside solid coral, preserving actual archways.
+    core=binary_closing(mask>.22,iterations=2)
+    holes=binary_fill_holes(core)&~core
+    components,n=label(holes);counts=np.bincount(components.ravel())
+    small=counts<=4096;small[0]=False
+    core|=small[components]
+    mask=np.maximum(mask,gaussian_filter(core.astype(float),.6))
+    mask[binary_erosion(core,iterations=2)]=1
     # Split back rock ledges and front anemone / low coral into two actual occlusion surfaces.
     front=(v>.67)&((u<.33)|(u>.82))
+    # The swaying soft coral is drawn at the front plane, including its crown.
+    soft_envelope=Image.new('L',(W,H));sd=ImageDraw.Draw(soft_envelope)
+    sd.polygon([(405,975),(405,770),(455,650),(510,610),(570,650),(630,690),(705,860),(710,975)],fill=255)
+    front|=np.asarray(soft_envelope)>0
     mid=mask.copy(); mid[front]=0
     near=mask.copy();near[~front]=0
     reef=ImageEnhance.Color(reef).enhance(1.28)
     reef=ImageEnhance.Contrast(reef).enhance(1.04)
     for name,alpha in [('reef-mid',mid),('reef-front',near)]:
-        im=reef.convert('RGBA');im.putalpha(Image.fromarray(np.uint8(alpha*255)))
-        # Crop sparse transparent top band, recorded in scene configuration.
-        im.crop((0,160,W,H)).save(OUT/(name+'.png'),optimize=True)
-    # Original full photo is the rear plate: faint reef shadows form the distant wall.
-    # The foreground layers exactly align with it. Fish between these surfaces are occluded.
+        for suffix,colors in [('',reef),('-sunset',sunset(reef))]:
+            im=colors.convert('RGBA');im.putalpha(Image.fromarray(np.uint8(alpha*255)))
+            # WebP keeps lossless alpha and a compact photograph on Roku OS 9.4+.
+            im.crop((0,160,W,H)).save(OUT/(name+suffix+'.webp'),quality=70,method=6,exact=True)
     reef.save(OUT/'water-day.jpg',quality=93,optimize=True)
     sunset(reef).save(OUT/'water-sunset.jpg',quality=93,optimize=True)
-    # All color variants share alpha and pixel registration.
-    for name in ['reef-mid','reef-front']:
-        im=Image.open(OUT/(name+'.png'));w=sunset(im).convert('RGBA');w.putalpha(im.getchannel('A'));w.save(OUT/(name+'-sunset.png'),optimize=True)
     # Soft coral: original image's cream soft coral, cut into a local registered sprite.
     box=(375,605,725,975)
     soft=reef.crop(box).convert('RGBA'); w,h=soft.size
@@ -109,15 +117,35 @@ def build():
         rgba=np.zeros((80,512,4),dtype=np.uint8);rgba[:,:,:3]=[255,245,235];rgba[:,:,3]=np.uint8(np.clip(ribbons*envelope*86,0,110))
         surface.paste(Image.fromarray(rgba).filter(ImageFilter.GaussianBlur(.7)),((frame%4)*512,(frame//4)*80))
     surface.save(OUT/'surface-ripples.png',optimize=True)
-    # Compact obstacle occupancy is used by both runtime and visual preview.
-    grid=[]
-    for y in range(0,1080,48):
-        row=''
-        for x in range(0,2048,48):
-            crop=mask[y:min(y+48,H),x:min(x+48,W)]
-            row+='#' if crop.mean()>.6 else '.'
-        grid.append(row)
-    (ROOT/'roku/scenes/occupancy.json').write_text(json.dumps({'cell':48,'rows':grid}))
+    # Fine, conservative per-plane maps use ANY occupied pixel, never a cell average.
+    # Include every sway pose, so transparent holes / thin branches cannot be crossed.
+    sway=np.zeros((H,W),dtype=float)
+    for pose in range(3):
+        alpha=np.asarray(atlas.crop((pose*350,0,(pose+1)*350,370)).getchannel('A'))/255
+        sway[605:975,375:725]=np.maximum(sway[605:975,375:725],alpha)
+    near=np.maximum(near,sway)
+    def grid(alpha,cell=8):
+        return [''.join('#' if np.any(alpha[y:y+cell,x:x+cell]>.2) else '.' for x in range(0,W,cell)) for y in range(0,H,cell)]
+    occupancy={'cell':8,'rows':grid(np.maximum(mid,near)), 'planes':[
+        {'z':.48,'halfDepth':.025,'rows':grid(mid)},
+        {'z':.78,'halfDepth':.025,'rows':grid(near)}]}
+    (ROOT/'roku/scenes/occupancy.json').write_text(json.dumps(occupancy,separators=(',',':')))
+    # Warm dappled sunlight is registered to terrain, including rock and sand.
+    positions=[(60,250),(300,420),(80,720),(1580,260),(1440,560),(1700,760),(750,870),(1050,830)]
+    terrain=np.maximum(mask,np.clip((v-.70)/.09,0,1)*(np.asarray(reef,dtype=float)[:,:,0]+np.asarray(reef,dtype=float)[:,:,1]>110))
+    dapple=Image.new('RGBA',(1024,1152));py,px=np.mgrid[:96,:128]
+    fade=np.sin(np.pi*(px+.5)/128)**2*np.sin(np.pi*(py+.5)/96)**2
+    for frame in range(12):
+        phase=frame*2*np.pi/12
+        for patch,(left,top) in enumerate(positions):
+            ground=Image.fromarray(np.uint8(terrain[top:top+240,left:left+320]*255)).resize((128,96),Image.Resampling.LANCZOS)
+            waves=np.sin(px/13+np.sin(py/17+phase+patch)*1.3+phase)+np.cos(py/11+np.sin(px/19-phase)*1.1-phase+patch)
+            spots=np.clip((waves+.6)/2.5,0,1)**1.5
+            rgba=np.zeros((96,128,4),dtype=np.uint8);rgba[:,:,:3]=[255,226,165]
+            rgba[:,:,3]=np.uint8(spots*fade*np.asarray(ground)/255*110)
+            dapple.paste(Image.fromarray(rgba).filter(ImageFilter.GaussianBlur(1.2)),(patch*128,frame*96))
+    dapple.save(OUT/'sun-dapple.png',optimize=True)
+    (ROOT/'roku/scenes/dapple.json').write_text(json.dumps({'positions':positions,'frames':12,'period':24,'width':128,'height':96,'scale':2.5}))
     for name,size in [('icon-fhd',(540,405)),('icon-hd',(290,218)),('icon-sd',(214,144)),('splash-fhd',(1920,1080)),('splash-hd',(1280,720)),('splash-sd',(720,480))]:
         im=sunset(reef).resize(size,Image.Resampling.LANCZOS)
         if name.startswith('icon'):
@@ -128,5 +156,6 @@ def build():
             d.text((size[0]*.5,size[1]*.81),'Deep Reef',anchor='mm',font=font,fill=(255,215,194))
         if name.startswith("splash"):im=splash(size)
         im.save(OUT/(name+'.jpg'),quality=91)
+    for old in OUT.glob('reef-*.png'):old.unlink()
     print('Reef plates, two occlusion surfaces, three coral poses, eight caustics: ready')
 if __name__=='__main__':build()

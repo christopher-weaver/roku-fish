@@ -44,3 +44,14 @@ jobs:
           roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs
           roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs
           roku/source/effects.brs tests/movement_regression.brs
+
+      - name: Check swept coral collision and frame pacing
+        run: >-
+          node tests/roku_runner.cjs --root roku
+          roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs
+          roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs
+          roku/source/effects.brs tests/reef_collision.brs
+      - name: Check settings labels and remote navigation
+        run: >-
+          node tests/roku_runner.cjs --root roku
+          roku/source/settings-model.brs roku/components/ReefSettings.brs tests/settings_ui.brs

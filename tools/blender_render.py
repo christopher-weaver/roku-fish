@@ -6,7 +6,7 @@ from pathlib import Path
 import bpy
 import numpy as np
 ROOT=Path(__file__).resolve().parents[1]
-parser=argparse.ArgumentParser();parser.add_argument('--limit',type=int,default=80);parser.add_argument('--species',default='yellow_tang');parser.add_argument('--output',default='work/blender');parser.add_argument('--fin-pose',type=int,choices=range(5),default=2)
+parser=argparse.ArgumentParser();parser.add_argument('--limit',type=int,default=144);parser.add_argument('--species',default='yellow_tang');parser.add_argument('--output',default='work/blender');parser.add_argument('--fin-pose',type=int,choices=range(7),default=2)
 args=parser.parse_args(sys.argv[sys.argv.index('--')+1:]if '--'in sys.argv else [])
 out=ROOT/args.output;out.mkdir(parents=True,exist_ok=True)
 spec=json.loads((ROOT/'roku/scenes/species.json').read_text())[args.species]
@@ -34,7 +34,7 @@ for yaw in range(spec['yawCount']):
         for obj,key in [(body,'vertices'),(fin,'fin_vertices')]:
             v=data[key].copy()
             if obj==fin:
-                travel=np.maximum(0,data['fin_hinge'][0]-v[:,0]);angle=args.fin_pose*.2
+                travel=np.maximum(0,data['fin_hinge'][0]-v[:,0]);angle=args.fin_pose*.8/(spec['finPoseCount']-1)
                 v[:,0]+=travel*(1-math.cos(angle));v[:,2]+=np.sign(v[:,2])*math.sin(angle)*travel
             rear=np.maximum(0,.28-v[:,0]);v[:,2]+=bend*rear**2;v[:,0]+=bend*bend*rear**3*.85
             for index,vertex in enumerate(obj.data.vertices):vertex.co=v[index]

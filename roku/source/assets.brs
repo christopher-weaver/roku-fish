@@ -10,7 +10,20 @@ function ReefLoadAssets(s as object) as object
     suffix = ""
     plate = "water-day.jpg"
     if warm then suffix = "-sunset" : plate = "water-sunset.jpg"
-    a = { plate: ReefBitmap("pkg:/images/" + plate), mid: ReefBitmap("pkg:/images/reef-mid" + suffix + ".png"), front: ReefBitmap("pkg:/images/reef-front" + suffix + ".png"), mote: ReefBitmap("pkg:/images/mote.png"), bubble: ReefBitmap("pkg:/images/bubble.png"), ray: ReefBitmap("pkg:/images/ray.png"), coral: [], caustics: [], fish: {}, fins: {}, surface: [] }
+    a = { plate: ReefBitmap("pkg:/images/" + plate), mid: ReefBitmap("pkg:/images/reef-mid" + suffix + ".webp"), front: ReefBitmap("pkg:/images/reef-front" + suffix + ".webp"), mote: ReefBitmap("pkg:/images/mote.png"), bubble: ReefBitmap("pkg:/images/bubble.png"), ray: ReefBitmap("pkg:/images/ray.png"), coral: [], caustics: [], fish: {}, fins: {}, surface: [], dapple: [] }
+    a.dappleConfig = ParseJson(ReadAsciiFile("pkg:/scenes/dapple.json"))
+    dapple = ReefBitmap("pkg:/images/sun-dapple.png")
+    if dapple <> invalid and a.dappleConfig <> invalid
+        for frameIndex = 0 to a.dappleConfig.frames - 1
+            patches = []
+            for patch = 0 to a.dappleConfig.positions.Count() - 1
+                reg = CreateObject("roRegion", dapple, patch * 128, frameIndex * 96, 128, 96)
+                reg.SetScaleMode(1)
+                patches.Push(reg)
+            end for
+            a.dapple.Push(patches)
+        end for
+    end if
     surface = ReefBitmap("pkg:/images/surface-ripples.png")
     if surface <> invalid
         for i = 0 to 11

@@ -59,16 +59,23 @@ def render(frame,mode='Sunset',density='Medium'):
     effects(0,.48)
     for f in fs:
         if f['z']<.48:fish(img,f,mode)
-    paste(img,asset('reef-mid'+suf+'.png'),-cam,124)
+    paste(img,asset('reef-mid'+suf+'.webp'),-cam,124)
     for f in fs:
         if .48<=f['z']<.78:fish(img,f,mode)
-    paste(img,asset('reef-front'+suf+'.png'),-cam,124)
+    paste(img,asset('reef-front'+suf+'.webp'),-cam,124)
     cor=asset('soft-coral'+suf+'.png');phase=t/5.5%3
     for j in range(2):
         ix=(int(phase)+j)%3
         paste(img,cor.crop((ix*350,0,(ix+1)*350,370)),375-cam,569,opacity=phase%1 if j else 1-phase%1)
     for f in fs:
         if f['z']>=.78:fish(img,f,mode)
+    dapple=asset('sun-dapple.png');cfg=json.loads((ROOT/'roku/scenes/dapple.json').read_text())
+    phase=t%cfg['period']*cfg['frames']/cfg['period'];first=int(phase);blend=phase-first
+    for j in range(2):
+        fi=(first+j)%cfg['frames']
+        for k,(x,y) in enumerate(cfg['positions']):
+            tile=dapple.crop((k*128,fi*96,(k+1)*128,(fi+1)*96))
+            paste(img,tile,x-cam,y-36,2.5,opacity=(blend if j else 1-blend)*day*day)
     effects(.48,1.01)
     for k in range(3):paste(img,asset('ray.png'),150+k*590+math.sin(t*.07+k)*24-cam*.25,-70,2,1.8,(65+18*math.sin(t*.13+k))/255*day)
     phase=t%12;first=int(phase);blend=phase-first

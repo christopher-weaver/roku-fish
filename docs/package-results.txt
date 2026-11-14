@@ -1,7 +1,9 @@
 test_all_textures_within_hardware_limit (test_package.PackageChecks.test_all_textures_within_hardware_limit) ... ok
 test_archive_budget (test_package.PackageChecks.test_archive_budget) ... ok
 test_corrupt_manifest_rejected (test_package.PackageChecks.test_corrupt_manifest_rejected) ... ok
+test_dapple_has_terrain_patches_and_temporal_variation (test_package.PackageChecks.test_dapple_has_terrain_patches_and_temporal_variation) ... ok
 test_deploy_refuses_missing_configuration (test_package.PackageChecks.test_deploy_refuses_missing_configuration) ... ok
+test_fine_per_plane_collision_masks (test_package.PackageChecks.test_fine_per_plane_collision_masks) ... ok
 test_independent_fin_atlases (test_package.PackageChecks.test_independent_fin_atlases) ... ok
 test_manifest_and_assets (test_package.PackageChecks.test_manifest_and_assets) ... ok
 test_no_lfs_placeholders (test_package.PackageChecks.test_no_lfs_placeholders) ... ok
@@ -9,6 +11,7 @@ test_occlusion_masks_have_alpha (test_package.PackageChecks.test_occlusion_masks
 test_real_screensaver_only (test_package.PackageChecks.test_real_screensaver_only) ... ok
 test_required_notices_shipped (test_package.PackageChecks.test_required_notices_shipped) ... ok
 test_runtime_offline (test_package.PackageChecks.test_runtime_offline) ... ok
+test_settings_rows_have_system_fonts_above_highlight (test_package.PackageChecks.test_settings_rows_have_system_fonts_above_highlight) ... ok
 test_slim_fish_geometry (test_package.PackageChecks.test_slim_fish_geometry) ... ok
 test_surface_atlas_and_larger_bubble (test_package.PackageChecks.test_surface_atlas_and_larger_bubble) ... ok
 test_three_swim_poses_and_full_turn (test_package.PackageChecks.test_three_swim_poses_and_full_turn) ... ok
@@ -19,7 +22,7 @@ test_stale_zip_fails_and_is_rebuilt (test_release_tracking.ReleaseTrackingChecks
 test_untracked_zip_fails (test_release_tracking.ReleaseTrackingChecks.test_untracked_zip_fails) ... ok
 
 ----------------------------------------------------------------------
-Ran 19 tests in 1.062s
+Ran 22 tests in 1.291s
 
 OK
-Validated manifest, native entry points, 6 species, 38 images and all atlas regions
+Validated manifest, native entry points, 6 species, 39 images and all atlas regions

@@ -1,12 +1,14 @@
 function ReefWorld(settings as object, species as object, occupancy as dynamic, seed as integer) as object
-    s = { rng: seed * 1#, fish: [], settings: settings, species: species, occupancy: occupancy, time: 0#, camera: 64#, accumulator: 0#, renderAlpha: 0#, effects: [], quality: 1#, fps: 30#, clockText: "", frames: 0, sampleFrames: 0, sampleTime: 0#, adaptation: 0#, lastHour: -1#, lighting: [0#,0#,0#,0#], tint: &hFFFFFFFF }
+    s = { rng: seed * 1#, fish: [], settings: settings, species: species, occupancy: occupancy, time: 0#, camera: 64#, accumulator: 0#, renderAlpha: 0#, effects: [], quality: 1#, fps: 60#, renderFps: 60#, pacingPressure: 0#, clockText: "", frames: 0, sampleFrames: 0, sampleTime: 0#, adaptation: 0#, lastHour: -1#, lighting: [0#,0#,0#,0#], tint: &hFFFFFFFF }
     if s.rng <= 0 then s.rng = 1#
     s.cfg = ParseJson(ReadAsciiFile("pkg:/scenes/tank.json"))
     if s.cfg = invalid then s.cfg = {speciesOrder: species.Keys(), populations: {Low:12,Medium:18,High:24}, occlusionDepths:[0.48,0.78], dawn:7#,dusk:18.5}
     s.camera = ReefCamera(0#, settings.camera, s.cfg.camera)
     names = s.cfg.speciesOrder
     count = s.cfg.populations[settings.density]
-    if settings.quality = "Performance" then s.quality = 0.5
+    if settings.quality = "Performance"
+        s.quality = 0.5 : s.renderFps = 30#
+    end if
     s.motion = 1#
     if settings.movement = "Calm" then s.motion = 0.65
     if settings.movement = "Active" then s.motion = 1.3
@@ -22,6 +24,7 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
             f.yawVelocity = 0#
             f.finPhase = ReefRange(s, 0, 6.283185307)
             f.finRate = ReefRange(s, 0.85, 1.15)
+            ReefSafeSpawn(s, f)
             ReefChooseTarget(s, f)
             ReefSavePose(f)
             s.fish.Push(f)

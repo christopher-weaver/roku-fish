@@ -15,7 +15,7 @@ python tools/test.py --soak
 ## Automated coverage
 
 - BrighterScript 0.73.8 parses and validates all runtime source and both SceneGraph component scripts. The release contains no `Main()` or `RunUserInterface()`.
-- Nineteen Python checks validate the manifest, actual ZIP root/integrity/budget, six species, 20-yaw × four-pose body atlases and independent five-pose fin atlases, asset dimensions/checksums, real alpha masks, offline runtime, shipped license notices, rejected malformed manifest and refusal to deploy without connection details.
+- Twenty-two Python checks validate the manifest, actual ZIP root/integrity/budget, six species, 24-yaw × six-pose body atlases and independent seven-pose fin atlases, asset dimensions/checksums, real alpha masks, offline runtime, shipped license notices, rejected malformed manifest and refusal to deploy without connection details.
 - Thirty-two direct BrightScript checks execute the actual production functions for defaults, invalid settings, registry serialization roundtrip, populations, seeded initialization and full-simulation determinism, speed/acceleration/turn limits, tank boundaries, timestep cap, perspective, reef occupancy, camera bounds, smooth local-time lighting, adaptive quality, fixed pools, boids cohesion/alignment/separation, blocked rock-plane crossing daily timer rollover, smooth camera reversal, surface-loop continuity, larger bubbles, fixed-step frame jitter, display interpolation and independent fin phase.
 - The off-device `brs` interpreter does not implement the real device registry. `tests/registry-stub.brs` supplies the platform Read/Write/Exists/Flush interface. The production serialization, validation and persistence call sequence are retained. This does **not** verify storage survival across Roku restarts.
 - `tests/soak.brs` advances **one simulated hour**, 36,000 capped 100 ms steps, with six principal fish using unchanged production movement functions and 72 effect slots. It checks every fish against tank boundaries at every step and verifies bounded final populations. This does **not** measure device FPS or resident memory.
@@ -42,12 +42,18 @@ The optional Blender pipeline is exercised with one rendered view using `--limit
 
 ## Hardware still required
 
-No Roku IP or development password was supplied/configured, so no deployment was attempted. Screensaver registration, idle activation, system dismissal, native GPU draw output, 30 FPS, memory trend, settings survival across power cycles and repeated activations remain unverified. Follow INSTALL and PERFORMANCE for the TV test procedure; do not treat the local logs or source-project device claims as results for this build.
+No Roku IP or development password was supplied/configured, so no deployment was attempted. Screensaver registration, idle activation, system dismissal, native GPU draw output, sustained 60/30 FPS, memory trend, settings survival across power cycles and repeated activations remain unverified. Follow INSTALL and PERFORMANCE for the TV test procedure; do not treat the local logs or source-project device claims as results for this build.
 
 ## GitHub package tracking
 
-Four additional host tests exercise the release guard against a temporary Git repository: a fresh tracked ZIP passes, stale bytes fail and are rebuilt, an untracked ZIP fails, and a Git LFS pointer fails. The current suite has 19 Python tests, including these four release guards and the new fin, slim-body and surface/bubble checks. The GitHub workflow runs the release guard and these four tracking tests on pushes and pull requests.
+Four additional host tests exercise the release guard against a temporary Git repository: a fresh tracked ZIP passes, stale bytes fail and are rebuilt, an untracked ZIP fails, and a Git LFS pointer fails. The current suite has 22 Python tests, including these four release guards and the new fin, slim-body and surface/bubble checks. The GitHub workflow runs the release guard and these four tracking tests on pushes and pull requests.
 
 ## Roku enumeration regression
 
 The original host interpreter used independent JavaScript iterators and missed the hardware bug: `ReefStep` enumerated the fish array while its neighbor scan enumerated the same array. Native Roku stores one `ifEnum` cursor per object, so the inner scan exhausted the outer loop after fish zero. `tests/roku_runner.cjs` now adapts the host FOR EACH implementation to that documented single-cursor behavior without replacing the fish logic. The before-fix fixture advanced 1/18 fish; the fixed indexed loops advance 18/18. The regression also checks every body and pectoral phase for 30 frames at Low, Medium and High densities. All production BrightScript checks and the one-hour soak now run through this adapter. It emulates the relevant enumeration rule, not the entire Roku OS or GPU.
+
+## Coral, settings and pacing regressions
+
+`tests/reef_collision.brs` checks safe full-body spawns, thin partial cells, swept depth tunneling, tail contact with a clear center, and 30 simulated seconds of 18 fish at 30Hz. Both physics and interpolated display poses must stay clear of coral without position jumps. It also exercises the 60Hz target and persistent 30Hz fallback.
+
+`tests/settings_ui.brs` runs the production settings initialization and key handler with node/registry adapters: HD/FHD layouts scale correctly; all 11 labels and 9 values populate; arrows edit settings; Done and Back request closure; key releases do not; Restore Defaults keeps the menu open. XML checks require system fonts on every row and the highlight before the row group. These host checks do not render Roku SceneGraph or establish real remote/device behavior. See `docs/settings-results.txt` and `docs/collision-results.txt`.

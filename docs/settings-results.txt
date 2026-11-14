@@ -1,0 +1,6 @@
+PASS complete settings layout fits HD and FHD resolutions
+PASS all setting labels, values and actions have visible text
+PASS remote edits preferences
+PASS Done requests screen closure
+PASS Back requests screen closure and consumes the key
+PASS Restore Defaults preserves the open settings screen

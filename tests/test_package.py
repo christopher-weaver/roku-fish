@@ -21,7 +21,7 @@ class PackageChecks(unittest.TestCase):
             self.assertEqual(len(sp['frames']),sp['yawCount']*sp['poseCount'])
             self.assertEqual({f['pose']for f in sp['frames']},set(range(sp['poseCount'])))
             self.assertGreaterEqual(sp['poseCount'],4)
-            self.assertEqual(len({f['yaw']for f in sp['frames']}),20)
+            self.assertEqual(len({f['yaw']for f in sp['frames']}),sp['yawCount'])
             from PIL import Image,ImageChops
             atlas=Image.open(ROOT/'roku'/sp['image'][5:]).convert('RGBA')
             first,second=sp['frames'][:2]
@@ -33,7 +33,7 @@ class PackageChecks(unittest.TestCase):
             self.assertIsNotNone(ImageChops.difference(crop(first),crop(second)).getbbox(), 'Side-view tail poses must visibly differ')
     def test_occlusion_masks_have_alpha(self):
         from PIL import Image
-        for name in ['reef-mid.png','reef-front.png']:
+        for name in ['reef-mid.webp','reef-front.webp']:
             im=Image.open(ROOT/'roku/images'/name).convert('RGBA');ext=im.getchannel('A').getextrema();self.assertEqual(ext,(0,255))
     def test_all_textures_within_hardware_limit(self):
         for p in (ROOT/'roku/images').iterdir():
@@ -80,6 +80,28 @@ class PackageChecks(unittest.TestCase):
         for sp in species.values():
             self.assertEqual(sp['bodyHeightFactor'],.92)
             self.assertLessEqual(sp['bodyThickness'],.28)
+    def test_settings_rows_have_system_fonts_above_highlight(self):
+        import xml.etree.ElementTree as ET
+        root=ET.parse(ROOT/'roku/components/ReefSettings.xml').getroot()
+        children=root.find('.//Group[@id="layout"]');ids=[node.get('id')for node in children]
+        self.assertLess(ids.index('highlight'),ids.index('rows'))
+        group=next(node for node in children if node.get('id')=='rows')
+        self.assertEqual(len(group.findall('Label')),22)
+        for node in group:self.assertTrue(node.get('font','').startswith('font:'))
+    def test_dapple_has_terrain_patches_and_temporal_variation(self):
+        from PIL import Image,ImageChops
+        cfg=json.loads((ROOT/'roku/scenes/dapple.json').read_text())
+        atlas=Image.open(ROOT/'roku/images/sun-dapple.png').convert('RGBA')
+        self.assertEqual(atlas.size,(cfg['width']*len(cfg['positions']),cfg['height']*cfg['frames']))
+        self.assertIsNotNone(ImageChops.difference(atlas.crop((0,0,1024,96)),atlas.crop((0,96,1024,192))).getbbox())
+        alpha=atlas.getchannel('A');self.assertEqual(alpha.getextrema()[0],0);self.assertGreater(alpha.getextrema()[1],40)
+    def test_fine_per_plane_collision_masks(self):
+        occ=json.loads((ROOT/'roku/scenes/occupancy.json').read_text())
+        self.assertEqual(occ['cell'],8)
+        self.assertEqual([p['z']for p in occ['planes']],[.48,.78])
+        for plane in occ['planes']:
+            self.assertEqual(len(plane['rows']),144)
+            self.assertTrue(all(len(row)==256 for row in plane['rows']))
     def test_surface_atlas_and_larger_bubble(self):
         self.assertEqual(build.dimensions(ROOT/'roku/images/surface-ripples.png'),(2048,240))
         self.assertEqual(build.dimensions(ROOT/'roku/images/bubble.png'),(32,32))
