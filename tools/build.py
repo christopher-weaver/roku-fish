@@ -11,6 +11,8 @@ def dimensions(p):
         if b[12:16]==b'VP8X':return (int.from_bytes(b[24:27],'little')+1,int.from_bytes(b[27:30],'little')+1)
         if b[12:16]==b'VP8L':
             packed=int.from_bytes(b[21:25],'little');return ((packed&0x3fff)+1,((packed>>14)&0x3fff)+1)
+    if b[:4]==b'RIFF' and b[8:12]==b'WEBP' and b[12:16]==b'VP8 ':
+        return (int.from_bytes(b[26:28],'little')&0x3fff,int.from_bytes(b[28:30],'little')&0x3fff)
     if b[:2]==b'\xff\xd8':
         i=2
         while i<len(b):

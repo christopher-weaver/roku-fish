@@ -18,11 +18,11 @@ def fish(canvas,f,mode):
     sp=SPEC[f['name']];yaw=int((f['heading']%(2*math.pi))*sp['yawCount']/(2*math.pi)+.5)%sp['yawCount']
     pose=int((math.sin(f['phase'])+1)*.5*(sp['poseCount']-1)+.5);fr=sp['frames'][yaw*sp['poseCount']+pose]
     im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
-    body=asset(f['name']+'-atlas.png').crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
+    body=asset(sp['image'].split('/')[-1]).crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
     im.alpha_composite(body,(round(sp['frameW']/2-fr['anchorX']),round(sp['frameH']/2-fr['anchorY'])))
     finpose=int((math.sin(f.get('finPhase',f['phase']*.6))+1)*.5*(sp['finPoseCount']-1)+.5)
     fr=sp['finFrames'][yaw*sp['finPoseCount']+finpose]
-    fin=asset(f['name']+'-fins.png').crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
+    fin=asset(sp['finImage'].split('/')[-1]).crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
     im.alpha_composite(fin,(round(sp['frameW']/2-fr['anchorX']),round(sp['frameH']/2-fr['anchorY'])))
     haze=1-f['z'];tint=(255,int(239-haze*25),int(240-haze*10))if mode=='Sunset'else(int(255-haze*65),int(247-haze*32),255)
     im=ImageChops.multiply(im,Image.new('RGBA',im.size,(*tint,255)))
@@ -32,14 +32,10 @@ def fish(canvas,f,mode):
     paste(canvas,im,f['sx']-im.width/2,f['sy']-im.height/2)
 
 def render(frame,mode='Sunset',density='Medium'):
-    cam=frame['camera'];t=frame['time'];warm=mode=='Sunset';suf='-sunset' if warm else ''
+    cam=frame['camera'];t=frame.get('displayTime',frame['time']);warm=mode=='Sunset';suf='-sunset' if warm else ''
     img=Image.new('RGBA',(1920,1080),(24,42,66,255))
-    paste(img,asset('water-sunset.jpg' if warm else 'water-day.jpg'),-cam,-36)
+    paste(img,asset('water-sunset.webp' if warm else 'water-day.webp'),-cam,-36)
     day={'Moonlight':.12,'Dusk':.52}.get(mode,1);night=(1-day)*150/255
-    phase=t*.8%8
-    for j in range(2):
-        opacity=(phase%1 if j else 1-phase%1)*82/255*day
-        for k in range(4):paste(img,asset(f'caustic-{(int(phase)+j)%8}.png'),k*620-120-cam*.2+math.sin(t*.06)*18,720,1.65,.9,opacity)
     fs=sorted(frame['fish'],key=lambda f:f['z'])
     if density=='Low':fs=[f for f in fs if f['id']<12]
     if density=='High':
@@ -67,22 +63,22 @@ def render(frame,mode='Sunset',density='Medium'):
     for j in range(2):
         ix=(int(phase)+j)%3
         paste(img,cor.crop((ix*350,0,(ix+1)*350,370)),375-cam,569,opacity=phase%1 if j else 1-phase%1)
+    phase=t%8*4;first=int(phase);blend=phase-first
+    sand=asset('sand-caustics.png')
+    for j in range(2):
+        index=(first+j)%32
+        piece=sand.crop(((index%4)*512,(index//4)*88,(index%4+1)*512,(index//4+1)*88))
+        paste(img,piece,-cam,764,4,opacity=(blend if j else 1-blend)*225/255*day)
     for f in fs:
         if f['z']>=.78:fish(img,f,mode)
-    dapple=asset('sun-dapple.png');cfg=json.loads((ROOT/'roku/scenes/dapple.json').read_text())
-    phase=t%cfg['period']*cfg['frames']/cfg['period'];first=int(phase);blend=phase-first
-    for j in range(2):
-        fi=(first+j)%cfg['frames']
-        for k,(x,y) in enumerate(cfg['positions']):
-            tile=dapple.crop((k*128,fi*96,(k+1)*128,(fi+1)*96))
-            paste(img,tile,x-cam,y-36,2.5,opacity=(blend if j else 1-blend)*day*day)
     effects(.48,1.01)
     for k in range(3):paste(img,asset('ray.png'),150+k*590+math.sin(t*.07+k)*24-cam*.25,-70,2,1.8,(65+18*math.sin(t*.13+k))/255*day)
-    phase=t%12;first=int(phase);blend=phase-first
-    surface=asset('surface-ripples.png')
+    phase=t%8*4;first=int(phase);blend=phase-first
+    surface=asset('surface-waves.png')
     for j in range(2):
-        index=(first+j)%12;piece=surface.crop(((index%4)*512,(index//4)*80,(index%4+1)*512,(index//4+1)*80))
-        for tile in range(5):paste(img,piece,-512+tile*512+12*math.sin(t*2*math.pi/24)-cam*.18,4,opacity=(blend if j else 1-blend)*(105+65*day)/255)
+        index=(first+j)%32
+        piece=surface.crop(((index%8)*256,(index//8)*128,(index%8+1)*256,(index//8+1)*128))
+        for tile in range(5):paste(img,piece,-512+tile*512-cam,-8,2,1,opacity=(blend if j else 1-blend)*(160+75*day)/255)
     if night:paste(img,Image.new('RGBA',img.size,(8,16,57,round(night*255))),0,0)
     warmth={'Sunset':38,'Dusk':20.9}.get(mode,0)
     if warmth:paste(img,Image.new('RGBA',img.size,(241,105,108,round(warmth))),0,0)

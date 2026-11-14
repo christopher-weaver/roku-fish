@@ -88,13 +88,33 @@ class PackageChecks(unittest.TestCase):
         group=next(node for node in children if node.get('id')=='rows')
         self.assertEqual(len(group.findall('Label')),22)
         for node in group:self.assertTrue(node.get('font','').startswith('font:'))
-    def test_dapple_has_terrain_patches_and_temporal_variation(self):
+    def test_wave_assets_and_removed_dapple(self):
         from PIL import Image,ImageChops
-        cfg=json.loads((ROOT/'roku/scenes/dapple.json').read_text())
-        atlas=Image.open(ROOT/'roku/images/sun-dapple.png').convert('RGBA')
-        self.assertEqual(atlas.size,(cfg['width']*len(cfg['positions']),cfg['height']*cfg['frames']))
-        self.assertIsNotNone(ImageChops.difference(atlas.crop((0,0,1024,96)),atlas.crop((0,96,1024,192))).getbbox())
-        alpha=atlas.getchannel('A');self.assertEqual(alpha.getextrema()[0],0);self.assertGreater(alpha.getextrema()[1],40)
+        cfg=json.loads((ROOT/'roku/scenes/waves.json').read_text())
+        self.assertEqual(cfg['frames'],32)
+        for key,name in [('surface','surface-waves.png'),('sand','sand-caustics.png')]:
+            data=cfg[key];atlas=Image.open(ROOT/'roku/images'/name).convert('RGBA')
+            self.assertEqual(atlas.size,(data['width']*data['columns'],data['height']*((cfg['frames']+data['columns']-1)//data['columns'])))
+            def frame(i):
+                x=i%data['columns']*data['width'];y=i//data['columns']*data['height']
+                return atlas.crop((x,y,x+data['width'],y+data['height']))
+            self.assertIsNotNone(ImageChops.difference(frame(0),frame(1)).getbbox())
+            self.assertGreater(atlas.getchannel('A').getextrema()[1],40)
+        self.assertFalse((ROOT/'roku/images/sun-dapple.png').exists())
+        self.assertFalse((ROOT/'roku/scenes/dapple.json').exists())
+        with zipfile.ZipFile(ROOT/'dist/deep-reef-screensaver.zip')as z:
+            self.assertNotIn('images/sun-dapple.png',z.namelist())
+            self.assertNotIn('scenes/dapple.json',z.namelist())
+    def test_sand_highlights_stay_on_floor(self):
+        from PIL import Image
+        atlas=Image.open(ROOT/'roku/images/sand-caustics.png').convert('RGBA')
+        # At the distant sand edge the side reefs must remain unlit.
+        for frame in range(32):
+            x=frame%4*512;y=frame//4*88
+            self.assertEqual(atlas.crop((x,y,x+100,y+20)).getchannel('A').getextrema()[1],0)
+    def test_frame_wait_precedes_buffer_swap(self):
+        source=(ROOT/'roku/source/main.brs').read_text()
+        self.assertLess(source.index('Sleep(pacing.sleepMs)'),source.index('screen.SwapBuffers()'))
     def test_fine_per_plane_collision_masks(self):
         occ=json.loads((ROOT/'roku/scenes/occupancy.json').read_text())
         self.assertEqual(occ['cell'],8)
@@ -103,6 +123,6 @@ class PackageChecks(unittest.TestCase):
             self.assertEqual(len(plane['rows']),144)
             self.assertTrue(all(len(row)==256 for row in plane['rows']))
     def test_surface_atlas_and_larger_bubble(self):
-        self.assertEqual(build.dimensions(ROOT/'roku/images/surface-ripples.png'),(2048,240))
+        self.assertEqual(build.dimensions(ROOT/'roku/images/surface-waves.png'),(2048,512))
         self.assertEqual(build.dimensions(ROOT/'roku/images/bubble.png'),(32,32))
 if __name__=='__main__':unittest.main()

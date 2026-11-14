@@ -1,0 +1,6 @@
+PASS surface clock and bubbles advance on intermediate 60Hz frames without extra simulation work
+PASS bubble positions interpolate between fixed ticks
+PASS recycled bubbles do not streak across the water
+PASS shared surface and sand phase wraps continuously over 32 frames
+PASS native vsync pacing sustains 60Hz, capped pacing sustains 30Hz including GPU work, and stalls recover
+PASS every species has 32 yaw views, eight tail bends and nine independent fin poses

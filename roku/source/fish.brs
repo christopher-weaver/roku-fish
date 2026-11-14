@@ -49,15 +49,19 @@ sub ReefFishStep(s as object, f as object, dt as double)
     if f.y > 820 then dy = dy - (f.y - 820) * 5
     probe = {x:f.x + f.vx * 2, y:f.y + f.vy * 2, z:f.z + f.vz * 2}
     avoiding = ReefCoralBlocked(s, f, f, probe)
-    if avoiding
+    if f.avoidance = invalid then f.avoidance = 0#
+    pressure = 0#
+    if avoiding then pressure = 1#
+    f.avoidance = f.avoidance + (pressure - f.avoidance) * ReefClamp(dt * 4, 0, 1)
+    if f.avoidance > 0.001
         ' Begin a gradual arc and ascent before the footprint reaches the reef.
-        dy = dy - 260
+        dy = dy - 260 * f.avoidance
         closest = 0.48
         if Abs(f.z - 0.78) < Abs(f.z - 0.48) then closest = 0.78
         if f.z < closest
-            dz = dz - 240
+            dz = dz - 240 * f.avoidance
         else
-            dz = dz + 240
+            dz = dz + 240 * f.avoidance
         end if
         f.ty = ReefClamp(f.y - 120, 180, 700)
         wall = true
@@ -69,11 +73,11 @@ sub ReefFishStep(s as object, f as object, dt as double)
     f.heading = ReefWrap(f.heading + f.yawVelocity * dt, 6.283185307)
     desiredSpeed = f.sp.speed * s.motion
     if f.state = "Hovering" then desiredSpeed = desiredSpeed * 0.12
-    if Abs(turn) > 1.1 then desiredSpeed = desiredSpeed * 0.55
+    desiredSpeed = desiredSpeed * (1 - 0.45 * ReefEase((Abs(turn) - 0.6) / 1.2))
     if neighbors.alarm then desiredSpeed = desiredSpeed * 1.18
     ' Never exceed the configured acceleration, even when night / settings change.
     if (f.x < 120 and Cos(f.heading) < 0) or (f.x > 1928 and Cos(f.heading) > 0) or (f.z < 0.08 and Sin(f.heading) < 0) or (f.z > 0.94 and Sin(f.heading) > 0) then desiredSpeed = 0
-    if avoiding then desiredSpeed = desiredSpeed * 0.55
+    desiredSpeed = desiredSpeed * (1 - 0.45 * f.avoidance)
     f.targetSpeed = desiredSpeed
     f.speed = f.speed + ReefClamp(desiredSpeed - f.speed, -f.acceleration * dt, f.acceleration * dt)
     f.desiredVx = Cos(f.heading) * f.speed

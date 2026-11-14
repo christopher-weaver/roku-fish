@@ -33,6 +33,7 @@ if __name__=='__main__':
         print(output)
         print(brs_run('settings_ui','docs/settings-results.txt'))
         print(brs_run('reef_collision','docs/collision-results.txt'))
+        print(brs_run('waves_smoothness','docs/wave-smoothness-results.txt'))
         if '--soak'in sys.argv:
             output=brs_run('soak','docs/soak-results.txt')
             if not re.search(r'SOAK RESULT violations=\s*0',output):raise RuntimeError(output[-2000:])

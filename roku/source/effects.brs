@@ -4,10 +4,15 @@ sub ReefEffectsInit(s as object)
         bubble = i >= 48
         s.effects.Push({ x: ReefRange(s, 0, 2048), y: ReefRange(s, 0, 1080), z: ReefRandom(s), phase: ReefRange(s, 0, 6.283), speed: ReefRange(s, 2, 9), bubble: bubble, age: ReefRange(s, 0, 12), active: i })
     end for
+    for each e in s.effects
+        e.previousX = e.x : e.previousY = e.y
+    end for
 end sub
 
 sub ReefEffectsStep(s as object, dt as double)
     for each e in s.effects
+        e.previousX = e.x : e.previousY = e.y
+        e.recycled = false
         e.phase = ReefWrap(e.phase + dt * 0.4, 6.283185307)
         e.x = e.x + (2 + e.z * 5 + Sin(e.phase) * 2) * dt
         if e.bubble
@@ -17,12 +22,22 @@ sub ReefEffectsStep(s as object, dt as double)
                 e.y = 1040 + ReefRange(s, 0, 200)
                 e.x = 1440 + ReefRange(s, -25, 25)
                 e.age = 0
+                e.recycled = true
             end if
         else
             e.y = e.y + e.speed * dt
-            if e.y > 1090 then e.y = -10 : e.x = ReefRange(s, 0, 2048)
+            if e.y > 1090
+                e.y = -10 : e.x = ReefRange(s, 0, 2048)
+                e.recycled = true
+            end if
         end if
-        if e.x > 2058 then e.x = -10
+        if e.x > 2058
+            e.x = -10
+            e.recycled = true
+        end if
+        if e.recycled
+            e.previousX = e.x : e.previousY = e.y
+        end if
     end for
 end sub
 
@@ -55,7 +70,7 @@ sub ReefQualitySample(s as object, seconds as double, frameCount as integer)
     if s.settings.quality <> "Auto" then return
     if s.renderFps = invalid then s.renderFps = 60#
     if s.pacingPressure = invalid then s.pacingPressure = 0#
-    if s.renderFps = 60 and s.fps < 50
+    if s.renderFps = 60 and s.fps < 45
         s.pacingPressure = s.pacingPressure + seconds
         if s.pacingPressure >= 12
             ' Lock to an even 30Hz cadence rather than oscillating between frame caps.
@@ -80,7 +95,12 @@ function ReefBubbleScale(z as double) as double
 end function
 
 function ReefSurface(t as double) as object
-    phase = ReefWrap(t, 12#)
+    ' One phase drives both the moving surface and refracted sand highlights.
+    phase = ReefWrap(ReefWrap(t, 8#) * 4#, 32#)
     first = Int(phase)
-    return { first: first, second: (first + 1) mod 12, blend: phase - first, offset: 12 * Sin(ReefWrap(t, 24#) * 6.283185307 / 24#) }
+    return { first: first, second: (first + 1) mod 32, blend: phase - first }
+end function
+
+function ReefEffectPose(e as object, alpha as double) as object
+    return {x:e.previousX + (e.x - e.previousX) * alpha, y:e.previousY + (e.y - e.previousY) * alpha}
 end function

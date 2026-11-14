@@ -52,3 +52,13 @@ function ReefMax(a as double, b as double) as double
     if a > b then return a
     return b
 end function
+
+function ReefFrameSchedule(nowMs as double, deadline as double, fps as double) as object
+    deadline = deadline + 1000# / fps
+    if deadline < nowMs then deadline = nowMs
+    ' A double-buffered swap supplies native display pacing at 60Hz.
+    ' Only the 30Hz mode needs an extra wait; leave GPU submission headroom.
+    delay = 0
+    if fps < 59 then delay = Int(ReefMax(0#, deadline - nowMs - 8#))
+    return {deadline:deadline, sleepMs:delay}
+end function

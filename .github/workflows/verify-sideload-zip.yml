@@ -55,3 +55,10 @@ jobs:
         run: >-
           node tests/roku_runner.cjs --root roku
           roku/source/settings-model.brs roku/components/ReefSettings.brs tests/settings_ui.brs
+
+      - name: Check synchronized waves and smooth frame timing
+        run: >-
+          node tests/roku_runner.cjs --root roku
+          roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs
+          roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs
+          roku/source/effects.brs tests/waves_smoothness.brs

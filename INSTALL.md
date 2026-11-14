@@ -48,6 +48,8 @@ Exit any running preview on the TV before updating. The helper uses the installe
 
 The ZIP is validated locally, but the installation and registration steps have not been exercised on hardware in this environment.
 
-## Updating to 1.0.3
+## Updating to 1.0.4
 
 Download a fresh copy of the installation ZIP above. Dismiss the active screensaver, open the Roku Developer Application Installer at `http://ROKU_IP`, upload the ZIP without extracting it and select Install. Then return to **Settings → Theme → Screensavers → Deep Reef (or dev)** and preview it again. Saved preferences are retained. Open **Change screensaver settings**: the complete menu should fit the screen, option names and values should appear above the pink highlight, arrows change the selected option, and **Back** or **Done** closes the menu. For the full slow back-and-forth sweep choose **Camera movement → Slow**. Use **Bubble density → Low** or **Medium** to see the larger bubbles; an existing Off setting remains Off. Auto/High now target 60 fps; Auto settles at 30 fps after sustained missed frames, while Performance starts at 30 fps with 720p output.
+
+Version 1.0.4 removes dappled reef lighting, adds rolling surface waves with synchronized moving sand highlights, and improves fish/bubble/effect smoothness. Exit the active preview before installing the fresh ZIP, then preview again. Use Visual quality → Auto for the 60 fps target and Show FPS temporarily to check actual device output. Performance remains a 30 fps option.

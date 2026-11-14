@@ -13,14 +13,15 @@ sub Main()
     end for
 end sub
 sub ExportFrame(s as object)
-    frame={time:s.time,camera:s.camera,fish:[],effects:[]}
+    frame={time:s.time,displayTime:s.displayTime,camera:s.camera,fish:[],effects:[]}
     for each f in s.fish
         pose=ReefDisplayPose(f,s.renderAlpha)
         p=ReefProjection(pose,s.camera)
         frame.fish.Push({id:f.id,name:f.name,x:f.x,y:f.y,z:f.z,sx:p.x,sy:p.y,scale:p.scale,heading:pose.heading,pitch:pose.pitch,phase:pose.phase,finPhase:pose.finPhase,size:f.size,state:f.state})
     end for
     for each e in s.effects
-        frame.effects.Push(e)
+        pose=ReefEffectPose(e,s.renderAlpha)
+        frame.effects.Push({x:pose.x,y:pose.y,z:e.z,bubble:e.bubble,active:e.active})
     end for
     print "FRAME ";FormatJson(frame)
 end sub

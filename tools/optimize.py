@@ -3,18 +3,24 @@ from pathlib import Path
 from PIL import Image
 import imagequant
 ROOT=Path(__file__).resolve().parents[1]
-def optimize(atlases_only=False):
+def optimize(atlases_only=False,effects_only=False):
     for p in sorted((ROOT/'roku/images').glob('*.png')):
+        if effects_only and p.name not in ['surface-waves.png','sand-caustics.png']:continue
         if atlases_only and 'atlas' not in p.name and '-fins' not in p.name:continue
         if Image.open(p).mode=='P':continue
         im=Image.open(p).convert('RGBA')
-        if 'reef-' in p.name:colors=256;dither=.75
-        elif 'atlas' in p.name or '-fins' in p.name:colors=160;dither=.3
+        if p.name in ['surface-waves.png','sand-caustics.png']:colors=96;dither=0
+        elif 'reef-' in p.name:colors=256;dither=.75
+        elif 'atlas' in p.name or '-fins' in p.name:colors=128;dither=.15
         else:colors=160;dither=.4
         im=imagequant.quantize_pil_image(im,max_colors=colors,dithering_level=dither,max_quality=90)
-        im.save(p,optimize=True)
+        if 'atlas' in p.name or '-fins' in p.name:
+            im.convert('RGBA').save(p.with_suffix('.webp'),lossless=True,method=6,exact=True)
+            p.unlink()
+        else:
+            im.save(p,optimize=True)
         print('Optimized',p.name,flush=True)
-    if atlases_only:return
+    if atlases_only or effects_only:return
     for p in sorted((ROOT/'roku/images').glob('*.jpg')):
         im=Image.open(p).convert('RGB')
         if p.name.startswith('splash'):

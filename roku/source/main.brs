@@ -43,6 +43,11 @@ sub RunScreenSaver()
         ReefAdvance(s, elapsed)
         ReefLightingStep(s, hour, elapsed)
         ReefRender(renderer, s, assets)
+        ' The double-buffered swap paces 60Hz directly. The 30Hz mode waits
+        ' before submission; sleeping after a swap can miss the next refresh.
+        pacing = ReefFrameSchedule(CDbl(timer.TotalMilliseconds()), nextFrame, s.renderFps)
+        nextFrame = pacing.deadline
+        if pacing.sleepMs > 0 then Sleep(pacing.sleepMs)
         screen.SwapBuffers()
         s.frames = s.frames + 1 : s.sampleFrames = s.sampleFrames + 1
         if nowMs - sampleAt >= 4000
@@ -61,12 +66,6 @@ sub RunScreenSaver()
             end if
             msg = port.GetMessage()
         end while
-        frameMs = 1000# / s.renderFps
-        nextFrame = nextFrame + frameMs
-        current = CDbl(timer.TotalMilliseconds())
-        if nextFrame < current - frameMs then nextFrame = current
-        remaining = Int(nextFrame - current)
-        if remaining > 0 then Sleep(remaining)
     end while
 end sub
 

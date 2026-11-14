@@ -6,7 +6,7 @@ from pathlib import Path
 import bpy
 import numpy as np
 ROOT=Path(__file__).resolve().parents[1]
-parser=argparse.ArgumentParser();parser.add_argument('--limit',type=int,default=144);parser.add_argument('--species',default='yellow_tang');parser.add_argument('--output',default='work/blender');parser.add_argument('--fin-pose',type=int,choices=range(7),default=2)
+parser=argparse.ArgumentParser();parser.add_argument('--limit',type=int,default=256);parser.add_argument('--species',default='yellow_tang');parser.add_argument('--output',default='work/blender');parser.add_argument('--fin-pose',type=int,choices=range(9),default=2)
 args=parser.parse_args(sys.argv[sys.argv.index('--')+1:]if '--'in sys.argv else [])
 out=ROOT/args.output;out.mkdir(parents=True,exist_ok=True)
 spec=json.loads((ROOT/'roku/scenes/species.json').read_text())[args.species]

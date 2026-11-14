@@ -1,5 +1,5 @@
 function ReefWorld(settings as object, species as object, occupancy as dynamic, seed as integer) as object
-    s = { rng: seed * 1#, fish: [], settings: settings, species: species, occupancy: occupancy, time: 0#, camera: 64#, accumulator: 0#, renderAlpha: 0#, effects: [], quality: 1#, fps: 60#, renderFps: 60#, pacingPressure: 0#, clockText: "", frames: 0, sampleFrames: 0, sampleTime: 0#, adaptation: 0#, lastHour: -1#, lighting: [0#,0#,0#,0#], tint: &hFFFFFFFF }
+    s = { rng: seed * 1#, fish: [], settings: settings, species: species, occupancy: occupancy, time: 0#, displayTime: 0#, camera: 64#, accumulator: 0#, renderAlpha: 0#, effects: [], quality: 1#, fps: 60#, renderFps: 60#, pacingPressure: 0#, clockText: "", frames: 0, sampleFrames: 0, sampleTime: 0#, adaptation: 0#, lastHour: -1#, lighting: [0#,0#,0#,0#], tint: &hFFFFFFFF }
     if s.rng <= 0 then s.rng = 1#
     s.cfg = ParseJson(ReadAsciiFile("pkg:/scenes/tank.json"))
     if s.cfg = invalid then s.cfg = {speciesOrder: species.Keys(), populations: {Low:12,Medium:18,High:24}, occlusionDepths:[0.48,0.78], dawn:7#,dusk:18.5}
@@ -22,6 +22,7 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
             if name = "ocellaris_clownfish" then f.x = 410 + i * 9 : f.y = 740 : f.z = 0.85
             f.speed = sp.speed * 0.6
             f.yawVelocity = 0#
+            f.avoidance = 0#
             f.finPhase = ReefRange(s, 0, 6.283185307)
             f.finRate = ReefRange(s, 0.85, 1.15)
             ReefSafeSpawn(s, f)
@@ -66,5 +67,6 @@ sub ReefAdvance(s as object, elapsed as double)
     end while
     s.accumulator = ReefClamp(s.accumulator, 0, tick)
     s.renderAlpha = s.accumulator / tick
-    s.camera = ReefCamera(s.time - tick + s.accumulator, s.settings.camera, s.cfg.camera)
+    s.displayTime = ReefWrap(s.time - tick + s.accumulator, 86400#)
+    s.camera = ReefCamera(s.displayTime, s.settings.camera, s.cfg.camera)
 end sub

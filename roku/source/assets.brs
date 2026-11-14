@@ -8,26 +8,26 @@ end function
 function ReefLoadAssets(s as object) as object
     warm = s.settings.lighting = "Sunset"
     suffix = ""
-    plate = "water-day.jpg"
-    if warm then suffix = "-sunset" : plate = "water-sunset.jpg"
-    a = { plate: ReefBitmap("pkg:/images/" + plate), mid: ReefBitmap("pkg:/images/reef-mid" + suffix + ".webp"), front: ReefBitmap("pkg:/images/reef-front" + suffix + ".webp"), mote: ReefBitmap("pkg:/images/mote.png"), bubble: ReefBitmap("pkg:/images/bubble.png"), ray: ReefBitmap("pkg:/images/ray.png"), coral: [], caustics: [], fish: {}, fins: {}, surface: [], dapple: [] }
-    a.dappleConfig = ParseJson(ReadAsciiFile("pkg:/scenes/dapple.json"))
-    dapple = ReefBitmap("pkg:/images/sun-dapple.png")
-    if dapple <> invalid and a.dappleConfig <> invalid
-        for frameIndex = 0 to a.dappleConfig.frames - 1
-            patches = []
-            for patch = 0 to a.dappleConfig.positions.Count() - 1
-                reg = CreateObject("roRegion", dapple, patch * 128, frameIndex * 96, 128, 96)
+    plate = "water-day.webp"
+    if warm then suffix = "-sunset" : plate = "water-sunset.webp"
+    a = { plate: ReefBitmap("pkg:/images/" + plate), mid: ReefBitmap("pkg:/images/reef-mid" + suffix + ".webp"), front: ReefBitmap("pkg:/images/reef-front" + suffix + ".webp"), mote: ReefBitmap("pkg:/images/mote.png"), bubble: ReefBitmap("pkg:/images/bubble.png"), ray: ReefBitmap("pkg:/images/ray.png"), coral: [], caustics: [], fish: {}, fins: {}, surface: [] }
+    a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
+    surface = ReefBitmap("pkg:/images/surface-waves.png")
+    sand = ReefBitmap("pkg:/images/sand-caustics.png")
+    if a.waveConfig <> invalid
+        for i = 0 to a.waveConfig.frames - 1
+            if surface <> invalid
+                cfg = a.waveConfig.surface
+                reg = CreateObject("roRegion", surface, (i mod cfg.columns) * cfg.width, Int(i / cfg.columns) * cfg.height, cfg.width, cfg.height)
                 reg.SetScaleMode(1)
-                patches.Push(reg)
-            end for
-            a.dapple.Push(patches)
-        end for
-    end if
-    surface = ReefBitmap("pkg:/images/surface-ripples.png")
-    if surface <> invalid
-        for i = 0 to 11
-            a.surface.Push(CreateObject("roRegion", surface, (i mod 4) * 512, Int(i / 4) * 80, 512, 80))
+                a.surface.Push(reg)
+            end if
+            if sand <> invalid
+                cfg = a.waveConfig.sand
+                reg = CreateObject("roRegion", sand, (i mod cfg.columns) * cfg.width, Int(i / cfg.columns) * cfg.height, cfg.width, cfg.height)
+                reg.SetScaleMode(1)
+                a.caustics.Push(reg)
+            end if
         end for
     end if
     b = ReefBitmap("pkg:/images/soft-coral" + suffix + ".png")
@@ -36,10 +36,6 @@ function ReefLoadAssets(s as object) as object
             a.coral.Push(CreateObject("roRegion", b, i * 350, 0, 350, 370))
         end for
     end if
-    for i = 0 to 7
-        b = ReefBitmap("pkg:/images/caustic-" + i.ToStr() + ".png")
-        if b <> invalid then a.caustics.Push(b)
-    end for
     for each name in s.species
         sp = s.species[name]
         b = ReefBitmap(sp.image)

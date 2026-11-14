@@ -15,7 +15,7 @@ python tools/test.py --soak
 ## Automated coverage
 
 - BrighterScript 0.73.8 parses and validates all runtime source and both SceneGraph component scripts. The release contains no `Main()` or `RunUserInterface()`.
-- Twenty-two Python checks validate the manifest, actual ZIP root/integrity/budget, six species, 24-yaw × six-pose body atlases and independent seven-pose fin atlases, asset dimensions/checksums, real alpha masks, offline runtime, shipped license notices, rejected malformed manifest and refusal to deploy without connection details.
+- Twenty-four Python checks validate the manifest, actual ZIP root/integrity/budget, six species, 32-yaw × eight-pose body atlases and independent nine-pose fin atlases, asset dimensions/checksums, real alpha masks, offline runtime, shipped license notices, rejected malformed manifest and refusal to deploy without connection details.
 - Thirty-two direct BrightScript checks execute the actual production functions for defaults, invalid settings, registry serialization roundtrip, populations, seeded initialization and full-simulation determinism, speed/acceleration/turn limits, tank boundaries, timestep cap, perspective, reef occupancy, camera bounds, smooth local-time lighting, adaptive quality, fixed pools, boids cohesion/alignment/separation, blocked rock-plane crossing daily timer rollover, smooth camera reversal, surface-loop continuity, larger bubbles, fixed-step frame jitter, display interpolation and independent fin phase.
 - The off-device `brs` interpreter does not implement the real device registry. `tests/registry-stub.brs` supplies the platform Read/Write/Exists/Flush interface. The production serialization, validation and persistence call sequence are retained. This does **not** verify storage survival across Roku restarts.
 - `tests/soak.brs` advances **one simulated hour**, 36,000 capped 100 ms steps, with six principal fish using unchanged production movement functions and 72 effect slots. It checks every fish against tank boundaries at every step and verifies bounded final populations. This does **not** measure device FPS or resident memory.
@@ -46,7 +46,7 @@ No Roku IP or development password was supplied/configured, so no deployment was
 
 ## GitHub package tracking
 
-Four additional host tests exercise the release guard against a temporary Git repository: a fresh tracked ZIP passes, stale bytes fail and are rebuilt, an untracked ZIP fails, and a Git LFS pointer fails. The current suite has 22 Python tests, including these four release guards and the new fin, slim-body and surface/bubble checks. The GitHub workflow runs the release guard and these four tracking tests on pushes and pull requests.
+Four additional host tests exercise the release guard against a temporary Git repository: a fresh tracked ZIP passes, stale bytes fail and are rebuilt, an untracked ZIP fails, and a Git LFS pointer fails. The current suite has 24 Python tests, including these four release guards and the new fin, slim-body and surface/bubble checks. The GitHub workflow runs the release guard and these four tracking tests on pushes and pull requests.
 
 ## Roku enumeration regression
 
@@ -57,3 +57,9 @@ The original host interpreter used independent JavaScript iterators and missed t
 `tests/reef_collision.brs` checks safe full-body spawns, thin partial cells, swept depth tunneling, tail contact with a clear center, and 30 simulated seconds of 18 fish at 30Hz. Both physics and interpolated display poses must stay clear of coral without position jumps. It also exercises the 60Hz target and persistent 30Hz fallback.
 
 `tests/settings_ui.brs` runs the production settings initialization and key handler with node/registry adapters: HD/FHD layouts scale correctly; all 11 labels and 9 values populate; arrows edit settings; Done and Back request closure; key releases do not; Restore Defaults keeps the menu open. XML checks require system fonts on every row and the highlight before the row group. These host checks do not render Roku SceneGraph or establish real remote/device behavior. See `docs/settings-results.txt` and `docs/collision-results.txt`.
+
+## Synchronized waves and smooth presentation
+
+`tests/waves_smoothness.brs` verifies intermediate-frame bubble/display-clock movement, bubble interpolation and recycle handling, a continuous shared surface/sand phase, 180 evenly spaced 60Hz presents and 120 capped 30Hz presents with simulated CPU/GPU work and blocking vsync, stall recovery, and denser animation data for every species. Python checks verify removal of dapple assets, temporal variation in both wave atlases, confinement of floor highlights, and the wait-before-swap order. This verifies scheduling logic, not actual Roku GPU timing. See `docs/wave-smoothness-results.txt`.
+
+The current 1.0.4 results are in `docs/TEST_RESULTS.md`. Earlier standalone surface/pectoral GIF fixtures remain historical examples; the current preview and orientation sheet use the new assets.
