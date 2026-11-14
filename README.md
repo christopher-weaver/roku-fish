@@ -2,17 +2,17 @@
 
 **[Download the ready-to-install Roku ZIP](https://github.com/christopher-weaver/roku-fish/raw/refs/heads/main/dist/deep-reef-screensaver.zip)** · [Step-by-step installation](INSTALL.md)
 
-A close-view, continuous coral reef aquarium with larger fish and sharp sand ridges. This is a self-contained native Roku aquarium screensaver with a pink, orange and red **Sunset** default, six marine species, autonomous three-dimensional movement and layered coral occlusion. It has no runtime network dependency, video playback, ordinary channel entry point, or Home-screen launch flow.
+A sparse, layered coral aquarium with larger fish, open swim-through spaces and sharp sand ridges. This is a self-contained native Roku aquarium screensaver with a pink, orange and red **Sunset** default, six marine species, autonomous three-dimensional movement and layered coral occlusion. It has no runtime network dependency, video playback, ordinary channel entry point, or Home-screen launch flow.
 
 **Install:** upload `dist/deep-reef-screensaver.zip` to the Roku Developer Application Installer, then choose **Settings → Theme → Screensavers → Deep Reef → Set as screensaver**. Some firmware labels sideloaded screensavers **dev**. See [INSTALL.md](INSTALL.md).
 
 ![Default sunset aquarium](docs/previews/sunset.png)
 
-The aquarium includes ocellaris clownfish, yellow tang, royal gramma, emperor angelfish, Moorish idol and blue-green chromis. Each has 64 mesh-rendered turning views, eight body/tail poses and nine independent pectoral-fin poses. Neighboring views blend with continuous silhouette width; bounded turn acceleration/jerk and cubic heading interpolation smooth direction changes. Fractional fish positioning, including pitch, is enabled after a startup GPU pixel check. Slim proportions, larger fish and detailed photographic textures are retained.
+The aquarium includes ocellaris clownfish, yellow tang, royal gramma, emperor angelfish, Moorish idol and blue-green chromis. All 64 turning directions are baked upright, so the renderer uses positive scales throughout a full turn. Both direction and body/pectoral articulation interpolate continuously. Slim proportions, larger fish and detailed textures remain.
 
-The reef is eight separate mid-ground formations with their own depth, thickness, camera parallax and transparent silhouettes. A connected clearance graph guides fish around the formations, across their crests, and between front and rear swimming space. Full body/tail/fin footprints are checked against swept coral volumes. Clownfish favor the central clam area; grammas seek rear shelter; chromis retain loose schooling. The background contains water and photographed sand. Waves, wave-linked sand lighting, coral sway and larger sparse bubbles remain.
+Six separated coral islands replace the continuous reef wall. They have staggered depths, stronger parallax, open archways and contact shadows. Each coral has three offline relief-mesh renders that blend as the camera moves, adding changing perspective and shaded volume. The foreground retains defined photographic sand ridges under subtle wave-linked lighting.
 
-Auto/High target 60 fps with interpolated display motion; Auto settles at 30 fps after sustained missed frames. Performance targets 30 fps at 720p. The slow four-minute camera sweep, sunset colors, full-width reef and defined sand ridges are retained.
+The camera keeps its four-minute cycle. An opaque overscan canvas is blended between neighboring output pixels each frame, avoiding large pretranslation anchors and their scale-rounding jumps. Cached collision/display objects, precomputed routes and effect depth bands reduce work in the frame loop. Auto/High target 60 fps; Auto settles at 30 fps after sustained missed frames. Performance targets 720p/30 fps. Actual device output still requires checking on the Roku.
 
 The settings menu uses readable system fonts, a translucent highlight behind the text, and explicit Back/Done closure. Settings persist in the Roku registry: lighting (Sunset, Daylight, Dusk, Moonlight, Automatic), 12/18/24-fish populations, camera Off/Subtle/Slow, bubbles, particles, movement, quality, clock, FPS, and Restore Defaults. Clock and FPS default off. Camera movement defaults to Slow, sweeping left to right and back over four minutes. Existing saved settings are retained; choose Camera movement → Slow to enable the widest sweep. Automatic uses the device's local time. All interaction belongs to the separate settings entry point.
 
@@ -43,7 +43,7 @@ The helper does not read `.env` automatically. `.env.example` documents the vari
 ```sh
 npm install
 python -m pip install -r tools/requirements.txt
-python tools/test.py
+python tools/test.py --quick
 ```
 
 `tools/test.py` compiles the native sources, runs package/asset checks, and executes production BrightScript simulation tests. The optional soak runs one simulated hour with six principal fish; it is a host test, not a Roku performance test. Device storage is represented by a small registry adapter in the host interpreter.
@@ -105,3 +105,7 @@ Keeps the existing pan rate and four-minute Slow cycle, but places scenery fract
 ## Version 1.0.6
 
 Replaces the two broad reef planes with eight independent mid-ground formations, a clean transparent reef source and clearance-validated routes through open water. Fish explore both sides of the reef rather than only repelling upward. Turning now uses 64 views with width-matched view blending, gentler angular acceleration and jerk, continuous display heading velocity, and GPU-probed fractional placement while pitched. Bilateral view reuse keeps decoded texture memory close to the previous release. The updated installation ZIP remains tracked on GitHub.
+
+## Version 1.0.7
+
+Fixes upside-down turns by replacing runtime reflections with 64 actual upright views. Body and pectoral poses now blend too. Replaces the large-anchor camera transform with adjacent-pixel blending of an opaque scene canvas, reduces frame-loop allocation/pathfinding work, and rebuilds the reef as six sparse islands with three rendered relief views each. The updated ZIP remains committed and directly downloadable.

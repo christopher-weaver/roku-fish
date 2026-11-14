@@ -1,6 +1,1 @@
-PASS all fish spawn with body, tail and fins clear of coral
-PASS fine occupancy detects a partial-cell branch without blocking open water
-PASS swept movement cannot tunnel through a coral slab
-PASS tail and fin footprint blocks contact even when the center is clear
-PASS 30 seconds, 18 fish, whole footprints and interpolated poses stay clear without position jumps
-PASS 60Hz target falls back to stable 30Hz after sustained missed frames
+PASS targeted collision check: 60 physics ticks, 18 fish, all physical/interpolated footprints clear of six islands

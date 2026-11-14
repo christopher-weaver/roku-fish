@@ -41,6 +41,8 @@ sub RunScreenSaver()
             localAt = nowMs / 1000#
         end if
         ReefAdvance(s, elapsed)
+        ' The camera follows the display clock even if physics catch-up is capped.
+        s.camera=ReefCamera(nowMs/1000#,settings.camera,s.cfg.camera)
         ReefLightingStep(s, hour, elapsed)
         ReefRender(renderer, s, assets)
         ' The double-buffered swap paces 60Hz directly. The 30Hz mode waits

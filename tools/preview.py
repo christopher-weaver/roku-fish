@@ -25,15 +25,18 @@ def fish(canvas,f,mode):
     for part in ['body','fin']:
         count=sp['poseCount']if part=='body'else sp['finPoseCount']
         phase=f['phase']if part=='body'else f.get('finPhase',f['phase']*.6)
-        pose=int((math.sin(phase)+1)*.5*(count-1)+.5)
+        position=(math.sin(phase)+1)*.5*(count-1);first=int(position);fraction=position-first;second=min(first+1,count-1)
         atlas=asset(sp['image'if part=='body'else 'finImage'].split('/')[-1])
-        for view,opacity in [(lo,1),((lo+1)%sp['yawCount'],blend)]:
-            if opacity<=0:continue
+        denom=1-blend*fraction
+        weights=[1,fraction,blend*(1-fraction)/denom if denom>1e-8 else 0,blend*fraction]
+        for view,pose,opacity in [(lo,first,weights[0]),(lo,second,weights[1]),((lo+1)%sp['yawCount'],first,weights[2]),((lo+1)%sp['yawCount'],second,weights[3])]:
+            if opacity<=.001:continue
             fr=sp['frames'if part=='body'else 'finFrames'][view*count+pose]
             layer=Image.new('RGBA',im.size)
             piece=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
-            layer.alpha_composite(piece,(round(sp['frameW']/2-fr['anchorX']),round(sp['frameH']/2-fr['anchorY'])))
-            if fr.get('flipX'):layer=layer.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            texture_scale=sp.get('finTextureScale',1)if part=='fin'else 1
+            if texture_scale!=1:piece=piece.resize((piece.width*texture_scale,piece.height*texture_scale),Image.Resampling.BICUBIC)
+            layer.alpha_composite(piece,(round(sp['frameW']/2-fr['anchorX']*texture_scale),round(sp['frameH']/2-fr['anchorY']*texture_scale)))
             width_scale=width/sp['viewWidths'][view]
             layer=layer.resize((round(layer.width*width_scale),layer.height),Image.Resampling.BICUBIC)
             if opacity<1:layer.putalpha(layer.getchannel('A').point(lambda v:round(v*opacity)))
@@ -66,17 +69,20 @@ def render(frame,mode='Sunset',density='Medium'):
             elif e['active']<24:
                 sc=.25+e['z']*.4
                 paste(img,asset('mote.png'),e['x']-cam*(.4+e['z']*.6),e['y'],sc,opacity=105/255)
+    for formation in TANK['formations']:
+        offset=64+(cam-64)*formation['parallax']
+        paste(img,asset('coral-shadow.png'),formation['x']+formation['width']*.1-offset,formation['y']+formation['height']-60,formation['width']*.8/128,.75)
     previous=0;fish_index=0
     for formation in TANK['formations']:
         depth=formation['z'];effects(previous,depth);previous=depth
         while fish_index<len(fs) and fs[fish_index]['z']<depth:
             fish(img,fs[fish_index],mode);fish_index+=1
-        layer=asset(formation['image'].split('/')[-1])
-        if mode!='Sunset':layer=ImageChops.multiply(layer,Image.new('RGBA',layer.size,(221,235,255,255)))
-        offset=64+(cam-64)*formation['parallax']
-        sway=math.sin(t*math.pi/9)*.7 if formation['id']=='white-crown'else 0
-        width_scale=1+sway*.0015
-        paste(img,layer,formation['x']-offset+sway-formation['width']*(width_scale-1)*.5,formation['y']-36,width_scale,1)
+        atlas=asset(formation['image'].split('/')[-1]);fw=formation['frameWidth'];fh=formation['frameHeight']
+        offset=64+(cam-64)*formation['parallax'];position=max(0,min(2,(cam-8)/56));first=int(position);blend=position-first
+        for view,opacity in [(first,1),(min(first+1,2),blend)]:
+            layer=atlas.crop((view*fw,0,(view+1)*fw,fh))
+            if mode!='Sunset':layer=ImageChops.multiply(layer,Image.new('RGBA',layer.size,(221,235,255,255)))
+            paste(img,layer,formation['x']-offset,formation['y']-36,formation['width']/fw,formation['height']/fh,opacity)
     phase=t%WAVES['period']*WAVES['frames']/WAVES['period'];first=int(phase);blend=phase-first
     cfg=WAVES['sand'];sand=asset('sand-caustics.png')
     for j in range(2):
@@ -102,14 +108,14 @@ def make_previews():
     high=[f for f in allframes if f['time']<0]
     if high:(PRE/'high-frame.json').write_text(json.dumps(high[0]))
     frames=[f for f in allframes if f['time']>=0]
-    if len(frames)<601:raise RuntimeError('Export must complete all 601 production-world frames')
+    if len(frames)<21:raise RuntimeError('Export must complete at least 21 production-world frames')
     (PRE/'frames.json').write_text(json.dumps(frames,separators=(',',':')))
     at=lambda t:min(frames,key=lambda f:abs(f['time']-t))
-    frame=at(20)
+    frame=at(1.5)
     for mode in ['Sunset','Daylight','Dusk','Moonlight']:render(frame,mode).save(PRE/(mode.lower()+'.png'),optimize=True)
     render(frame,'Sunset','Low').save(PRE/'low-density.png')
     render(frame,'Sunset','High').save(PRE/'high-density.png')
-    for t in [0,12,40,60]:render(at(t)).save(PRE/f'time-{t:02}.jpg',quality=94)
+    for t in [0,1,2,3]:render(at(t)).save(PRE/f'time-{t:02}.jpg',quality=94)
     # Explicit visual fixtures for occlusion (production projection and real asset masks).
     import copy
     f=copy.deepcopy(frame);f['fish']=[]

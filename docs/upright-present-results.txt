@@ -1,0 +1,2 @@
+PASS full-circle pitched fish draw body and fins with positive scales only; no runtime reflections
+PASS production presentation blends an opaque canvas at adjacent pixels, at HD/FHD, without anchor transforms

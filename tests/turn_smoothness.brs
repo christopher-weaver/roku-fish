@@ -37,7 +37,7 @@ sub Main()
         end for
     end for
     print "PASS all six fish retain continuous silhouette widths across every yaw index boundary"
-    for sign=-1 to 1 step 2
+    for sign=1 to 1
         for i=0 to 30
             angle=i*0.8-12#
             t=ReefFishTransform(950.375,610.625,sign*0.91,0.91,angle)
@@ -47,5 +47,5 @@ sub Main()
             if Abs(x-950.375)>0.002 or Abs(y-610.625)>0.002 then print "FAIL fractional fish center ";x;y;angle;t : return
         end for
     end for
-    print "PASS mirrored and unmirrored pitched fish retain their fractional center"
+    print "PASS positive-scale pitched fish retain their fractional center"
 end sub

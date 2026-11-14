@@ -1,4 +1,5 @@
 test_all_textures_within_hardware_limit (test_package.PackageChecks.test_all_textures_within_hardware_limit) ... ok
+test_all_turn_views_are_baked_upright (test_package.PackageChecks.test_all_turn_views_are_baked_upright) ... ok
 test_archive_budget (test_package.PackageChecks.test_archive_budget) ... ok
 test_connected_reef_navigation (test_package.PackageChecks.test_connected_reef_navigation) ... ok
 test_corrupt_manifest_rejected (test_package.PackageChecks.test_corrupt_manifest_rejected) ... ok
@@ -9,32 +10,29 @@ test_independent_fin_atlases (test_package.PackageChecks.test_independent_fin_at
 test_manifest_and_assets (test_package.PackageChecks.test_manifest_and_assets) ... ok
 test_no_lfs_placeholders (test_package.PackageChecks.test_no_lfs_placeholders) ... ok
 test_occlusion_masks_have_alpha (test_package.PackageChecks.test_occlusion_masks_have_alpha) ... ok
+test_precomputed_routes_and_coral_renders (test_package.PackageChecks.test_precomputed_routes_and_coral_renders) ... ok
 test_real_screensaver_only (test_package.PackageChecks.test_real_screensaver_only) ... ok
 test_reference_composition_and_detail (test_package.PackageChecks.test_reference_composition_and_detail) ... /workspace/roku-fish/tests/test_package.py:123: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
-  self.assertGreater(statistics.mean(center.getdata()),220)
-/workspace/roku-fish/tests/test_package.py:126: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-sea-fan.webp'>
-  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['width'],layer['height']))
+  self.assertGreater(statistics.mean(center.getdata()),50)
+/workspace/roku-fish/tests/test_package.py:124: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  self.assertLess(statistics.mean(center.getdata()),210,'Open channels must remain between sparse islands')
+/workspace/roku-fish/tests/test_package.py:127: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-right-garden.webp'>
+  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['frameWidth']*layer['frames'],layer['frameHeight']))
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
-/workspace/roku-fish/tests/test_package.py:126: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-branching-coral.webp'>
-  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['width'],layer['height']))
+/workspace/roku-fish/tests/test_package.py:127: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-white-crown.webp'>
+  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['frameWidth']*layer['frames'],layer['frameHeight']))
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
-/workspace/roku-fish/tests/test_package.py:126: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-white-crown.webp'>
-  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['width'],layer['height']))
+/workspace/roku-fish/tests/test_package.py:127: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-branching-coral.webp'>
+  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['frameWidth']*layer['frames'],layer['frameHeight']))
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
-/workspace/roku-fish/tests/test_package.py:126: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-center-rock.webp'>
-  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['width'],layer['height']))
+/workspace/roku-fish/tests/test_package.py:127: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-green-cup.webp'>
+  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['frameWidth']*layer['frames'],layer['frameHeight']))
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
-/workspace/roku-fish/tests/test_package.py:126: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-right-garden.webp'>
-  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['width'],layer['height']))
+/workspace/roku-fish/tests/test_package.py:127: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-brain-coral.webp'>
+  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['frameWidth']*layer['frames'],layer['frameHeight']))
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
-/workspace/roku-fish/tests/test_package.py:126: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-green-cup.webp'>
-  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['width'],layer['height']))
-ResourceWarning: Enable tracemalloc to get the object allocation traceback
-/workspace/roku-fish/tests/test_package.py:126: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-brain-coral.webp'>
-  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['width'],layer['height']))
-ResourceWarning: Enable tracemalloc to get the object allocation traceback
-/workspace/roku-fish/tests/test_package.py:126: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-central-clam.webp'>
-  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['width'],layer['height']))
+/workspace/roku-fish/tests/test_package.py:127: ResourceWarning: unclosed file <_io.BufferedReader name='/workspace/roku-fish/roku/images/reef-central-clam.webp'>
+  self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['frameWidth']*layer['frames'],layer['frameHeight']))
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
 ok
 test_required_notices_shipped (test_package.PackageChecks.test_required_notices_shipped) ... ok
@@ -45,7 +43,6 @@ test_settings_rows_have_system_fonts_above_highlight (test_package.PackageChecks
 test_slim_fish_geometry (test_package.PackageChecks.test_slim_fish_geometry) ... ok
 test_surface_atlas_and_larger_bubble (test_package.PackageChecks.test_surface_atlas_and_larger_bubble) ... ok
 test_three_swim_poses_and_full_turn (test_package.PackageChecks.test_three_swim_poses_and_full_turn) ... ok
-test_turn_views_reuse_texture_without_losing_bends (test_package.PackageChecks.test_turn_views_reuse_texture_without_losing_bends) ... ok
 test_wave_assets_and_removed_dapple (test_package.PackageChecks.test_wave_assets_and_removed_dapple) ... ok
 test_zip_root_and_integrity (test_package.PackageChecks.test_zip_root_and_integrity) ... ok
 test_fresh_tracked_zip_passes (test_release_tracking.ReleaseTrackingChecks.test_fresh_tracked_zip_passes) ... ok
@@ -54,7 +51,7 @@ test_stale_zip_fails_and_is_rebuilt (test_release_tracking.ReleaseTrackingChecks
 test_untracked_zip_fails (test_release_tracking.ReleaseTrackingChecks.test_untracked_zip_fails) ... ok
 
 ----------------------------------------------------------------------
-Ran 28 tests in 2.804s
+Ran 29 tests in 1.802s
 
 OK
-Validated manifest, native entry points, 6 species, 33 images and all atlas regions
+Validated manifest, native entry points, 6 species, 32 images and all atlas regions

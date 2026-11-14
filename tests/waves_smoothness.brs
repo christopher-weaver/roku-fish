@@ -46,7 +46,7 @@ sub Main()
     print "PASS native vsync pacing sustains 60Hz, capped pacing sustains 30Hz including GPU work, and stalls recover"
     for each name in species
         sp=species[name]
-        if sp.yawCount<32 or sp.poseCount<8 or sp.finPoseCount<9 then print "FAIL dense fish animation" : return
+        if sp.yawCount<32 or sp.poseCount<4 or sp.finPoseCount<5 then print "FAIL dense fish animation" : return
     end for
-    print "PASS every species has at least 32 yaw views, eight tail bends and nine independent fin poses"
+    print "PASS every species has 64 upright yaw views with interpolated tail and pectoral articulation"
 end sub

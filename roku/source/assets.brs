@@ -9,7 +9,7 @@ function ReefLoadAssets(s as object) as object
     warm = s.settings.lighting = "Sunset"
     plate = "water-day.webp"
     if warm then plate = "water-sunset.webp"
-    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), formations: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), coral: [], caustics: [], fish: {}, fins: {}, surface: [] }
+    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), formations: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), shadow: ReefLayer(ReefBitmap("pkg:/images/coral-shadow.png")), caustics: [], fish: {}, fins: {}, surface: [] }
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
     surface = ReefBitmap("pkg:/images/surface-waves.png")
     sand = ReefBitmap("pkg:/images/sand-caustics.png")
@@ -27,7 +27,11 @@ function ReefLoadAssets(s as object) as object
     end if
     for index = 0 to s.cfg.formations.Count() - 1
         cfg = s.cfg.formations[index]
-        a.formations.Push(ReefLayer(ReefBitmap(cfg.image)))
+        bitmap=ReefBitmap(cfg.image) : views=[]
+        for view=0 to cfg.frames-1
+            views.Push(ReefLayer(bitmap,view*cfg.frameWidth,0,cfg.frameWidth,cfg.frameHeight))
+        end for
+        a.formations.Push(views)
     end for
     for each name in s.species
         sp = s.species[name]
@@ -45,12 +49,9 @@ function ReefLayer(bitmap as dynamic, x = 0 as integer, y = 0 as integer, width 
     if width < 0 then width = bitmap.GetWidth()
     if height < 0 then height = bitmap.GetHeight()
     normal = CreateObject("roRegion", bitmap, x, y, width, height)
-    fractional = CreateObject("roRegion", bitmap, x, y, width, height)
-    if normal = invalid or fractional = invalid then return invalid
+    if normal=invalid then return invalid
     normal.SetScaleMode(1)
-    fractional.SetScaleMode(1)
-    fractional.SetPretranslation(65536, 65536)
-    return {normal:normal, fractional:fractional}
+    return {normal:normal}
 end function
 
 
@@ -61,12 +62,12 @@ function ReefFishFrames(bitmap as object, metadata as object, quality as string)
         key = frame.x.ToStr()+":"+frame.y.ToStr()
         if not cache.DoesExist(key)
             reg = CreateObject("roRegion",bitmap,frame.x,frame.y,frame.w,frame.h)
-            reg.SetPretranslation(-frame.anchorX,-frame.anchorY)
+            reg.SetPretranslation(0-Int(frame.anchorX),0-Int(frame.anchorY))
             if quality <> "Performance" then reg.SetScaleMode(1)
             fractional = CreateObject("roRegion",bitmap,frame.x,frame.y,frame.w,frame.h)
-            fractional.SetPretranslation(4096-frame.anchorX,4096-frame.anchorY)
+            fractional.SetPretranslation(4096-Int(frame.anchorX),4096-Int(frame.anchorY))
             fractional.SetScaleMode(1)
-            cache[key] = {normal:reg,fractional:fractional}
+            cache[key] = {normal:reg,fractional:fractional,offsetX:Int(frame.anchorX)-frame.anchorX,offsetY:Int(frame.anchorY)-frame.anchorY}
         end if
         frames.Push(cache[key])
     end for

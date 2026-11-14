@@ -9,8 +9,11 @@ function ReefCamera(t as double, mode as string, config = invalid as dynamic) as
     return 64# - amplitude * Cos(ReefWrap(t, period) * 6.283185307 / period)
 end function
 
-function ReefDisplayPose(f as object, alpha as double) as object
-    pose = { x: f.previousX + (f.x - f.previousX) * alpha, y: f.previousY + (f.y - f.previousY) * alpha, z: f.previousZ + (f.z - f.previousZ) * alpha }
+function ReefDisplayPose(f as object, alpha as double, pose = invalid as dynamic) as object
+    if pose=invalid then pose={}
+    pose.x=f.previousX+(f.x-f.previousX)*alpha
+    pose.y=f.previousY+(f.y-f.previousY)*alpha
+    pose.z=f.previousZ+(f.z-f.previousZ)*alpha
     delta = ReefAngleDelta(f.previousHeading, f.heading)
     ' Cubic heading interpolation keeps angular velocity continuous at 30Hz ticks.
     a2 = alpha * alpha : a3 = a2 * alpha
@@ -22,9 +25,11 @@ function ReefDisplayPose(f as object, alpha as double) as object
     return pose
 end function
 
-function ReefProjection(f as object, camera as double) as object
+function ReefProjection(f as object, camera as double, result = invalid as dynamic) as object
     scale = 0.70 + 0.30 * f.z
-    return { x: f.x - camera * scale, y: f.y + (1 - f.z) * 30, scale: scale }
+    if result=invalid then result={}
+    result.x=f.x-camera*scale : result.y=f.y+(1-f.z)*30 : result.scale=scale
+    return result
 end function
 
 function ReefSolid(s as object, x as double, y as double) as boolean
@@ -44,12 +49,13 @@ function ReefCoralBlocked(s as object, f as object, fromPose as object, toPose a
     planes = s.occupancy.planes
     if planes = invalid then return false
     radius = f.sp.bodyThickness * f.sp.length * f.size / 1728# + 0.012
+    lo=ReefMin(fromPose.z,toPose.z)-radius : hi=ReefMax(fromPose.z,toPose.z)+radius
     for planeIndex = 0 to planes.Count() - 1
         plane = planes[planeIndex]
-        lo = ReefMin(fromPose.z, toPose.z) - radius
-        hi = ReefMax(fromPose.z, toPose.z) + radius
         if hi >= plane.z - plane.halfDepth and lo <= plane.z + plane.halfDepth
-            first = ReefProjection(fromPose, 0#) : last = ReefProjection(toPose, 0#)
+            s.collisionFirst=ReefProjection(fromPose,0#,s.collisionFirst)
+            s.collisionLast=ReefProjection(toPose,0#,s.collisionLast)
+            first=s.collisionFirst : last=s.collisionLast
             scale = ReefMax(first.scale, last.scale) * f.sp.length / f.sp.renderLength * f.size
             hw = (f.sp.collisionHalfWidth + f.sp.collisionHalfHeight * 0.22) * scale + 8
             hh = (f.sp.collisionHalfHeight + f.sp.collisionHalfWidth * 0.22) * scale + 8

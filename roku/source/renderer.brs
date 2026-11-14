@@ -1,36 +1,34 @@
 function ReefRenderer(screen as object, settings as object) as object
-    r = { screen: screen, scale: screen.GetWidth() / 1920.0, rotation: false, font: invalid, placement: {} }
+    outputScale = screen.GetWidth() / 1920#
+    r = {screen:screen, output:screen, scale:outputScale, outputScale:outputScale, rotation:false, font:invalid, placement:{}, canvasOffset:0#, frame:invalid}
     features = screen.GetGraphicsFeatures()
     if features <> invalid and features.full_rotation = true then r.rotation = true
     fonts = CreateObject("roFontRegistry")
-    r.font = fonts.GetDefaultFont(Int(24 * r.scale), false, false)
-    r.fractionalPan = ReefFractionalPanProbe(screen)
-    r.fractionalTransform = false
-    if not r.fractionalPan
-        r.fractionalPan = ReefFractionalPanProbe(screen, true)
-        r.fractionalTransform = r.fractionalPan
+    r.font = fonts.GetDefaultFont(Int(24 * outputScale),false,false)
+    ' Render once into an opaque overscan canvas, then interpolate two adjacent
+    ' integer screen positions. No oversized anchors or scale-rounding pan jumps.
+    canvas = CreateObject("roBitmap",{width:2048,height:1080,alphaenable:true})
+    if canvas <> invalid
+        r.frame = CreateObject("roRegion",canvas,0,0,2048,1080)
+        r.frame.SetScaleMode(1)
+        r.screen = canvas : r.scale = 1#
     end if
-    print "Deep Reef fractional pan=";r.fractionalPan;" transformed=";r.fractionalTransform
-    r.fractionalFish = ReefFractionalFishProbe(screen, r.rotation)
-    print "Deep Reef fractional fish=";r.fractionalFish
+    r.fractionalFish = ReefFractionalFishProbe(r.screen,r.rotation)
+    print "Deep Reef opaque pan canvas=";(r.frame<>invalid);" fractional fish=";r.fractionalFish
     return r
 end function
 
 sub ReefDraw(r as object, x as double, y as double, sx as double, sy as double, bmp as dynamic, tint as integer)
     if bmp = invalid then return
-    if Type(bmp) = "roAssociativeArray"
-        if r.fractionalPan
-            transform = ReefLayerTransform(x * r.scale, y * r.scale, sx * r.scale, sy * r.scale, r.placement)
-            if r.fractionalTransform
-                r.screen.DrawTransformedObject(transform.x, transform.y, 0, transform.sx, transform.sy, bmp.fractional, tint)
-            else
-                r.screen.DrawScaledObject(transform.x, transform.y, transform.sx, transform.sy, bmp.fractional, tint)
-            end if
-        else
-            r.screen.DrawScaledObject(Int(x * r.scale + 0.5), Int(y * r.scale + 0.5), sx * r.scale, sy * r.scale, bmp.normal, tint)
-        end if
-    else
-        r.screen.DrawScaledObject(Int(x * r.scale + 0.5), Int(y * r.scale + 0.5), sx * r.scale, sy * r.scale, bmp, tint)
+    region = bmp
+    if Type(bmp) = "roAssociativeArray" then region = bmp.normal
+    targetX = (x + r.canvasOffset) * r.scale
+    pixelPhase = ReefPixelPhase(targetX)
+    r.screen.DrawScaledObject(pixelPhase.first,Int(y*r.scale+0.5),sx*r.scale,sy*r.scale,region,tint)
+    if pixelPhase.blend > 0.001
+        alpha = tint and 255
+        color = (tint and &hFFFFFF00) + Int(alpha*pixelPhase.blend+0.5)
+        r.screen.DrawScaledObject(pixelPhase.first+1,Int(y*r.scale+0.5),sx*r.scale,sy*r.scale,region,color)
     end if
 end sub
 
@@ -38,40 +36,51 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     frames = a.fish[f.name]
     if frames = invalid then return
     pose = f.renderPose
-    p = ReefProjection(pose, s.camera)
+    f.screenPose = ReefProjection(pose,s.camera,f.screenPose)
+    p = f.screenPose
     if p.x < -200 or p.x > 2120 then return
-    view = ReefFishView(pose.heading, f.sp)
-    bodyPose = Int((Sin(pose.phase) + 1) * 0.5 * (f.sp.poseCount - 1) + 0.5)
-    finPose = Int((Sin(pose.finPhase) + 1) * 0.5 * (f.sp.finPoseCount - 1) + 0.5)
-    scale = p.scale * f.sp.length / f.sp.renderLength * f.size
-    haze = 1 - pose.z
-    red = Int(255 - haze * 65) : green = Int(247 - haze * 32) : blue = 255
-    if s.settings.lighting = "Sunset" then red = 255 : green = Int(239 - haze * 25) : blue = Int(240 - haze * 10)
-    angle = pose.pitch * 57.29578
-    if Cos(pose.heading) < 0 then angle = -angle
-    finFrames = a.fins[f.name]
-    for part = 0 to 1
-        for pass = 0 to 1
-            yaw = view.first : alpha = 255
-            if pass = 1 then yaw = view.second : alpha = Int(view.blend * 255 + 0.5)
-            if alpha > 0
-                scaleX = scale * view.width / f.sp.viewWidths[yaw]
-                index = yaw * f.sp.poseCount + bodyPose
-                if f.sp.frames[index].flipX = true then scaleX = -scaleX
-                tint = ReefRGBA(red,green,blue,alpha)
-                if part = 0
-                    ReefDrawFishRegion(r,p.x,p.y,scaleX,scale,angle,frames[index],tint)
-                else if finFrames <> invalid
-                    index = yaw * f.sp.finPoseCount + finPose
-                    ReefDrawFishRegion(r,p.x,p.y,scaleX,scale,angle,finFrames[index],tint)
-                end if
-            end if
-        end for
+    f.renderView = ReefFishView(pose.heading,f.sp,f.renderView)
+    view = f.renderView
+    bodyPosition = (Sin(pose.phase)+1)*0.5*(f.sp.poseCount-1)
+    finPosition = (Sin(pose.finPhase)+1)*0.5*(f.sp.finPoseCount-1)
+    scale = p.scale*f.sp.length/f.sp.renderLength*f.size
+    haze = 1-pose.z
+    red = Int(255-haze*65) : green = Int(247-haze*32) : blue = 255
+    if s.settings.lighting = "Sunset" then red=255 : green=Int(239-haze*25) : blue=Int(240-haze*10)
+    angle = pose.pitch*57.29578
+    if Cos(pose.heading)<0 then angle=0#-angle
+    ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,view,scale,angle,red,green,blue)
+    if a.fins[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.fins[f.name],finPosition,f.sp.finPoseCount,view,scale*f.sp.finTextureScale,angle,red,green,blue)
+end sub
+
+sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,position as double,count as integer,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer)
+    firstPose = Int(position) : secondPose = Int(ReefMin(firstPose+1,count-1))
+    phase = position-firstPose
+    ' Ordered source-over weights preserve opaque interiors while interpolating
+    ' both yaw and tail/pectoral articulation, rather than snapping pose indices.
+    weights = [1#,phase,0#,view.blend*phase]
+    denominator = 1-view.blend*phase
+    if denominator>0.000001 then weights[2]=view.blend*(1-phase)/denominator
+    for pass=0 to 3
+        yaw = view.first : poseIndex = firstPose
+        if pass=1 or pass=3 then poseIndex=secondPose
+        if pass>=2 then yaw=view.second
+        if weights[pass]>0.001
+            sx = scale*view.width/sp.viewWidths[yaw]
+            tint = ReefRGBA(red,green,blue,Int(weights[pass]*255+0.5))
+            ReefDrawFishRegion(r,p.x,p.y,sx,scale,angle,frames[yaw*count+poseIndex],tint)
+        end if
     end for
 end sub
 
 sub ReefDrawFishRegion(r as object, x as double, y as double, sx as double, sy as double, angle as double, region as object, tint as integer)
+    x = x + r.canvasOffset
     if not r.rotation then angle = 0#
+    if region.offsetX<>invalid
+        c=Cos(angle/57.295779513#) : sn=Sin(angle/57.295779513#)
+        x=x+c*sx*region.offsetX+sn*sy*region.offsetY
+        y=y+c*sy*region.offsetY-sn*sx*region.offsetX
+    end if
     if r.fractionalFish
         transform = ReefFishTransform(x*r.scale,y*r.scale,sx*r.scale,sy*r.scale,angle,r.placement)
         if r.rotation
@@ -86,13 +95,15 @@ sub ReefDrawFishRegion(r as object, x as double, y as double, sx as double, sy a
     end if
 end sub
 
-sub ReefDrawEffects(r as object, s as object, a as object, lo as double, hi as double)
+sub ReefDrawEffects(r as object, s as object, a as object, lo as double, hi as double, band = -1 as integer)
     particles = 24 : bubbles = 6
     if s.settings.particles = "Off" then particles = 0
     if s.settings.particles = "Medium" then particles = 48
     if s.settings.bubbles = "Off" then bubbles = 0
     if s.settings.bubbles = "Medium" then bubbles = 12
-    for each e in s.effects
+    effects = s.effects
+    if band>=0 and s.effectBands<>invalid then effects=s.effectBands[band]
+    for each e in effects
         if e.z >= lo and e.z < hi
             displayX = e.previousX + (e.x - e.previousX) * s.renderAlpha
             displayY = e.previousY + (e.y - e.previousY) * s.renderAlpha
@@ -140,16 +151,23 @@ end sub
 
 sub ReefRender(r as object, s as object, a as object)
     screen = r.screen
+    r.canvasOffset = 0#
+    if r.frame<>invalid then r.canvasOffset=s.camera
     screen.SetAlphaEnable(false)
     screen.Clear(&h182A42FF)
     ReefDraw(r, -s.camera, -36, 1, 1, a.plate, &hFFFFFFFF)
     screen.SetAlphaEnable(true)
+    for shadowIndex=0 to s.cfg.formations.Count()-1
+        formation=s.cfg.formations[shadowIndex]
+        offset=64+(s.camera-64)*formation.parallax
+        ReefDraw(r,formation.x+formation.width*.1-offset,formation.y+formation.height-60,formation.width*.8/128#,0.75,a.shadow,&h54404AFF)
+    end for
     ' Stable insertion sort of references, not copied fish. Persistent list has bounded length.
     if s.sorted = invalid then s.sorted = []
     s.sorted.Clear()
     for fishIndex = 0 to s.fish.Count() - 1
         f = s.fish[fishIndex]
-        f.renderPose = ReefDisplayPose(f, s.renderAlpha)
+        f.renderPose = ReefDisplayPose(f,s.renderAlpha,f.renderPose)
         s.sorted.Push(f)
         j = s.sorted.Count() - 1
         while j > 0
@@ -165,7 +183,7 @@ sub ReefRender(r as object, s as object, a as object)
     if s.settings.lighting <> "Sunset" then reefTint = &hDDEBFFFF
     for formationIndex = 0 to s.cfg.formations.Count() - 1
         formation = s.cfg.formations[formationIndex]
-        ReefDrawEffects(r, s, a, previousDepth, formation.z)
+        ReefDrawEffects(r,s,a,previousDepth,formation.z,formationIndex)
         previousDepth = formation.z
         while i < s.sorted.Count()
             pose = s.sorted[i].renderPose
@@ -173,24 +191,42 @@ sub ReefRender(r as object, s as object, a as object)
             ReefDrawFish(r, s, a, s.sorted[i]) : i = i + 1
         end while
         offset = 64 + (s.camera - 64) * formation.parallax
-        sway = 0# : widthScale = 1#
-        if formation.id = "white-crown"
-            sway = Sin(ReefWrap(s.displayTime,18#)*6.283185307/18#) * 0.7
-            widthScale = 1 + sway * 0.0015
+        anglePosition=ReefClamp((s.camera-8)/56#,0#,2#)
+        firstView=Int(anglePosition) : secondView=Int(ReefMin(firstView+1,2))
+        viewBlend=anglePosition-firstView
+        ReefDraw(r,formation.x-offset,formation.y-36,formation.width/formation.frameWidth,formation.height/formation.frameHeight,a.formations[formationIndex][firstView],reefTint)
+        if viewBlend>0.001
+            color=(reefTint and &hFFFFFF00)+Int(viewBlend*255+0.5)
+            ReefDraw(r,formation.x-offset,formation.y-36,formation.width/formation.frameWidth,formation.height/formation.frameHeight,a.formations[formationIndex][secondView],color)
         end if
-        ReefDraw(r, formation.x - offset + sway - formation.width*(widthScale-1)*0.5, formation.y - 36, widthScale, 1, a.formations[formationIndex], reefTint)
     end for
     ReefDrawCaustics(r, s, a)
     while i < s.sorted.Count()
         ReefDrawFish(r, s, a, s.sorted[i]) : i = i + 1
     end while
-    ReefDrawEffects(r, s, a, previousDepth, 1.01)
+    ReefDrawEffects(r,s,a,previousDepth,1.01,s.cfg.formations.Count())
     for k = 0 to 2
         ReefDraw(r, 150 + k * 590 + Sin(s.displayTime * 0.07 + k) * 24 - s.camera * 0.25, -70, 2.0, 1.8, a.ray, ReefRGBA(255, 223, 210, Int((65 + 18 * Sin(s.displayTime * 0.13 + k)) * s.lighting[0])))
     end for
     ReefDrawSurface(r, s, a)
     if s.lighting[2] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(8, 16, 57, Int(s.lighting[2])))
     if s.lighting[3] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(241, 105, 108, Int(s.lighting[3])))
-    if s.settings.clock = "On" then screen.DrawText(s.clockText, Int(1660 * r.scale), Int(970 * r.scale), &hF6DFD4B0, r.font)
-    if s.settings.fps = "On" then screen.DrawText(Int(s.fps).ToStr() + " FPS", Int(110 * r.scale), Int(95 * r.scale), &hF6DFD4D0, r.font)
+    if r.output<>invalid then ReefPresent(r,s)
+end sub
+
+sub ReefPresent(r as object,s as object)
+    screen = r.output
+    if r.frame<>invalid
+        phase = ReefPixelPhase(0#-s.camera*r.outputScale)
+        screen.SetAlphaEnable(false)
+        screen.Clear(&h182A42FF)
+        screen.DrawScaledObject(phase.first,0,r.outputScale,r.outputScale,r.frame,&hFFFFFFFF)
+        if phase.blend>0.001
+            screen.SetAlphaEnable(true)
+            screen.DrawScaledObject(phase.first+1,0,r.outputScale,r.outputScale,r.frame,ReefRGBA(255,255,255,Int(phase.blend*255+0.5)))
+        end if
+    end if
+    screen.SetAlphaEnable(true)
+    if s.settings.clock="On" then screen.DrawText(s.clockText,Int(1660*r.outputScale),Int(970*r.outputScale),&hF6DFD4B0,r.font)
+    if s.settings.fps="On" then screen.DrawText(Int(s.fps).ToStr()+" FPS",Int(110*r.outputScale),Int(95*r.outputScale),&hF6DFD4D0,r.font)
 end sub

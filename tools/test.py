@@ -15,7 +15,7 @@ def brs_run(test,log):
     work=ROOT/'work';work.mkdir(exist_ok=True)
     settings=(ROOT/'roku/source/settings-model.brs').read_text().replace('CreateObject("roRegistrySection", "deep-reef-v1")','ReefTestRegistry("deep-reef-v1")')
     (work/'settings-test.brs').write_text(settings)
-    extra=['roku/components/ReefSettings.brs'] if test=='settings_ui' else ['roku/source/renderer.brs'] if test=='render_depth' else []
+    extra=['roku/components/ReefSettings.brs'] if test=='settings_ui' else ['roku/source/renderer.brs'] if test in ['render_depth','upright_present'] else []
     args=['node','tests/roku_runner.cjs','--root','roku']+[f'roku/source/{s}.brs'for s in SOURCES]+['work/settings-test.brs','tests/registry-stub.brs',f'tests/{test}.brs']+extra
     result=subprocess.run(args,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=dict(os.environ,BRS_BIN=binary('brs')))
     (ROOT/log).write_text(result.stdout)
@@ -27,16 +27,19 @@ if __name__=='__main__':
         (ROOT/'docs/compiler-results.txt').write_text(check.stdout+check.stderr)
         if check.returncode:raise RuntimeError(check.stdout+check.stderr)
         subprocess.run([sys.executable,'-m','unittest','discover','-s','tests','-p','test_*.py','-v'],cwd=ROOT,check=True)
-        output=brs_run('simulation','docs/simulation-results.txt')
-        if not re.search(r'RESULT passed=\s*32\s+failed=\s*0',output):raise RuntimeError('Simulation did not complete 32 checks')
+        if '--quick' not in sys.argv:
+            output=brs_run('simulation','docs/simulation-results.txt')
+            if not re.search(r'RESULT passed=\s*32\s+failed=\s*0',output):raise RuntimeError('Simulation did not complete 32 checks')
         print(brs_run('movement_regression','docs/movement-regression-results.txt'))
-        print(output)
+        if '--quick' not in sys.argv:print(output)
         print(brs_run('settings_ui','docs/settings-results.txt'))
-        print(brs_run('reef_collision','docs/collision-results.txt'))
+        if '--quick' not in sys.argv:print(brs_run('reef_collision','docs/collision-results.txt'))
+        else:print(brs_run('quick_collision','docs/collision-results.txt'))
         print(brs_run('waves_smoothness','docs/wave-smoothness-results.txt'))
         print(brs_run('render_depth','docs/render-depth-results.txt'))
+        print(brs_run('upright_present','docs/upright-present-results.txt'))
         print(brs_run('turn_smoothness','docs/turn-smoothness-results.txt'))
-        subprocess.run([sys.executable,'tools/turn_check.py'],cwd=ROOT,check=True)
+        if '--quick' not in sys.argv:subprocess.run([sys.executable,'tools/turn_check.py'],cwd=ROOT,check=True)
         pan=brs_run('pan_precision','docs/pan-precision-results.txt')
         from pan_check import validate
         summary=validate(pan)

@@ -1,0 +1,74 @@
+{
+  "white-crown": {
+    "frames": 3,
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "angles": [
+      -5,
+      0,
+      5
+    ],
+    "meshVertices": 16641,
+    "meshTriangles": 32768
+  },
+  "branching-coral": {
+    "frames": 3,
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "angles": [
+      -5,
+      0,
+      5
+    ],
+    "meshVertices": 16641,
+    "meshTriangles": 32768
+  },
+  "green-cup": {
+    "frames": 3,
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "angles": [
+      -5,
+      0,
+      5
+    ],
+    "meshVertices": 16641,
+    "meshTriangles": 32768
+  },
+  "brain-coral": {
+    "frames": 3,
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "angles": [
+      -5,
+      0,
+      5
+    ],
+    "meshVertices": 16641,
+    "meshTriangles": 32768
+  },
+  "central-clam": {
+    "frames": 3,
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "angles": [
+      -5,
+      0,
+      5
+    ],
+    "meshVertices": 16641,
+    "meshTriangles": 32768
+  },
+  "right-garden": {
+    "frames": 3,
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "angles": [
+      -5,
+      0,
+      5
+    ],
+    "meshVertices": 16641,
+    "meshTriangles": 32768
+  }
+}

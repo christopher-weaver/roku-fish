@@ -9,7 +9,7 @@ sub Main()
     depths=[0.16,0.55,0.94]
     a={plate:{normal:"water"},fish:{},fins:{},formations:[],surface:[],caustics:[],ray:{normal:"ray"}}
     for i=0 to 2
-        f=s.fish[i] : f.z=depths[i] : f.x=900# : f.y=400# : f.heading=3.14
+        f=s.fish[i] : f.z=depths[i] : f.x=900# : f.y=400# : f.heading=3.14 : f.phase=0# : f.finPhase=0.3
         ReefSavePose(f)
         body=[] : fins=[]
         for j=0 to f.sp.frames.Count()-1
@@ -21,7 +21,7 @@ sub Main()
         a.fish[f.name]=body : a.fins[f.name]=fins
     end for
     for i=0 to s.cfg.formations.Count()-1
-        a.formations.Push({normal:"reef:"+s.cfg.formations[i].id})
+        a.formations.Push([{normal:"reef:"+s.cfg.formations[i].id},{normal:"reef:"+s.cfg.formations[i].id},{normal:"reef:"+s.cfg.formations[i].id}])
     end for
     screen={calls:[],SetAlphaEnable:RenderAlpha,Clear:RenderClear,DrawScaledObject:RenderScaled}
     r={screen:screen,scale:1#,rotation:false,fractionalPan:false,fractionalFish:false,placement:{}}
@@ -36,15 +36,15 @@ sub Main()
             if call.sx<0 then reflected=reflected+1
         end if
     end for
-    if order["body:"+s.fish[0].name]>=order["reef:sea-fan"] then print "FAIL rear fish ordering" : return
-    if order["body:"+s.fish[1].name]<=order["reef:white-crown"] or order["body:"+s.fish[1].name]>=order["reef:center-rock"] then print "FAIL mid-ground fish ordering" : return
+    if order["body:"+s.fish[0].name]>=order["reef:right-garden"] then print "FAIL rear fish ordering" : return
+    if order["body:"+s.fish[1].name]<=order["reef:branching-coral"] or order["body:"+s.fish[1].name]>=order["reef:green-cup"] then print "FAIL mid-ground fish ordering" : return
     if order["body:"+s.fish[2].name]<=order["reef:central-clam"] then print "FAIL front fish ordering" : return
     for i=0 to 2
         name=s.fish[i].name
-        if count["body:"+name]<>2 or count["fin:"+name]<>2 then print "FAIL body or fin view blend" : return
+        if count["body:"+name]<>4 or count["fin:"+name]<>4 then print "FAIL body or fin view blend" : return
     end for
-    if blends<>3 or reflected<>6 then print "FAIL blend alpha or reflection ";blends;reflected : return
-    print "PASS production renderer interleaves rear, middle and front fish with eight formations; bodies and fins blend neighboring reflected views"
+    if blends<>9 or reflected<>0 then print "FAIL blend alpha or reflection ";blends;reflected : return
+    print "PASS production renderer interleaves rear, middle and front fish with six rendered islands; body/fin articulation blends with positive scales only"
 end sub
 sub RenderAlpha(enabled as boolean)
 end sub

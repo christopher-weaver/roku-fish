@@ -1,6 +1,6 @@
 sub ReefChooseTarget(s as object, f as object)
     f.stateTime = 0#
-    f.route = [] : f.routeIndex = 0
+    f.route = [] : f.routeIndex = 0 : f.routeCheckAt = 0#
     r = ReefRandom(s)
     f.duration = ReefRange(s, 10, 30)
     f.tx = ReefRange(s, 220, 1820)
@@ -41,7 +41,8 @@ sub ReefFishStep(s as object, f as object, dt as double)
     if f.z > 0.88 then dz = dz - (f.z - 0.88) * 2600 : wall = true
     if f.y < 100 then dy = dy + (100 - f.y) * 5
     if f.y > 820 then dy = dy - (f.y - 820) * 5
-    probe = {x:f.x + f.vx * 5, y:f.y + f.vy * 5, z:f.z + f.vz * 5}
+    probe=f.probe
+    probe.x=f.x+f.vx*5 : probe.y=f.y+f.vy*5 : probe.z=f.z+f.vz*5
     avoiding = ReefCoralBlocked(s, f, f, probe)
     pressure = 0#
     if avoiding then pressure = 1#
@@ -84,7 +85,8 @@ sub ReefFishStep(s as object, f as object, dt as double)
     f.desiredVy = ReefClamp(dy * 0.15, -f.sp.speed * s.motion * 0.33, f.sp.speed * s.motion * 0.33)
     f.vx = f.desiredVx : f.vz = f.desiredVz
     f.vy = f.vy + ReefClamp(f.desiredVy - f.vy, -8 * dt, 8 * dt)
-    candidate = {x:f.x + f.vx * dt, y:f.y + f.vy * dt, z:f.z + f.vz * dt}
+    candidate=f.candidate
+    candidate.x=f.x+f.vx*dt : candidate.y=f.y+f.vy*dt : candidate.z=f.z+f.vz*dt
     if ReefCoralBlocked(s, f, f, candidate)
         ' Final swept-volume safety guard; normal motion is planned around the reef.
         candidate.z = f.z
@@ -139,29 +141,12 @@ sub ReefPlanRoute(s as object, f as object)
         distance = (node.x-wantedX)^2 + (node.y-wantedY)^2 + ((node.z-wantedZ)*1800)^2
         if distance < best then best = distance : goal = index
     end for
-    queue = [start] : visited = {} : previous = {}
-    visited[start.ToStr()] = true : head = 0
-    while head < queue.Count()
-        index = queue[head] : head = head + 1
-        if index = goal then exit while
-        edges = nodes[index].edges
-        for edgeIndex = 0 to edges.Count() - 1
-            nextIndex = edges[edgeIndex] : key = nextIndex.ToStr()
-            if not visited.DoesExist(key)
-                visited[key] = true : previous[key] = index : queue.Push(nextIndex)
-            end if
-        end for
+    f.route=[start] : index=start
+    while index<>goal and f.route.Count()<nodes.Count()
+        index=s.navigation.nextHop[index][goal]
+        if index<0 then f.route=[] : return
+        f.route.Push(index)
     end while
-    reverse = [goal] : index = goal
-    while index <> start
-        index = previous[index.ToStr()]
-        if index = invalid then return
-        reverse.Push(index)
-    end while
-    f.route = []
-    for index = reverse.Count() - 1 to 0 step -1
-        f.route.Push(reverse[index])
-    end for
     f.routeIndex = 0 : f.routeVisits = f.routeVisits + 1
     f.state = "Reef exploring"
     if wantRear then f.state = "Reef sheltering"
@@ -171,6 +156,8 @@ end sub
 
 sub ReefFollowRoute(s as object, f as object)
     if f.route.Count() = 0 then return
+    if f.stateTime<f.routeCheckAt then return
+    f.routeCheckAt=f.stateTime+0.2
     nodes = s.navigation.nodes
     node = nodes[f.route[f.routeIndex]]
     distance = (node.x-f.x)^2 + (node.y-f.y)^2 + ((node.z-f.z)*800)^2

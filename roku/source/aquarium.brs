@@ -28,6 +28,8 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
             f.route = []
             f.routeIndex = 0
             f.routeVisits = 0
+            f.routeCheckAt = 0#
+            f.probe = {} : f.candidate = {}
             f.steeringHeading = f.heading
             f.avoidance = 0#
             f.finPhase = ReefRange(s, 0, 6.283185307)
@@ -39,6 +41,18 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
         end if
     end for
     ReefEffectsInit(s)
+    s.effectBands=[]
+    for i=0 to s.cfg.formations.Count()
+        s.effectBands.Push([])
+    end for
+    for effectIndex=0 to s.effects.Count()-1
+        e=s.effects[effectIndex] : band=0
+        while band<s.cfg.formations.Count()
+            if e.z<s.cfg.formations[band].z then exit while
+            band=band+1
+        end while
+        s.effectBands[band].Push(e)
+    end for
     return s
 end function
 
