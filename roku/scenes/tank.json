@@ -24,13 +24,15 @@
     }
   },
   "softCoral": {
-    "x": 375,
-    "y": 569,
-    "frameWidth": 350,
-    "frameHeight": 370,
-    "frames": 3
+    "x": 530,
+    "y": 44,
+    "frameWidth": 560,
+    "frameHeight": 390,
+    "frames": 1,
+    "depth": 0.48,
+    "image": "pkg:/images/soft-coral.webp"
   },
-  "notes": "Source photograph has a deliberately restrained 128px horizontal overscan. All reef planes share image registration; fish and particles have depth-dependent parallax.",
+  "notes": "Close continuous reef composed from the user reference. Fractional placement keeps the existing 240-second horizontal camera cycle smooth.",
   "speciesOrder": [
     "ocellaris_clownfish",
     "yellow_tang",
@@ -43,5 +45,19 @@
     "Low": 12,
     "Medium": 18,
     "High": 24
+  },
+  "layers": {
+    "mid": {
+      "x": 0,
+      "y": 58,
+      "width": 2048,
+      "height": 622
+    },
+    "front": {
+      "x": 0,
+      "y": 473,
+      "width": 2048,
+      "height": 575
+    }
   }
 }

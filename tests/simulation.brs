@@ -43,7 +43,7 @@ sub Main()
     farMoved=ReefProjection({x:1500#,y:600#,z:0.1},74#) : nearMoved=ReefProjection({x:1500#,y:600#,z:0.9},74#)
     Check(pnear.scale>pfar.scale and pnear.x>pfar.x and Abs(pnear.x-nearMoved.x)>Abs(pfar.x-farMoved.x),"perspective size speed and camera parallax")
     Check(ReefSolid(a,40#,850#),"reef occupancy behind rock")
-    Check(not ReefSolid(a,1000#,300#),"open water occupancy")
+    Check(not ReefSolid(a,1100#,90#),"open water occupancy")
     cameraGood=true
     for i=0 to 2000
         cx=ReefCamera(i*177.37,"Slow")

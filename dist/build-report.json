@@ -1,7 +1,7 @@
 {
-  "images": 31,
+  "images": 28,
   "species": 6,
-  "all_variant_texture_mib": 137.35,
-  "package_bytes": 3948464,
-  "sha256": "ced4b73a57ea8d468607905b5bbacf10f4c8516d6f8934106829e26b7e541eee"
+  "all_variant_texture_mib": 122.46,
+  "package_bytes": 3990704,
+  "sha256": "ac8e6619cf5f3561b58cfedd2891ddded691f693ea5cac5a7dd43843dc7105fb"
 }

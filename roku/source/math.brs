@@ -62,3 +62,37 @@ function ReefFrameSchedule(nowMs as double, deadline as double, fps as double) a
     if fps < 59 then delay = Int(ReefMax(0#, deadline - nowMs - 8#))
     return {deadline:deadline, sleepMs:delay}
 end function
+
+' Integer draw coordinates plus a large pretranslation and floating-point scale
+' retain fractional placement. Scale error across a 2048px layer stays below 1/32px.
+function ReefLayerTransform(x as double, y as double, sx as double, sy as double, result = invalid as dynamic) as object
+    anchor = 65536#
+    px = Int(x - anchor * sx)
+    py = Int(y - anchor * sy)
+    if result = invalid then result = {}
+    result.x = px : result.y = py
+    result.sx = (x - px) / anchor : result.sy = (y - py) / anchor
+    return result
+end function
+
+function ReefFractionalPixelsValid(pixels as object) as boolean
+    if pixels.Count() <> 1536 then return false
+    ' Accept RGB/BGRA/ARGB readback layouts; a constant alpha channel cannot pass.
+    for channel = 0 to 3
+        totalA = 0# : totalB = 0# : weightedA = 0# : weightedB = 0#
+        for column = 0 to 23
+            a = pixels[(4 * 24 + column) * 4 + channel]
+            b = pixels[(11 * 24 + column) * 4 + channel]
+            totalA = totalA + a : totalB = totalB + b
+            weightedA = weightedA + column * a : weightedB = weightedB + column * b
+        end for
+        if totalA >= 128 and totalB >= 128
+            centerA = weightedA / totalA
+            centerB = weightedB / totalB
+            movement = Abs(centerB - centerA)
+            ' Readback can be vertically flipped or use a half-texel convention.
+            if ReefMin(centerA,centerB) > 8.25 and ReefMax(centerA,centerB) < 9.75 and movement > 0.12 and movement < 0.45 then return true
+        end if
+    end for
+    return false
+end function

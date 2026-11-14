@@ -4,6 +4,8 @@ import json, math, argparse
 from PIL import Image,ImageChops,ImageDraw,ImageFont
 ROOT=Path(__file__).resolve().parents[1];IM=ROOT/'roku/images';PRE=ROOT/'docs/previews'
 SPEC=json.loads((ROOT/'roku/scenes/species.json').read_text())
+TANK=json.loads((ROOT/'roku/scenes/tank.json').read_text())
+WAVES=json.loads((ROOT/'roku/scenes/waves.json').read_text())
 CACHE={}
 def asset(name):
     if name not in CACHE:CACHE[name]=Image.open(IM/name).convert('RGBA')
@@ -55,20 +57,25 @@ def render(frame,mode='Sunset',density='Medium'):
     effects(0,.48)
     for f in fs:
         if f['z']<.48:fish(img,f,mode)
-    paste(img,asset('reef-mid'+suf+'.webp'),-cam,124)
+    tint=Image.new('RGBA',(1,1),(221,235,255,255))
+    def reef_layer(name):
+        layer=asset('reef-'+name+'.webp')
+        if mode!='Sunset':layer=ImageChops.multiply(layer,Image.new('RGBA',layer.size,(221,235,255,255)))
+        location=TANK['layers'][name]
+        paste(img,layer,location['x']-cam,location['y']-36)
+    reef_layer('mid')
+    cfg=TANK['softCoral'];cor=asset(cfg['image'].split('/')[-1]);sway=math.sin(t*2*math.pi/18);width_scale=1+sway*.003
+    if mode!='Sunset':cor=ImageChops.multiply(cor,Image.new('RGBA',cor.size,(221,235,255,255)))
+    paste(img,cor,cfg['x']-cam+sway*1.5-cfg['frameWidth']*(width_scale-1)*.5,cfg['y'],width_scale,1)
     for f in fs:
         if .48<=f['z']<.78:fish(img,f,mode)
-    paste(img,asset('reef-front'+suf+'.webp'),-cam,124)
-    cor=asset('soft-coral'+suf+'.png');phase=t/5.5%3
+    reef_layer('front')
+    phase=t%WAVES['period']*WAVES['frames']/WAVES['period'];first=int(phase);blend=phase-first
+    cfg=WAVES['sand'];sand=asset('sand-caustics.png')
     for j in range(2):
-        ix=(int(phase)+j)%3
-        paste(img,cor.crop((ix*350,0,(ix+1)*350,370)),375-cam,569,opacity=phase%1 if j else 1-phase%1)
-    phase=t%8*4;first=int(phase);blend=phase-first
-    sand=asset('sand-caustics.png')
-    for j in range(2):
-        index=(first+j)%32
-        piece=sand.crop(((index%4)*512,(index//4)*88,(index%4+1)*512,(index//4+1)*88))
-        paste(img,piece,-cam,764,4,opacity=(blend if j else 1-blend)*225/255*day)
+        index=(first+j)%WAVES['frames'];x=index%cfg['columns']*cfg['width'];y=index//cfg['columns']*cfg['height']
+        piece=sand.crop((x,y,x+cfg['width'],y+cfg['height']))
+        paste(img,piece,cfg['x']-cam,cfg['y']-36,cfg['scale'],opacity=(blend if j else 1-blend)*225/255*day)
     for f in fs:
         if f['z']>=.78:fish(img,f,mode)
     effects(.48,1.01)

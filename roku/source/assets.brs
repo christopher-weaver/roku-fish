@@ -7,10 +7,9 @@ end function
 
 function ReefLoadAssets(s as object) as object
     warm = s.settings.lighting = "Sunset"
-    suffix = ""
     plate = "water-day.webp"
-    if warm then suffix = "-sunset" : plate = "water-sunset.webp"
-    a = { plate: ReefBitmap("pkg:/images/" + plate), mid: ReefBitmap("pkg:/images/reef-mid" + suffix + ".webp"), front: ReefBitmap("pkg:/images/reef-front" + suffix + ".webp"), mote: ReefBitmap("pkg:/images/mote.png"), bubble: ReefBitmap("pkg:/images/bubble.png"), ray: ReefBitmap("pkg:/images/ray.png"), coral: [], caustics: [], fish: {}, fins: {}, surface: [] }
+    if warm then plate = "water-sunset.webp"
+    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), mid: ReefLayer(ReefBitmap("pkg:/images/reef-mid.webp")), front: ReefLayer(ReefBitmap("pkg:/images/reef-front.webp")), mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), coral: [], caustics: [], fish: {}, fins: {}, surface: [] }
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
     surface = ReefBitmap("pkg:/images/surface-waves.png")
     sand = ReefBitmap("pkg:/images/sand-caustics.png")
@@ -18,22 +17,19 @@ function ReefLoadAssets(s as object) as object
         for i = 0 to a.waveConfig.frames - 1
             if surface <> invalid
                 cfg = a.waveConfig.surface
-                reg = CreateObject("roRegion", surface, (i mod cfg.columns) * cfg.width, Int(i / cfg.columns) * cfg.height, cfg.width, cfg.height)
-                reg.SetScaleMode(1)
-                a.surface.Push(reg)
+                a.surface.Push(ReefLayer(surface, (i mod cfg.columns) * cfg.width, Int(i / cfg.columns) * cfg.height, cfg.width, cfg.height))
             end if
             if sand <> invalid
                 cfg = a.waveConfig.sand
-                reg = CreateObject("roRegion", sand, (i mod cfg.columns) * cfg.width, Int(i / cfg.columns) * cfg.height, cfg.width, cfg.height)
-                reg.SetScaleMode(1)
-                a.caustics.Push(reg)
+                a.caustics.Push(ReefLayer(sand, (i mod cfg.columns) * cfg.width, Int(i / cfg.columns) * cfg.height, cfg.width, cfg.height))
             end if
         end for
     end if
-    b = ReefBitmap("pkg:/images/soft-coral" + suffix + ".png")
+    cfg = s.cfg.softCoral
+    b = ReefBitmap(cfg.image)
     if b <> invalid
-        for i = 0 to 2
-            a.coral.Push(CreateObject("roRegion", b, i * 350, 0, 350, 370))
+        for i = 0 to cfg.frames - 1
+            a.coral.Push(ReefLayer(b, i * cfg.frameWidth, 0, cfg.frameWidth, cfg.frameHeight))
         end for
     end if
     for each name in s.species
@@ -62,4 +58,18 @@ function ReefLoadAssets(s as object) as object
         end if
     end for
     return a
+end function
+
+' Two immutable regions share one bitmap; no second texture is allocated.
+function ReefLayer(bitmap as dynamic, x = 0 as integer, y = 0 as integer, width = -1 as integer, height = -1 as integer) as dynamic
+    if bitmap = invalid then return invalid
+    if width < 0 then width = bitmap.GetWidth()
+    if height < 0 then height = bitmap.GetHeight()
+    normal = CreateObject("roRegion", bitmap, x, y, width, height)
+    fractional = CreateObject("roRegion", bitmap, x, y, width, height)
+    if normal = invalid or fractional = invalid then return invalid
+    normal.SetScaleMode(1)
+    fractional.SetScaleMode(1)
+    fractional.SetPretranslation(65536, 65536)
+    return {normal:normal, fractional:fractional}
 end function

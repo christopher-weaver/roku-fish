@@ -1,0 +1,1 @@
+PASS close-reef scene soak: 600 simulated seconds, six enlarged fish, zero boundary or coral intersections

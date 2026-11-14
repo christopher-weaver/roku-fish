@@ -19,7 +19,7 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
         sp = species[name]
         if sp <> invalid
             f = { id: i, name: name, sp: sp, x: ReefRange(s, 150, 1900), y: ReefRange(s, 180, 780), z: ReefRange(s, 0.16, 0.95), tx: 1024#, ty: 460#, tz: 0.5, vx: 0#, vy: 0#, vz: 0#, desiredVx: 0#, desiredVy: 0#, desiredVz: 0#, heading: ReefRange(s, -3.14, 3.14), pitch: 0#, speed: 0#, phase: ReefRange(s, 0, 6.283), size: ReefRange(s, 0.86, 1.12), state: "Cruising", stateTime: 0#, duration: ReefRange(s, 8, 22), turnRate: ReefRange(s, 0.32, 0.55), acceleration: 19#, targetSpeed: sp.speed, wander: ReefRange(s, 0, 6.283), schooling: sp.school }
-            if name = "ocellaris_clownfish" then f.x = 410 + i * 9 : f.y = 740 : f.z = 0.85
+            if name = "ocellaris_clownfish" then f.x = 1000 + i * 9 : f.y = 800 : f.z = 0.94
             f.speed = sp.speed * 0.6
             f.yawVelocity = 0#
             f.avoidance = 0#

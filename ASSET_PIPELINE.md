@@ -1,55 +1,55 @@
-# Reproducible artwork pipeline
+# Offline artwork pipeline
 
-All required runtime art and every source image used by this build are included. Rebuilding requires no generation service, paid API, model weights, asset-store account or runtime network access.
+All runtime artwork and source pixels are included. No generation service, model weights, paid API, download or runtime server is required to rebuild.
 
 ```sh
 python -m venv .venv
-# Activate .venv using the normal command for your shell.
 python -m pip install -r tools/requirements.txt
 python tools/generate_assets.py
 python tools/build.py
 ```
 
-The primary headless renderer uses ModernGL/EGL with Mesa on Linux. `LIBGL_ALWAYS_SOFTWARE=1` is supported. EGL availability is an offline authoring requirement only. On Windows/macOS, use a supported EGL/OpenGL environment, run the pipeline in Linux, or edit/render the checked-in meshes in Blender using the optional exporter below. The finished Roku package needs none of these libraries.
+Activate the venv using the normal command for your shell. The headless mesh renderer uses ModernGL/EGL with Mesa on Linux; `LIBGL_ALWAYS_SOFTWARE=1` is supported. Windows/macOS can use a suitable EGL environment or Linux, and the optional Blender exporter remains available.
 
-## Inputs and provenance
+## Active inputs
 
-- `assets/source/reef-original.png`: original generated reef photograph, created for this project with the available image-generation tool. Prompt and provenance are in `assets/source/PROVENANCE.md`.
-- `empty-original.png`: matching empty aquarium plate retained for future layering edits. The final scene deliberately retains the full rear reef photograph for visual cohesion.
-- Six photographic fish refinements derived from Paul Robello's MIT-licensed `roku-fishtank` portraits. `fish-studies.png` retains the original six-species reference sheet; `fish-photographic-sheet.png` retains the generated refinement. `tools/split_fish.py` reproduces the six cropped sources. Original notices, upstream provenance, the refinement prompt and revision are retained.
-- `*-texture.png` and `*.npz`: normalized textures and generated 3D mesh arrays. NPZ contains vertices, UV coordinates and triangle faces.
+- `assets/source/reef-close-reference.png`: active 1672×941 generated close reef, based on the user-supplied composition reference. It preserves the requested sunset palette, full-width coral and defined sand ridges. Provenance and prompt notes are in `assets/source/PROVENANCE.md`.
+- `reef-original.png` and `empty-original.png`: retained historical sources used by earlier releases.
+- Six licensed/refined photographic fish portraits, plus source sheets. The Paul Robello MIT notices and provenance remain in `assets/licenses/` and CREDITS.
+- `*-texture.png`, `*-pectoral.png` and NPZ volumes are derived from those portraits and rebuildable offline.
 
-The fish refinement uses the same licensed species profiles with more photographic textures and smaller eyes. The original generation service is not needed to reproduce the delivered images: the source pixels are checked in. Generating a new reef with the same prompt is not claimed to be byte-deterministic.
+## Scene and waves
 
-## Stages
+`art.py` supplies manifest artwork and invokes `scene.py` and `waves.py`. `scene.py` resamples the active plate, builds gradient-guided reef masks from reviewed silhouette seeds, splits mid/front occlusion and records cropped image registration in `tank.json`. It builds conservative per-plane occupancy and the masked white coral crown. The crown is stored once and moved slightly at runtime, instead of storing three nearly identical copies.
 
-`tools/art.py` resamples the reef to the registered 2048×1152 plate, applies the sunset color transform, extracts two alpha occlusion surfaces with hand-reviewed silhouette envelopes and water rejection, fills small interior mask holes, creates separate conservative 8px occupancy maps, and builds three scan-line-deformed soft-coral frames. It increases reef saturation, uses `tools/waves.py` to inpaint frozen caustic ridges while preserving sand grain and shadows and generate matched 32-frame surface-wave and sand-caustic atlases, ray/particle sprites, 32px bubble rings and manifest art. It preserves matching source pixel coordinates so the layers align.
+The rear plate keeps the photographed sky and sand while replacing hidden coral with ambient water. Mid/front layers share one warm photographic source; lighting modes use different water/tints. Reef textures use WebP quality 74, water plates quality 74, and the crown quality 76. Alpha remains lossless. A small mask preview is generated for review.
 
-`tools/fish_mesh.py` normalizes each fish's alpha portrait, constructs front and back volume surfaces using a smoothed distance-field thickness and stitches the silhouette rim. Fins remain thinner than the body. UV coordinates project the detailed licensed portrait onto both flanks. The mesh rotates through **32 distinct full-circle yaw angles** and bends through **eight swimming poses**. A 320-column mesh and 4× rasterization supersampling smooth silhouettes. Every frame is rasterized in 3D with depth testing; no runtime image squash substitutes for turning. Each frame is first rendered on a registered 192×168 canvas, then transparently cropped and packed onto a ≤2048px atlas with an explicit anchor. Pectoral fins are extracted from the licensed source, the old painted fin is underpainted with neighboring body scales, and paired fin meshes swing around their attachment points. Nine stroke angles per yaw are depth-tested against the body and packed separately, so runtime fin timing is independent of tail timing. Body height is reduced by 8% and thickness by 20%. `species.json` records each frame's position, orientation and pose. A six-species orientation contact sheet is generated for review.
+Sand is not blurred, flattened or inpainted. `waves.py` preserves its original ridge/grain photo and generates a low-opacity, signed brightness overlay from the surface's shared eight-second periodic height field. A 256×24 light tile scales to the 2048×192 foreground band; this overlay contains no replacement sand texture. Thirty-two frames crossfade using the continuous display clock. The surface wave atlas remains separate, using the same phase.
 
-These are silhouette-derived volume models, with simpler head anatomy than a sculpted or scanned fish. This is a material fidelity compromise. The source models and pipeline are included so better anatomical meshes can replace them. The species interface and runtime need not change when atlases are replaced.
+## Fish
 
-`tools/optimize.py` uses libimagequant for alpha-preserving palettes (128 colors for fish) and lossless WebP fish atlases; wave sprites remain PNG. It also recompresses the manifest JPEG artwork. Reef photo cutouts use WebP quality 64, as do full water plates; reef alpha is lossless to keep the denser animation under the package limit (Roku OS 9.4+, target OS 16). Already palettized PNGs are skipped to avoid repeated quantization. `tools/catalog.py` records exact dimensions and SHA-256 checksums. `tools/build.py` rejects missing or modified catalog files, out-of-range atlas frames, oversized textures and ZIPs over the conservative four-million-byte package budget.
+`fish_mesh.py` builds slim front/back textured volumes with a stitched rim and independently hinged pectoral fins. Body height remains reduced by 8%, with the existing thinner depth profiles. Source contrast and sharpness are improved. ModernGL renders each species at 32 full-circle yaw angles, eight tail bends and nine independent fin strokes with depth testing and 4× supersampling.
 
-For a source change, rerun **generate_assets.py**, not optimize.py repeatedly over already quantized PNGs. Intermediate rendering and palette compression may vary slightly across graphics drivers or library versions; checksums describe the delivered bytes, not a cross-platform bit-exact rendering guarantee.
+The larger tang/angelfish/idol use 224×196 registration canvases; the other three use 208×182. Transparent margins are cropped, with anchors retained in `species.json`, and every packed image remains within 2048px. Display lengths increase by 60%. Raw atlas renders are cached in ignored `work/fish-raw/` to support palette tuning without losing the original rendered pixels.
 
-## Blender editing / rendering
+`optimize.py` preserves alpha, uses 144-color body palettes for the larger species and 128 for the smaller ones, and 96-color fin palettes without dithering. Fish are stored in lossless WebP containers. Wave sprites remain compact palette PNGs. `catalog.py` records dimensions and exact SHA-256 checksums. `build.py` checks every region and image and enforces the four-million-byte ZIP budget.
 
-With Blender available:
+Always regenerate from original source pixels after changing the artwork; do not repeatedly quantize already palettized output. Rendering and quantization can vary slightly between graphics drivers/library versions; catalog hashes describe the delivered bytes rather than a cross-platform bit-exact guarantee.
+
+## Preview and editing
+
+```sh
+node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs roku/source/effects.brs tests/export.brs > work/frames.log
+python tools/preview.py
+python -m http.server 8000
+```
+
+Create `work/` first. The export records the production brain, not a separate fish simulator. The preview reads current layer and wave metadata, so cropped registration matches the native renderer. Open `http://localhost:8000/docs/preview.html` for lighting/seek/play inspection. It does not establish Roku GPU output.
+
+Optional Blender editing:
 
 ```sh
 blender --background --python tools/blender_render.py -- --species yellow_tang --output work/blender
 ```
 
-The script loads the same NPZ mesh and normalized photo texture, renders up to 256 transparent views with a selected articulated fin pose (`--fin-pose 0` through `8`), and saves an editable `.blend`. These optional Blender renders are inspection/replacement outputs; the default atlas build uses the ModernGL rasterizer. To replace a model, preserve the frame center and nominal length, render the same yaw/pose grid, pack it to the species atlas and update the frame metadata and asset catalog. Review the contact sheet before packaging.
-
-## Preview exports
-
-After installing Node development dependencies:
-
-```sh
-node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs roku/source/effects.brs tests/export.brs > work/frames.log
-python tools/preview.py
-```
-
-Create `work/` first if necessary. The exporter runs the actual production movement rules, emits a high-density fixture plus 601 deterministic timeline snapshots at 10 Hz, and the Python utility composites those states with runtime assets. It writes Sunset/Daylight/Dusk/Moonlight, low/high density, front/behind occlusion and close three-quarter samples. The browser inspection recording uses the same exports. Screenshot fixtures explicitly marked occlusion/three-quarter place fish for inspection; the default sunset image uses an unmodified production snapshot.
+The exporter reads the same NPZ rig and photo textures, supports fin poses 0–8, and saves an editable blend. These remain inspection/replacement renders; the production atlas build uses ModernGL. The meshes are silhouette-derived textured volumes rather than anatomical scans.

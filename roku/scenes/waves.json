@@ -8,11 +8,11 @@
     "scale": 2
   },
   "sand": {
-    "width": 512,
-    "height": 88,
-    "columns": 4,
-    "scale": 4,
+    "width": 256,
+    "height": 24,
+    "columns": 8,
+    "scale": 8,
     "x": 0,
-    "y": 800
+    "y": 960
   }
 }

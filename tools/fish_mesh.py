@@ -2,7 +2,7 @@
 All poses are rendered offline; runtime uses cropped atlas regions and no shaders.
 """
 from pathlib import Path
-import json, math
+import json, math, shutil
 import numpy as np
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 from scipy.ndimage import distance_transform_edt, gaussian_filter
@@ -40,7 +40,7 @@ void main(){vec4 c=texture(photo,texuv);if(c.a<.08)discard;outcol=depthOnly>.5?v
 
 def prepare_texture(name):
     im=Image.open(SRC/(name+'.png')).convert('RGBA');im=im.crop(im.getchannel('A').getbbox())
-    im=ImageEnhance.Color(im).enhance(.84);im=ImageEnhance.Contrast(im).enhance(.94)
+    im=ImageEnhance.Color(im).enhance(.94);im=ImageEnhance.Contrast(im).enhance(1.02);im=ImageEnhance.Sharpness(im).enhance(1.22)
     outline,hinge=FIN_RIGS[name]
     mask=Image.new('L',im.size);ImageDraw.Draw(mask).polygon([(round(x*im.width),round(y*im.height))for x,y in outline],fill=255)
     mask=mask.filter(ImageFilter.GaussianBlur(max(.6,im.width*.002)))
@@ -107,12 +107,17 @@ def cropped(shot,yaw,pose,fw,fh):
     x0,y0,x1,y1=box;box=(max(0,x0-2),max(0,y0-2),min(fw,x1+2),min(fh,y1+2))
     return shot.crop(box),{'yaw':yaw*360/YAW_COUNT,'pose':pose,'anchorX':fw/2-box[0],'anchorY':fh/2-box[1]}
 
-def build():
+def build(species_list=None):
     import moderngl
     ctx=moderngl.create_standalone_context(backend='egl');p=ctx.program(vertex_shader=VS,fragment_shader=FS)
-    fw,fh=192,168;fbo=ctx.simple_framebuffer((fw*4,fh*4),components=4);fbo.use();ctx.enable(moderngl.DEPTH_TEST)
+    fw,fh=224,196;fbo=ctx.simple_framebuffer((fw*4,fh*4),components=4);fbo.use();ctx.enable(moderngl.DEPTH_TEST)
     contact=Image.new('RGB',(6*256,6*150),(27,45,58));atlasdata={}
-    for row,(name,label,size,speed,beat,school,thick,finbeat)in enumerate(SPECIES):
+    for row,(name,label,size,speed,beat,school,thick,finbeat)in enumerate(SPECIES if species_list is None else species_list):
+        if name in ['ocellaris_clownfish','royal_gramma','green_chromis']:
+            fw,fh=208,182
+        else:
+            fw,fh=224,196
+        fbo.release();fbo=ctx.simple_framebuffer((fw*4,fh*4),components=4);fbo.use()
         v,uv,faces,fv,fins,body,fin,hinge=make_mesh(name,thick)
         vb=ctx.buffer(np.hstack((v,uv)).astype('f4').tobytes());ib=ctx.buffer(faces.tobytes());vao=ctx.vertex_array(p,[(vb,'3f 2f','pos','uv')],ib)
         fb=ctx.buffer(np.hstack((fv,uv)).astype('f4').tobytes());fi=ctx.buffer(fins.tobytes());fvao=ctx.vertex_array(p,[(fb,'3f 2f','pos','uv')],fi)
@@ -136,7 +141,9 @@ def build():
                 finshots.append(cropped(read(),yaw,pose,fw,fh))
         atlas,frames=pack(shots);finatlas,finframes=pack(finshots,512)
         atlas.save(OUT/(name+'-atlas.png'),optimize=True);finatlas.save(OUT/(name+'-fins.png'),optimize=True)
-        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.webp','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'poseCount':len(BODY_BENDS),'length':size,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finImage':'pkg:/images/'+name+'-fins.webp','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick,'collisionHalfWidth':max(max(f['anchorX'],f['w']-f['anchorX']) for f in frames+finframes),'collisionHalfHeight':max(max(f['anchorY'],f['h']-f['anchorY']) for f in frames+finframes)}
+        raw=ROOT/'work/fish-raw';raw.mkdir(parents=True,exist_ok=True)
+        for suffix in ['-atlas.png','-fins.png']:shutil.copy2(OUT/(name+suffix),raw/(name+suffix))
+        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.webp','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'poseCount':len(BODY_BENDS),'length':size*1.6,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finImage':'pkg:/images/'+name+'-fins.webp','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick,'collisionHalfWidth':max(max(f['anchorX'],f['w']-f['anchorX']) for f in frames+finframes),'collisionHalfHeight':max(max(f['anchorY'],f['h']-f['anchorY']) for f in frames+finframes)}
         for obj in [vao,vb,ib,fvao,fb,fi,tex,ftex]:obj.release()
         print(name,len(frames),'body poses,',len(finframes),'independent fin poses; atlas',atlas.size,flush=True)
     (ROOT/'roku/scenes/species.json').write_text(json.dumps(atlasdata,indent=2))

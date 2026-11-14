@@ -99,7 +99,8 @@ class PackageChecks(unittest.TestCase):
                 x=i%data['columns']*data['width'];y=i//data['columns']*data['height']
                 return atlas.crop((x,y,x+data['width'],y+data['height']))
             self.assertIsNotNone(ImageChops.difference(frame(0),frame(1)).getbbox())
-            self.assertGreater(atlas.getchannel('A').getextrema()[1],40)
+            self.assertGreater(atlas.getchannel('A').getextrema()[1],10 if key=='sand' else 40)
+            if key=='sand':self.assertLessEqual(atlas.getchannel('A').getextrema()[1],48)
         self.assertFalse((ROOT/'roku/images/sun-dapple.png').exists())
         self.assertFalse((ROOT/'roku/scenes/dapple.json').exists())
         with zipfile.ZipFile(ROOT/'dist/deep-reef-screensaver.zip')as z:
@@ -108,10 +109,37 @@ class PackageChecks(unittest.TestCase):
     def test_sand_highlights_stay_on_floor(self):
         from PIL import Image
         atlas=Image.open(ROOT/'roku/images/sand-caustics.png').convert('RGBA')
-        # At the distant sand edge the side reefs must remain unlit.
-        for frame in range(32):
-            x=frame%4*512;y=frame//4*88
-            self.assertEqual(atlas.crop((x,y,x+100,y+20)).getchannel('A').getextrema()[1],0)
+        cfg=json.loads((ROOT/'roku/scenes/waves.json').read_text())['sand']
+        # Sand illumination starts near the floor; it cannot cover the upper reef.
+        self.assertGreaterEqual(cfg['y'],950)
+        self.assertEqual(cfg['width']*cfg['scale'],2048)
+        self.assertEqual(cfg['height']*cfg['scale'],192)
+        self.assertLessEqual(atlas.getchannel('A').getextrema()[1],48)
+    def test_reference_composition_and_detail(self):
+        from PIL import Image
+        mask=Image.open(ROOT/'docs/previews/reef-mask.png').convert('L')
+        center=mask.crop((350,200,680,480))
+        import statistics
+        self.assertGreater(statistics.mean(center.getdata()),220)
+        cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
+        for name in ['mid','front']:
+            layer=cfg['layers'][name]
+            self.assertEqual(Image.open(ROOT/'roku/images'/('reef-'+name+'.webp')).size,(layer['width'],layer['height']))
+            self.assertLessEqual(layer['x']+layer['width'],2048)
+            self.assertLessEqual(layer['y']+layer['height'],1152)
+        species=json.loads((ROOT/'roku/scenes/species.json').read_text())
+        self.assertGreaterEqual(species['emperor_angelfish']['length'],300)
+        self.assertGreaterEqual(species['yellow_tang']['frameW'],224)
+        self.assertTrue(all(sp['frameW']>192 for sp in species.values()))
+    def test_sand_grain_is_preserved(self):
+        from PIL import Image,ImageChops,ImageFilter,ImageStat
+        source=Image.open(ROOT/'assets/source/reef-close-reference.png').convert('RGB').resize((2048,1152),Image.Resampling.LANCZOS)
+        actual=Image.open(ROOT/'roku/images/water-sunset.webp').convert('RGB')
+        box=(256,1040,1792,1110)
+        def grain(im):
+            crop=im.crop(box).convert('L')
+            return ImageStat.Stat(ImageChops.difference(crop,crop.filter(ImageFilter.GaussianBlur(1.5)))).mean[0]
+        self.assertGreater(grain(actual),grain(source)*.55)
     def test_frame_wait_precedes_buffer_swap(self):
         source=(ROOT/'roku/source/main.brs').read_text()
         self.assertLess(source.index('Sleep(pacing.sleepMs)'),source.index('screen.SwapBuffers()'))

@@ -19,8 +19,8 @@ sub ReefChooseTarget(s as object, f as object)
         f.tx = 1600 : f.ty = 700 : f.tz = 0.28
     end if
     if f.name = "ocellaris_clownfish" and r < 0.78
-        f.tx = ReefRange(s, 280, 620)
-        f.ty = ReefRange(s, 620, 830)
+        f.tx = ReefRange(s, 820, 1260)
+        f.ty = ReefRange(s, 680, 850)
         f.tz = ReefRange(s, 0.83, 0.97)
         f.state = "Exploring"
     end if

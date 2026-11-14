@@ -35,3 +35,5 @@ https://github.com/khoople/aquariumtv was inspected for its SceneGraph architect
 Python/Pillow, NumPy, SciPy, ModernGL/glcontext, libimagequant, Blender, BrighterScript and the `brs` interpreter are development tools installed separately under their own licenses. They are not bundled as dependencies in the Roku ZIP. The optional browser preview uses the browser's standard Canvas API with no CDN or external libraries.
 
 Version 1.0.2 derives separate pectoral-fin cutouts and hinged fin meshes from the same MIT-attributed photographic fish sources. Body textures are underpainted beneath the moving fins. The new surface-wave sprites are original procedural artwork.
+
+The active 1.0.5 close-reef background is generated artwork based on the user's composition reference. Its original pixels and provenance are in `assets/source/reef-close-reference.png` and `assets/source/PROVENANCE.md`. It preserves the requested sunset palette and contains no baked-in fish.

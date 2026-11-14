@@ -11,9 +11,11 @@ def optimize(atlases_only=False,effects_only=False):
         im=Image.open(p).convert('RGBA')
         if p.name in ['surface-waves.png','sand-caustics.png']:colors=96;dither=0
         elif 'reef-' in p.name:colors=256;dither=.75
-        elif 'atlas' in p.name or '-fins' in p.name:colors=128;dither=.15
+        elif 'atlas' in p.name or '-fins' in p.name:
+            colors=96 if '-fins' in p.name else 128 if p.name.startswith(('ocellaris_clownfish','royal_gramma','green_chromis')) else 144
+            dither=0
         else:colors=160;dither=.4
-        im=imagequant.quantize_pil_image(im,max_colors=colors,dithering_level=dither,max_quality=90)
+        im=imagequant.quantize_pil_image(im,max_colors=colors,dithering_level=dither,max_quality=95)
         if 'atlas' in p.name or '-fins' in p.name:
             im.convert('RGBA').save(p.with_suffix('.webp'),lossless=True,method=6,exact=True)
             p.unlink()

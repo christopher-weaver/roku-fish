@@ -1,15 +1,35 @@
 function ReefRenderer(screen as object, settings as object) as object
-    r = { screen: screen, scale: screen.GetWidth() / 1920.0, rotation: false, font: invalid }
+    r = { screen: screen, scale: screen.GetWidth() / 1920.0, rotation: false, font: invalid, placement: {} }
     features = screen.GetGraphicsFeatures()
     if features <> invalid and features.full_rotation = true then r.rotation = true
     fonts = CreateObject("roFontRegistry")
     r.font = fonts.GetDefaultFont(Int(24 * r.scale), false, false)
+    r.fractionalPan = ReefFractionalPanProbe(screen)
+    r.fractionalTransform = false
+    if not r.fractionalPan
+        r.fractionalPan = ReefFractionalPanProbe(screen, true)
+        r.fractionalTransform = r.fractionalPan
+    end if
+    print "Deep Reef fractional pan=";r.fractionalPan;" transformed=";r.fractionalTransform
     return r
 end function
 
 sub ReefDraw(r as object, x as double, y as double, sx as double, sy as double, bmp as dynamic, tint as integer)
     if bmp = invalid then return
-    r.screen.DrawScaledObject(Int(x * r.scale + 0.5), Int(y * r.scale + 0.5), sx * r.scale, sy * r.scale, bmp, tint)
+    if Type(bmp) = "roAssociativeArray"
+        if r.fractionalPan
+            transform = ReefLayerTransform(x * r.scale, y * r.scale, sx * r.scale, sy * r.scale, r.placement)
+            if r.fractionalTransform
+                r.screen.DrawTransformedObject(transform.x, transform.y, 0, transform.sx, transform.sy, bmp.fractional, tint)
+            else
+                r.screen.DrawScaledObject(transform.x, transform.y, transform.sx, transform.sy, bmp.fractional, tint)
+            end if
+        else
+            r.screen.DrawScaledObject(Int(x * r.scale + 0.5), Int(y * r.scale + 0.5), sx * r.scale, sy * r.scale, bmp.normal, tint)
+        end if
+    else
+        r.screen.DrawScaledObject(Int(x * r.scale + 0.5), Int(y * r.scale + 0.5), sx * r.scale, sy * r.scale, bmp, tint)
+    end if
 end sub
 
 sub ReefDrawFish(r as object, s as object, a as object, f as object)
@@ -121,18 +141,22 @@ sub ReefRender(r as object, s as object, a as object)
         if s.sorted[i].z >= 0.48 then exit while
         ReefDrawFish(r, s, a, s.sorted[i]) : i = i + 1
     end while
-    ReefDraw(r, -s.camera, 124, 1, 1, a.mid, &hFFFFFFFF)
+    reefTint = &hFFFFFFFF
+    if s.settings.lighting <> "Sunset" then reefTint = &hDDEBFFFF
+    mid = s.cfg.layers.mid
+    front = s.cfg.layers.front
+    ReefDraw(r, mid.x - s.camera, mid.y - 36, 1, 1, a.mid, reefTint)
+    if a.coral.Count() > 0
+        cfg = s.cfg.softCoral
+        sway = Sin(ReefWrap(s.displayTime,18#)*6.283185307/18#)
+        widthScale = 1 + sway * 0.003
+        ReefDraw(r, cfg.x - s.camera + sway * 1.5 - cfg.frameWidth * (widthScale-1)*0.5, cfg.y, widthScale, 1, a.coral[0], reefTint)
+    end if
     while i < s.sorted.Count()
         if s.sorted[i].z >= 0.78 then exit while
         ReefDrawFish(r, s, a, s.sorted[i]) : i = i + 1
     end while
-    ReefDraw(r, -s.camera, 124, 1, 1, a.front, &hFFFFFFFF)
-    if a.coral.Count() > 0
-        phase = ReefWrap(s.displayTime / 5.5, 3)
-        first = Int(phase) : blend = phase - first
-        ReefDraw(r, 375 - s.camera, 569, 1, 1, a.coral[first], ReefRGBA(255, 255, 255, Int(255 * (1 - blend))))
-        ReefDraw(r, 375 - s.camera, 569, 1, 1, a.coral[(first + 1) mod 3], ReefRGBA(255, 255, 255, Int(255 * blend)))
-    end if
+    ReefDraw(r, front.x - s.camera, front.y - 36, 1, 1, a.front, reefTint)
     ReefDrawCaustics(r, s, a)
     while i < s.sorted.Count()
         ReefDrawFish(r, s, a, s.sorted[i]) : i = i + 1
