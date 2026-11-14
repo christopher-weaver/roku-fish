@@ -2,17 +2,17 @@
 
 **[Download the ready-to-install Roku ZIP](https://github.com/christopher-weaver/roku-fish/raw/refs/heads/main/dist/deep-reef-screensaver.zip)** · [Step-by-step installation](INSTALL.md)
 
-A sparse, layered coral aquarium with larger fish, open swim-through spaces and sharp sand ridges. This is a self-contained native Roku aquarium screensaver with a pink, orange and red **Sunset** default, six marine species, autonomous three-dimensional movement and layered coral occlusion. It has no runtime network dependency, video playback, ordinary channel entry point, or Home-screen launch flow.
+A connected, reference-aligned coral aquarium with larger fish, a shared rock foundation and sharp sand ridges. This is a self-contained native Roku aquarium screensaver with a pink, orange and red **Sunset** default, six marine species, autonomous three-dimensional movement and layered coral occlusion. It has no runtime network dependency, video playback, ordinary channel entry point, or Home-screen launch flow.
 
 **Install:** upload `dist/deep-reef-screensaver.zip` to the Roku Developer Application Installer, then choose **Settings → Theme → Screensavers → Deep Reef → Set as screensaver**. Some firmware labels sideloaded screensavers **dev**. See [INSTALL.md](INSTALL.md).
 
 ![Default sunset aquarium](docs/previews/sunset.png)
 
-The aquarium includes ocellaris clownfish, yellow tang, royal gramma, emperor angelfish, Moorish idol and blue-green chromis. All 64 turning directions are baked upright, so the renderer uses positive scales throughout a full turn. Both direction and body/pectoral articulation interpolate continuously. Slim proportions, larger fish and detailed textures remain.
+The aquarium includes ocellaris clownfish, yellow tang, royal gramma, emperor angelfish, Moorish idol and blue-green chromis. All 64 turning directions remain baked upright. Each fish draws one coherent body/tail image and one pectoral-fin image, rather than overlaying different poses. Continuous movement, cubic heading interpolation and smooth silhouette width changes remain; the ghost-producing pose blends are removed.
 
-Six separated coral islands replace the continuous reef wall. They have staggered depths, stronger parallax, open archways and contact shadows. Each coral has three offline relief-mesh renders that blend as the camera moves, adding changing perspective and shaded volume. The foreground retains defined photographic sand ridges under subtle wave-linked lighting.
+The reef follows the supplied reference: touching bases on a nearly common line, a green cup at the left, a white crown over the center-left cave, tall antlers to the right, and smaller corals/clams along the foundation. The sea fan and anemone use closed, photo-textured 3D volumes with seven camera-angle renders, like the fish's volume/atlas approach. Only one rendered view appears at a time. Their source meshes and the original Blender geometry are included.
 
-The camera keeps its four-minute cycle. An opaque overscan canvas is blended between neighboring output pixels each frame, avoiding large pretranslation anchors and their scale-rounding jumps. Cached collision/display objects, precomputed routes and effect depth bands reduce work in the frame loop. Auto/High target 60 fps; Auto settles at 30 fps after sustained missed frames. Performance targets 720p/30 fps. Actual device output still requires checking on the Roku.
+The water/sand backgrounds were recreated after fixing the reef layout, with matching lighting, grain and contact shadows. Coral textures draw at native design resolution. Extra layer resampling, coral-view blending and fish-pose crossfades are removed. Panning retains one final neighboring-pixel interpolation; exact 1:1 draws use DrawObject. Auto/High target 60 fps with an Auto 30 fps fallback; Performance targets 720p/30 fps. Actual Roku output still requires device checking.
 
 The settings menu uses readable system fonts, a translucent highlight behind the text, and explicit Back/Done closure. Settings persist in the Roku registry: lighting (Sunset, Daylight, Dusk, Moonlight, Automatic), 12/18/24-fish populations, camera Off/Subtle/Slow, bubbles, particles, movement, quality, clock, FPS, and Restore Defaults. Clock and FPS default off. Camera movement defaults to Slow, sweeping left to right and back over four minutes. Existing saved settings are retained; choose Camera movement → Slow to enable the widest sweep. Automatic uses the device's local time. All interaction belongs to the separate settings entry point.
 
@@ -109,3 +109,7 @@ Replaces the two broad reef planes with eight independent mid-ground formations,
 ## Version 1.0.7
 
 Fixes upside-down turns by replacing runtime reflections with 64 actual upright views. Body and pectoral poses now blend too. Replaces the large-anchor camera transform with adjacent-pixel blending of an opaque scene canvas, reduces frame-loop allocation/pathfinding work, and rebuilds the reef as six sparse islands with three rendered relief views each. The updated ZIP remains committed and directly downloadable.
+
+## Version 1.0.8
+
+Removes ghost-producing fish pose overlays and extra filtering. Rebuilds the reef as a touching, reference-aligned foundation rather than separate islands. Adds fish-style textured 3D fan/anemone volumes with seven sharp views each, and recreates the backgrounds around the fixed layout. The rebuilt ZIP remains tracked on GitHub.

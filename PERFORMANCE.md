@@ -2,7 +2,7 @@
 
 **Target:** 60 FPS in Auto/High, stable 30 FPS fallback in Auto/Performance on a modern Roku Ultra, particularly 4850X. **Measured on Roku:** not available; no device was configured in this environment. Local interpreter throughput and preview frame rate do not establish Roku performance.
 
-The renderer uses a fixed 30Hz simulation with interpolated 60Hz presentation. An opaque 2048×1080 overscan canvas costs 8.44 MiB and is presented with two adjacent integer offsets, avoiding changing large-anchor transforms. Four-corner view/articulation blending draws at most four body and four small fin regions per fish. Fin texture memory is reduced by about 70%; no runtime reflection is used.
+The renderer uses a fixed 30Hz simulation with interpolated 60Hz presentation. An opaque 2048×1080 overscan canvas costs 8.44 MiB and is presented with two adjacent integer offsets, avoiding changing large-anchor transforms. One body/tail region and one fin region draw per fish; static reef layers use exact 1:1 copies. Marine objects choose one of seven mesh views without crossfading. Fin texture memory is reduced by about 70%; no runtime reflection is used.
 
 Projection/probe/candidate and display objects are reused. The route graph includes precomputed next-hop data, avoiding frame-loop BFS allocations. Waypoint visibility is checked at 5Hz, and fixed effect depth buckets avoid repeated scans. These changes reduce known sources of stalls; only real-device profiling can establish achieved FPS.
 
@@ -28,3 +28,7 @@ A 60 FPS target is implemented; sustained device output and a successful hardwar
 Use `python tools/test.py --quick` for routine changes. The pan gate measures actual adjacent-pixel weights, and tests/upright_present.brs captures production draw calls across a full fish turn and HD/FHD presentation. Extended soaks remain optional and were not run for this release.
 
 On the Roku, enable Show FPS briefly and inspect screensaver debug output on port 8087. Check the `opaque pan canvas` startup line, pan continuity, turn orientation and sustained output. Hardware results are not available in this environment.
+
+## Version 1.0.8 sharpness
+
+The renderer now draws one body/tail and one fin per fish. Marine meshes select one of seven views. Connected reef layers use exact 1:1 image copies, with no repeated layer pixel blends or view/pose crossfades. Only final camera presentation interpolates neighboring pixels. Estimated active Sunset texture storage is 96.7 MiB; with the canvas and FHD buffers about 120.96 MiB before overhead (HD 112.17 MiB). These are not hardware measurements.

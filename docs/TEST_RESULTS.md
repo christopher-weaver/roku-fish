@@ -1,27 +1,27 @@
-# Deep Reef 1.0.7 — targeted verification
+# Deep Reef 1.0.8 — targeted verification
 
-Upside-down turns are addressed by baking all 64 directions upright and using positive scales. Direction, tail and fin articulation blend continuously. The pan now presents an opaque overscan canvas at adjacent integer pixels with a fractional alpha weight, replacing the large-anchor scale adjustment. The reef is six sparse islands with three actual offline relief-mesh views each, stronger depth parallax, open channels and contact shadows.
+The fish renderer now draws one coherent body/tail pose and one fin image. Ghost-producing anatomy overlays, coral-view crossfades and repeated per-layer pixel blends are removed. Native-resolution reef layers use exact 1:1 copies. The touching, reference-aligned reef rests on a shared foundation; water/sand backgrounds were recreated after fixing that layout.
+
+The sea fan and anemone use fish-style closed, UV-textured 3D volumes with stitched edges, curvature/thickness and seven rendered viewing angles. Their actual NPZ geometry and source Blender scenes are included. The renderer selects one sharp marine view at a time. This is the same family of hybrid 3D/2D technique as the fish, not a runtime shader or anatomical scan.
 
 | Check | Result |
 |---|---|
-| Native/settings compilation | PASS, BrighterScript 0.73.8 |
-| Package, artwork and tracking | PASS, 29 Python tests |
-| Every-fish regression | PASS, body/pectoral phases at all three densities with native shared-cursor semantics |
-| Targeted coral collision | PASS, 60 physics ticks, 18 fish, full physical/interpolated footprints clear |
-| Turn continuity | PASS, bounded speed/acceleration/jerk, cubic endpoint velocities and continuous view widths |
-| Upright draw calls | PASS, full-circle pitched fish always use positive scales |
-| Production pan calls | PASS, opaque base and adjacent offsets at HD/FHD |
-| Pan geometry | PASS, maximum centroid error 0.001959px and 60Hz increment 0.027451px in tested segment |
-| Render ordering | PASS, rear/middle/front fish interleave with six islands; interpolated body/fin views |
-| Settings and wave timing | PASS, existing settings closure/labels and simulated 60/30Hz pacing |
-| Browser preview | PASS, 26 images, lighting/play/pause/seek, no page errors |
-| Extended simulations/soaks | Not run; user requested short validation |
+| Native/settings compiler | PASS, BrighterScript 0.73.8 |
+| Package/artwork/tracking | PASS, 30 Python tests |
+| Single anatomy image | PASS, one full-alpha body/tail and one fin per fish |
+| Upright turning | PASS, full-circle pitched draw calls use positive scales |
+| Marine geometry | PASS, actual mesh vertex counts, nonzero depth, seven-view atlas bounds |
+| Reef layout | PASS, dominant connected assemblage, shared root line and registered layers |
+| Every-fish animation | PASS at Low/Medium/High density with native shared-cursor semantics |
+| Targeted collision | PASS, 60 physics ticks, 18 fish, whole physical/interpolated footprints clear |
+| Settings/waves/pacing | PASS, existing menu closure/labels and simulated display timing |
+| Pan geometry | PASS, production adjacent-pixel offsets; centroid error below 0.002px in tested segment |
+| Browser inspection | PASS, 23 images, lighting/play/pause/seek, no page errors |
+| Extended soaks | Not run; short validation requested |
 | Actual Roku GPU/FPS | Not measured |
 
-The body textures occupy approximately 61.84 MiB and fins 4.23 MiB decoded RGBA. Active Sunset textures total 93.87 MiB. The 2048×1080 opaque canvas adds 8.44 MiB; FHD double buffers bring the estimate to 118.13 MiB, HD to 109.34 MiB, before driver/interpreter overhead. These estimates are not measured device residency. Fin crop scaling and explicit fractional anchors preserve hinge placement while reducing their decoded storage by about 70%.
+The graph has 255 connected nodes and 558 bidirectional edges with precomputed next hops. Collision reserves the union of marine view silhouettes. Wave-driven sand light is rebuilt from the new background and excluded from coral footprints.
 
-Per-destination BFS is replaced by an offline 296-node/668-edge next-hop graph. Waypoint visibility runs at 5Hz. Reused projection/probe/candidate/display objects and pre-bucketed effect depths reduce frame-loop allocations and repeated work. These changes target stalls but do not establish achieved Roku FPS.
+Estimated active Sunset textures occupy about 96.7 MiB decoded RGBA. Including the 8.44 MiB canvas and FHD double buffers gives about 120.96 MiB; HD gives about 112.17 MiB before driver/interpreter overhead. These are dimension-based estimates, not measured device residency. Exact release bytes and SHA-256 are in dist/build-report.json.
 
-The current preview is a short recording of production-world snapshots near the fastest camera phase. It uses the current sparse coral renders and upright/interpolated fish. Previous long-simulation/raster comparison logs are historical and were not rerun for this build.
-
-ZIP: 3,570,635 bytes. SHA-256: `4f829b2afd2c22690f07563e6d7a4741293b101134238740789d770304e2c560`. The tracked installation ZIP matches the runtime source. Check on the user's Roku: upright turning, continuous pan, startup canvas allocation, sustained FPS/memory and normal settings/activation behavior.
+Current short-gate logs are package, compiler, movement-regression, collision, settings, wave-smoothness, render-depth, upright-present, turn-smoothness, pan-precision and browser results. Earlier long simulation/raster/soak logs are historical, not current-build evidence. Check actual upright appearance, sharpness, smoothness and sustained FPS on the user's Roku.

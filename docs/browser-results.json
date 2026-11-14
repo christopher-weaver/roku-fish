@@ -1,40 +1,40 @@
 {
   "checks": [
     "All 18 body and pectoral animations advance in the short native-world recording",
-    "All 26 preview runtime images and production snapshots loaded in Chromium",
+    "All 23 preview runtime images and production snapshots loaded in Chromium",
     {
       "lighting": "Daylight",
       "sample_pixel": [
-        27,
-        96,
-        130,
+        39,
+        101,
+        194,
         255
       ]
     },
     {
       "lighting": "Dusk",
       "sample_pixel": [
-        39,
-        76,
-        109,
+        47,
+        79,
+        151,
         255
       ]
     },
     {
       "lighting": "Moonlight",
       "sample_pixel": [
-        17,
-        54,
-        92,
+        22,
+        56,
+        123,
         255
       ]
     },
     {
       "lighting": "Sunset",
       "sample_pixel": [
-        116,
-        88,
-        118,
+        123,
+        90,
+        136,
         255
       ]
     },

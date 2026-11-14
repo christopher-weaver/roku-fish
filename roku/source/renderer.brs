@@ -22,13 +22,12 @@ sub ReefDraw(r as object, x as double, y as double, sx as double, sy as double, 
     if bmp = invalid then return
     region = bmp
     if Type(bmp) = "roAssociativeArray" then region = bmp.normal
-    targetX = (x + r.canvasOffset) * r.scale
-    pixelPhase = ReefPixelPhase(targetX)
-    r.screen.DrawScaledObject(pixelPhase.first,Int(y*r.scale+0.5),sx*r.scale,sy*r.scale,region,tint)
-    if pixelPhase.blend > 0.001
-        alpha = tint and 255
-        color = (tint and &hFFFFFF00) + Int(alpha*pixelPhase.blend+0.5)
-        r.screen.DrawScaledObject(pixelPhase.first+1,Int(y*r.scale+0.5),sx*r.scale,sy*r.scale,region,color)
+    targetX=Int((x+r.canvasOffset)*r.scale+0.5)
+    targetY=Int(y*r.scale+0.5)
+    if Abs(sx*r.scale-1)<0.000001 and Abs(sy*r.scale-1)<0.000001
+        r.screen.DrawObject(targetX,targetY,region,tint)
+    else
+        r.screen.DrawScaledObject(targetX,targetY,sx*r.scale,sy*r.scale,region,tint)
     end if
 end sub
 
@@ -54,23 +53,12 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
 end sub
 
 sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,position as double,count as integer,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer)
-    firstPose = Int(position) : secondPose = Int(ReefMin(firstPose+1,count-1))
-    phase = position-firstPose
-    ' Ordered source-over weights preserve opaque interiors while interpolating
-    ' both yaw and tail/pectoral articulation, rather than snapping pose indices.
-    weights = [1#,phase,0#,view.blend*phase]
-    denominator = 1-view.blend*phase
-    if denominator>0.000001 then weights[2]=view.blend*(1-phase)/denominator
-    for pass=0 to 3
-        yaw = view.first : poseIndex = firstPose
-        if pass=1 or pass=3 then poseIndex=secondPose
-        if pass>=2 then yaw=view.second
-        if weights[pass]>0.001
-            sx = scale*view.width/sp.viewWidths[yaw]
-            tint = ReefRGBA(red,green,blue,Int(weights[pass]*255+0.5))
-            ReefDrawFishRegion(r,p.x,p.y,sx,scale,angle,frames[yaw*count+poseIndex],tint)
-        end if
-    end for
+    ' One coherent body/tail and one fin image. Crossfading different mesh
+    ' poses produces duplicate anatomy instead of geometric interpolation.
+    poseIndex=Int(position+0.5)
+    yaw=view.index
+    sx=scale*view.width/sp.viewWidths[yaw]
+    ReefDrawFishRegion(r,p.x,p.y,sx,scale,angle,frames[yaw*count+poseIndex],ReefRGBA(red,green,blue,255))
 end sub
 
 sub ReefDrawFishRegion(r as object, x as double, y as double, sx as double, sy as double, angle as double, region as object, tint as integer)
@@ -157,11 +145,6 @@ sub ReefRender(r as object, s as object, a as object)
     screen.Clear(&h182A42FF)
     ReefDraw(r, -s.camera, -36, 1, 1, a.plate, &hFFFFFFFF)
     screen.SetAlphaEnable(true)
-    for shadowIndex=0 to s.cfg.formations.Count()-1
-        formation=s.cfg.formations[shadowIndex]
-        offset=64+(s.camera-64)*formation.parallax
-        ReefDraw(r,formation.x+formation.width*.1-offset,formation.y+formation.height-60,formation.width*.8/128#,0.75,a.shadow,&h54404AFF)
-    end for
     ' Stable insertion sort of references, not copied fish. Persistent list has bounded length.
     if s.sorted = invalid then s.sorted = []
     s.sorted.Clear()
@@ -191,14 +174,8 @@ sub ReefRender(r as object, s as object, a as object)
             ReefDrawFish(r, s, a, s.sorted[i]) : i = i + 1
         end while
         offset = 64 + (s.camera - 64) * formation.parallax
-        anglePosition=ReefClamp((s.camera-8)/56#,0#,2#)
-        firstView=Int(anglePosition) : secondView=Int(ReefMin(firstView+1,2))
-        viewBlend=anglePosition-firstView
-        ReefDraw(r,formation.x-offset,formation.y-36,formation.width/formation.frameWidth,formation.height/formation.frameHeight,a.formations[formationIndex][firstView],reefTint)
-        if viewBlend>0.001
-            color=(reefTint and &hFFFFFF00)+Int(viewBlend*255+0.5)
-            ReefDraw(r,formation.x-offset,formation.y-36,formation.width/formation.frameWidth,formation.height/formation.frameHeight,a.formations[formationIndex][secondView],color)
-        end if
+        marineView=Int(ReefClamp((s.camera-8)/112#,0#,1#)*(formation.frames-1)+0.5)
+        ReefDraw(r,formation.x-offset,formation.y-36,1,1,a.formations[formationIndex][marineView],reefTint)
     end for
     ReefDrawCaustics(r, s, a)
     while i < s.sorted.Count()
@@ -220,10 +197,19 @@ sub ReefPresent(r as object,s as object)
         phase = ReefPixelPhase(0#-s.camera*r.outputScale)
         screen.SetAlphaEnable(false)
         screen.Clear(&h182A42FF)
-        screen.DrawScaledObject(phase.first,0,r.outputScale,r.outputScale,r.frame,&hFFFFFFFF)
+        if r.outputScale=1
+            screen.DrawObject(phase.first,0,r.frame,&hFFFFFFFF)
+        else
+            screen.DrawScaledObject(phase.first,0,r.outputScale,r.outputScale,r.frame,&hFFFFFFFF)
+        end if
         if phase.blend>0.001
             screen.SetAlphaEnable(true)
-            screen.DrawScaledObject(phase.first+1,0,r.outputScale,r.outputScale,r.frame,ReefRGBA(255,255,255,Int(phase.blend*255+0.5)))
+            color=ReefRGBA(255,255,255,Int(phase.blend*255+0.5))
+            if r.outputScale=1
+                screen.DrawObject(phase.first+1,0,r.frame,color)
+            else
+                screen.DrawScaledObject(phase.first+1,0,r.outputScale,r.outputScale,r.frame,color)
+            end if
         end if
     end if
     screen.SetAlphaEnable(true)

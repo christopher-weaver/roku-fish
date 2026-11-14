@@ -13,21 +13,31 @@ Activate the venv using the normal command for your shell. The headless mesh ren
 
 ## Active inputs
 
-- `assets/source/reef-close-reference.png`: active 1672×941 generated close reef, based on the user-supplied composition reference. It preserves the requested sunset palette, full-width coral and defined sand ridges. Provenance and prompt notes are in `assets/source/PROVENANCE.md`.
+- `assets/source/reef-connected-reference.png`: active connected RGBA reef; `background-matched-sunset.png` is its newly matched environment.
+- `assets/source/marine-renders/`: Blender sources, finished textures, closed-volume NPZ meshes and seven-view metadata.
+- `assets/source/reef-close-reference.png`: historical 1672×941 reference-inspired close reef. It preserves the requested sunset palette, full-width coral and defined sand ridges. Provenance and prompt notes are in `assets/source/PROVENANCE.md`.
 - `assets/source/reef-midground-cutout.png`: historical generated RGBA isolation retained from version 1.0.6. The exact source pixels are checked in.
 - `reef-original.png` and `empty-original.png`: retained historical sources used by earlier releases.
 - Six licensed/refined photographic fish portraits, plus source sheets. The Paul Robello MIT notices and provenance remain in `assets/licenses/` and CREDITS.
 - `*-texture.png`, `*-pectoral.png` and NPZ volumes are derived from those portraits and rebuildable offline.
 
-## Scene, coral renders and waves
+## Connected reef and matched environment
 
-`coral-islands-sheet.png` is a generated 3×2 RGBA collection derived from the established reef reference. `coral_render.py` separates its six objects and builds a 129×129 textured relief mesh for each, using alpha distance and fine luminance relief. ModernGL renders -5°, 0° and +5° views with surface-normal lighting and 2× supersampling. The 3-view 1344×448 WebP atlases have bounded alpha and recorded silhouettes. These source-derived volumes preserve photographic detail; they are not anatomical coral scans.
+`reef-connected-reference.png` is a generated RGBA reef based on the user's updated composition reference. `connected_scene.py` registers it to a common foundation and creates complementary mid-ground/foreground masks. These are native-resolution crops, not enlarged 448px island images. Coral color uses WebP quality 88 with preserved alpha. The guide used to recreate the environment is retained as reef-layout-guide-geometry.png.
 
-`scene.py` places the six islands at separate depths with open sand/water channels. It records display bounds, view dimensions and parallax in tank.json, reserves the union of rendered silhouettes in occupancy.json, and builds a connected graph plus its precomputed next-hop table. Contact shadows and a hazy, finely textured far floor ground the islands. The original defined foreground sand photo remains, with the same restrained wave-linked lighting. `waves.py` retains the shared eight-second surface/sand phase and 32 frames. No dapple asset is used.
+`background-matched-sunset.png` was generated after fixing object positions, retaining matching water/sand perspective, lighting and contact darkening while removing the reef. Sunset and cooler Daylight runtime plates derive from these pixels. `waves.py` uses the new sand texture and excludes coral footprints from the animated floor-light mask.
+
+## Fish-style 3D marine objects
+
+`render_marine.py`, run with Blender, produces actual curved sea-fan and tentacle geometry and transparent Cycles renders. The original .blend/.png files are retained under marine-renders. An image-tool finishing pass adds natural anatomy and surface detail; its original sheet and extracted RGBA objects are included.
+
+`marine_views.py` turns the finished textures into closed front/back volumes with stitched edges, fan curvature and anemone thickness, following the fish's textured-volume approach. It exports NPZ geometry and seven sharp, depth-tested camera angles from -8 to +8 degrees. Hidden fan pixels behind the fixed reef are cropped before packing. A 128-color, lossless WebP container compacts the view atlas without spatial blur. Metadata records frames, columns, origins, root height and mesh sizes. The runtime chooses one view, never a view crossfade.
+
+`art.py` invokes the connected scene and waves; `generate_assets.py` rebuilds runtime art from checked-in source pixels and meshes without a generation service. To recreate the initial procedural Blender models separately, run `blender --background --python tools/render_marine.py`; the finished material sheet remains a fixed art input.
 
 ## Fish
 
-`fish_mesh.py` renders all 64 directions directly with positive upright geometry, four body bends and five independently hinged fin poses. There is no runtime mirror/negative-scale dependency. Direction, tail and fin states blend at display time rather than snapping. Body canvases retain 224×196 or 208×182 registration and 4× supersampling. Fin crops are stored at half resolution with explicit 2× display scale and fractional anchors; body detail is unchanged in resolution.
+`fish_mesh.py` renders all 64 directions directly with positive upright geometry, four body bends and five independently hinged fin poses. There is no runtime mirror/negative-scale dependency. One nearest direction/tail/fin pose is drawn at a time, with continuous movement, pitch and width transforms; there are no overlapping anatomy images. Body canvases retain 224×196 or 208×182 registration and 4× supersampling. Fin crops are stored at half resolution with explicit 2× display scale and fractional anchors; body detail is unchanged in resolution.
 
 `optimize.py` uses 88-color large-fish body palettes, 80-color small-fish palettes and 64-color fin palettes without dithering, stored in lossless WebP containers. The coral atlases use quality 69; water plates quality 74. `catalog.py` records image dimensions/checksums and `build.py` checks texture/frame bounds and the four-million-byte ZIP budget. Raw fish atlases remain cached under ignored work/fish-raw. Regenerate from source pixels instead of repeatedly quantizing delivered output.
 

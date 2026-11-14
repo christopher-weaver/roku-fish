@@ -48,5 +48,5 @@ sub Main()
         sp=species[name]
         if sp.yawCount<32 or sp.poseCount<4 or sp.finPoseCount<5 then print "FAIL dense fish animation" : return
     end for
-    print "PASS every species has 64 upright yaw views with interpolated tail and pectoral articulation"
+    print "PASS every species has 64 upright yaw views with independent tail and pectoral animation"
 end sub

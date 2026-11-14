@@ -16,9 +16,9 @@ sub Main()
         f.renderPose={x:900#,y:400#,z:0.7,heading:degrees/57.295779513#,pitch:Sin(degrees/57.295779513#)*0.22,phase:degrees*0.1,finPhase:degrees*0.2}
         ReefDrawFish(r,s,a,f)
     end for
-    if screen.bad or screen.calls<400 then print "FAIL upright transforms" : return
+    if screen.bad or screen.calls<>242 then print "FAIL upright transforms" : return
     print "PASS full-circle pitched fish draw body and fins with positive scales only; no runtime reflections"
-    output={calls:[],SetAlphaEnable:PresentAlpha,Clear:PresentClear,DrawScaledObject:PresentCapture}
+    output={calls:[],SetAlphaEnable:PresentAlpha,Clear:PresentClear,DrawScaledObject:PresentCapture,DrawObject:PresentObject}
     s.settings.clock="Off" : s.settings.fps="Off"
     for each scale in [0.6666666667,1#]
         r={output:output,frame:"opaque-frame",outputScale:scale}
@@ -44,7 +44,7 @@ sub Main()
     print "PASS production presentation blends an opaque canvas at adjacent pixels, at HD/FHD, without anchor transforms"
 end sub
 function UprightCapture(x as integer,y as integer,angle as float,sx as float,sy as float,source as dynamic,tint as integer) as boolean
-    if sx<=0 or sy<=0 or Abs(angle)>13 then m.bad=true
+    if sx<=0 or sy<=0 or Abs(angle)>13 or (tint and 255)<>255 then m.bad=true
     m.calls=m.calls+1
     return true
 end function
@@ -53,6 +53,11 @@ end sub
 sub PresentClear(color as integer)
 end sub
 function PresentCapture(x as integer,y as integer,sx as float,sy as float,source as dynamic,tint as integer) as boolean
+    m.calls.Push({x:x,alpha:tint and 255})
+    return true
+end function
+
+function PresentObject(x as integer,y as integer,source as dynamic,tint as integer) as boolean
     m.calls.Push({x:x,alpha:tint and 255})
     return true
 end function

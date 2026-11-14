@@ -35,8 +35,8 @@ def splash(size):
     return im
 
 def build():
-    import scene
-    scene.build(splash)
+    import connected_scene
+    connected_scene.build(splash)
     waves.build()
     # Reuse the small bubble / mote / ray sources already bundled with the app.
     print('Close reef scene and wave-linked ridge lighting ready',flush=True)

@@ -48,7 +48,7 @@ Exit any running preview on the TV before updating. The helper uses the installe
 
 The ZIP is validated locally, but the installation and registration steps have not been exercised on hardware in this environment.
 
-## Updating to 1.0.7
+## Updating to 1.0.8
 
 Download a fresh copy of the installation ZIP above. Dismiss the active screensaver, open the Roku Developer Application Installer at `http://ROKU_IP`, upload the ZIP without extracting it and select Install. Then return to **Settings → Theme → Screensavers → Deep Reef (or dev)** and preview it again. Saved preferences are retained. Open **Change screensaver settings**: the complete menu should fit the screen, option names and values should appear above the pink highlight, arrows change the selected option, and **Back** or **Done** closes the menu. For the full slow back-and-forth sweep choose **Camera movement → Slow**. Use **Bubble density → Low** or **Medium** to see the larger bubbles; an existing Off setting remains Off. Auto/High now target 60 fps; Auto settles at 30 fps after sustained missed frames, while Performance starts at 30 fps with 720p output.
 
@@ -59,3 +59,5 @@ Version 1.0.5 keeps the same pan rate and adds fractional placement, a closer fu
 Version 1.0.6 smooths fish turns with blended views and gentler steering. Eight separate mid-ground reef formations now guide fish routes around and behind the coral. No new setting is required. Dismiss the active preview, upload the fresh ZIP in the same developer installer, choose Install/Replace, and preview Deep Reef again. The debugger also prints `Deep Reef fractional fish=` for the pitched fish placement probe.
 
 Version 1.0.7 fixes upside-down turns and replaces the large-anchor camera path with whole-frame pixel blending. The reef is sparser and layered, with rendered coral perspectives. Dismiss the current preview, install the fresh ZIP, and open Deep Reef again. No new setting is required; Camera movement → Slow retains the four-minute cycle.
+
+Version 1.0.8 removes overlapping fish poses and extra filtering, joins the reef along a common foundation, adds seven-view 3D fan/anemone volumes and recreates matching backgrounds. Exit the current preview, install the fresh ZIP, and preview again. Settings are retained and no new option is required.

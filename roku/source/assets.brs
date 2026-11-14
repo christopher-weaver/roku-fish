@@ -9,7 +9,7 @@ function ReefLoadAssets(s as object) as object
     warm = s.settings.lighting = "Sunset"
     plate = "water-day.webp"
     if warm then plate = "water-sunset.webp"
-    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), formations: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), shadow: ReefLayer(ReefBitmap("pkg:/images/coral-shadow.png")), caustics: [], fish: {}, fins: {}, surface: [] }
+    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), formations: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, surface: [] }
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
     surface = ReefBitmap("pkg:/images/surface-waves.png")
     sand = ReefBitmap("pkg:/images/sand-caustics.png")
@@ -29,7 +29,7 @@ function ReefLoadAssets(s as object) as object
         cfg = s.cfg.formations[index]
         bitmap=ReefBitmap(cfg.image) : views=[]
         for view=0 to cfg.frames-1
-            views.Push(ReefLayer(bitmap,view*cfg.frameWidth,0,cfg.frameWidth,cfg.frameHeight))
+            views.Push(ReefLayer(bitmap,(view mod cfg.columns)*cfg.frameWidth,Int(view/cfg.columns)*cfg.frameHeight,cfg.frameWidth,cfg.frameHeight))
         end for
         a.formations.Push(views)
     end for

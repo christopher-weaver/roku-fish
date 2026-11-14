@@ -4,11 +4,6 @@
     "height": 32,
     "sha256": "2f3bc18003784ea41a160890b0fc1cc63cc88d2d6f3230c5390576993e3cc6a0"
   },
-  "coral-shadow.png": {
-    "width": 128,
-    "height": 48,
-    "sha256": "a7f722b53c9df8a6e63d05bfa540d0e4f6ff8b6b74545e5bbb622cb4c5e904cd"
-  },
   "emperor_angelfish-atlas.webp": {
     "width": 2048,
     "height": 1392,
@@ -32,17 +27,17 @@
   "icon-fhd.jpg": {
     "width": 540,
     "height": 405,
-    "sha256": "5d8bcb128c36b2bb03f7ed203bf34a47f5a09aaae01fce6dbb3c96ab38013ec4"
+    "sha256": "f4427c3d5bc4a6fdba90057b1149b064a561213f34d89845de96f6a71373d559"
   },
   "icon-hd.jpg": {
     "width": 290,
     "height": 218,
-    "sha256": "2513a778bfd63e09e7d5e00e5ea81299d3b326dfe32b7dd3ece36b7ef4f02f71"
+    "sha256": "e0d9dfbd653b556278c9a85eb72641dcf6155ef5b86d0a834d793bce8900d5c9"
   },
   "icon-sd.jpg": {
     "width": 214,
     "height": 144,
-    "sha256": "af0fec76b1c15f1d6ed6d612e8e9942c79269a15f66b2759fd167be0b0a26801"
+    "sha256": "1a6f067e540cf370c6a31f92f02daf10af3f51d43d648f805f2fbf32cd7b8a69"
   },
   "moorish_idol-atlas.webp": {
     "width": 2048,
@@ -74,35 +69,25 @@
     "height": 512,
     "sha256": "3d5f5202a0d7d6d14d72aab7e6a1fa05773ad139cedb68aa70d118c953b1f8a1"
   },
-  "reef-brain-coral.webp": {
-    "width": 1344,
-    "height": 448,
-    "sha256": "0f19d40cabafff51acfbcc6124118626bb322d6857e803b899442174184e9481"
+  "reef-connected-reef.webp": {
+    "width": 2038,
+    "height": 824,
+    "sha256": "848342dc3636c48e513226a071fd0584b7ce6e91412d5ee9ae5468d6683b18cd"
   },
-  "reef-branching-coral.webp": {
-    "width": 1344,
-    "height": 448,
-    "sha256": "2c99fc599bd1be94a174559fe5ac166f3fca889dbddd3a7171122fbb4c4f0650"
+  "reef-foreground-reef.webp": {
+    "width": 2037,
+    "height": 447,
+    "sha256": "226dd78a73ab7597852adf3f431257491d37a8ace2341726275f6ae17515e11b"
   },
-  "reef-central-clam.webp": {
-    "width": 1344,
-    "height": 448,
-    "sha256": "4407930d7175552cbdeb1f050c3bdc55449a8c286da6cf05b1ab3263b21ecc80"
+  "reef-sea-anemone.webp": {
+    "width": 858,
+    "height": 645,
+    "sha256": "cd23885f6e7879429cdc083738d9b67f17ef5e24fbc0799da36e62f891b12543"
   },
-  "reef-green-cup.webp": {
-    "width": 1344,
-    "height": 448,
-    "sha256": "f01b589b66f90ea49acb0d0272955ecf4d73264da7e3fb625078554a4b5a7420"
-  },
-  "reef-right-garden.webp": {
-    "width": 1344,
-    "height": 448,
-    "sha256": "c919052f2e4c621fa68e21edae40b6746dd17b748eb3aacb6bdcd450a563e4ed"
-  },
-  "reef-white-crown.webp": {
-    "width": 1344,
-    "height": 448,
-    "sha256": "3136239b19eeca064ff9a69ae2333a625e45f19966972f8cebfcf027571322f3"
+  "reef-sea-fan.webp": {
+    "width": 1572,
+    "height": 774,
+    "sha256": "4ebaf2878cb7680782fbed4e6085ef45a09f715f0cea392eda8169165da6a877"
   },
   "royal_gramma-atlas.webp": {
     "width": 2048,
@@ -117,22 +102,22 @@
   "sand-caustics.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "e42b2c85148efbd16d46e3621e92ce1cf7e45fa937ca28c97828b27050d51806"
+    "sha256": "3473b48053a01e8cdc778434ae629d26ba6b7efdfce3785c1d3d7fe82162b94d"
   },
   "splash-fhd.jpg": {
     "width": 1920,
     "height": 1080,
-    "sha256": "019eb860e9b2bd054cf88f96aad9478065eae9d98a934521371c3ac46a7cd205"
+    "sha256": "a0fddeb0e8af4fd89bcba4e1b7808f64cebfabee798b48b8fb7c8571a416a329"
   },
   "splash-hd.jpg": {
     "width": 1280,
     "height": 720,
-    "sha256": "2eede8d5f6ac75f10d124ff5f0f777972f9cacb2cd0d667237e0c19bc0fe5de0"
+    "sha256": "269f4d719e064228ec81526fc191e7f627ad890e727d4c0ef12e14888d4891ee"
   },
   "splash-sd.jpg": {
     "width": 720,
     "height": 480,
-    "sha256": "179136c228671c6bc1351a736de83c69f848e842bd5fb5709702a3f65025bc1d"
+    "sha256": "1497dc772d797527b08117ec63e92256249f432e4fde500c15b415065fc376f1"
   },
   "surface-waves.png": {
     "width": 2048,
@@ -142,12 +127,12 @@
   "water-day.webp": {
     "width": 2048,
     "height": 1152,
-    "sha256": "9034a4882e933d2f94a67cbcfd7049ff1bc989b918e6e0764dcf10cff80c0d08"
+    "sha256": "55726cd84af59df205bdeec328466b855333cf1b5ccffd1dc7f141f9f8f1b611"
   },
   "water-sunset.webp": {
     "width": 2048,
     "height": 1152,
-    "sha256": "901038bb24eaadb16df06881f68803f3871b23360cffaa40880966f718a5ba14"
+    "sha256": "cf2a89d1a47d02ab39b73b0a1545adcb89e17b1b48882df15d31e57f56aa5ffb"
   },
   "yellow_tang-atlas.webp": {
     "width": 2048,

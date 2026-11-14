@@ -3,4 +3,4 @@ PASS bubble positions interpolate between fixed ticks
 PASS recycled bubbles do not streak across the water
 PASS shared surface and sand phase wraps continuously over 32 frames
 PASS native vsync pacing sustains 60Hz, capped pacing sustains 30Hz including GPU work, and stalls recover
-PASS every species has 64 upright yaw views with interpolated tail and pectoral articulation
+PASS every species has 64 upright yaw views with independent tail and pectoral animation

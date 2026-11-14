@@ -121,10 +121,10 @@ class PackageChecks(unittest.TestCase):
         center=mask.crop((350,200,680,480))
         import statistics
         self.assertGreater(statistics.mean(center.getdata()),50)
-        self.assertLess(statistics.mean(center.getdata()),210,'Open channels must remain between sparse islands')
+        self.assertGreater(statistics.mean(center.getdata()),100,'Reference reef must fill its connected middle')
         cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
         for layer in cfg['formations']:
-            self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['frameWidth']*layer['frames'],layer['frameHeight']))
+            self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['frameWidth']*layer['columns'],layer['frameHeight']*((layer['frames']+layer['columns']-1)//layer['columns'])))
             self.assertLessEqual(layer['x']+layer['width'],2048)
             self.assertLessEqual(layer['y']+layer['height'],1152)
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
@@ -133,7 +133,7 @@ class PackageChecks(unittest.TestCase):
         self.assertTrue(all(sp['frameW']>192 for sp in species.values()))
     def test_sand_grain_is_preserved(self):
         from PIL import Image,ImageChops,ImageFilter,ImageStat
-        source=Image.open(ROOT/'assets/source/reef-close-reference.png').convert('RGB').resize((2048,1152),Image.Resampling.LANCZOS)
+        source=Image.open(ROOT/'assets/source/background-matched-sunset.png').convert('RGB').resize((2048,1152),Image.Resampling.LANCZOS)
         actual=Image.open(ROOT/'roku/images/water-sunset.webp').convert('RGB')
         box=(256,1040,1792,1110)
         def grain(im):
@@ -146,7 +146,7 @@ class PackageChecks(unittest.TestCase):
     def test_fine_per_plane_collision_masks(self):
         occ=json.loads((ROOT/'roku/scenes/occupancy.json').read_text())
         self.assertEqual(occ['cell'],8)
-        self.assertEqual(len(occ['planes']),6)
+        self.assertEqual(len(occ['planes']),4)
         cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
         self.assertEqual([(p['id'],p['z'],p['parallax'])for p in occ['planes']],[(p['id'],p['z'],p['parallax'])for p in cfg['formations']])
         for plane in occ['planes']:
@@ -180,8 +180,39 @@ class PackageChecks(unittest.TestCase):
                 hop=nav['nextHop'][start][goal]
                 self.assertTrue(hop==start==goal or hop in nodes[start]['edges'])
         cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
+        self.assertEqual({f['id']for f in cfg['formations']if f['renderedMesh']},{'sea-fan','sea-anemone'})
         for f in cfg['formations']:
-            self.assertTrue(f['renderedMesh']);self.assertEqual(f['frames'],3)
+            self.assertEqual(f['frames'],7 if f['renderedMesh'] else 1)
+            if f['renderedMesh']:
+                self.assertGreater(f['meshVertices'],10000)
+                mesh_path=ROOT/'assets/source/marine-renders'/(f['id']+'-volume.npz')
+                self.assertTrue(mesh_path.exists())
+                import numpy as np
+                with np.load(mesh_path)as mesh:
+                    self.assertEqual(len(mesh['vertices']),f['meshVertices'])
+                    self.assertGreater(np.ptp(mesh['vertices'][:,2]),.05,'Marine mesh must have real depth')
+    def test_connected_foundation_and_common_baseline(self):
+        from PIL import Image
+        import numpy as np
+        cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
+        union=np.zeros((1152,2048),dtype=np.uint8)
+        for f in cfg['formations']:
+            image=Image.open(ROOT/'roku'/f['image'][5:]).convert('RGBA')
+            footprint=Image.new('L',(f['frameWidth'],f['frameHeight']))
+            for view in range(f['frames']):
+                vx=view%f['columns']*f['frameWidth'];vy=view//f['columns']*f['frameHeight']
+                part=image.crop((vx,vy,vx+f['frameWidth'],vy+f['frameHeight'])).getchannel('A')
+                footprint=Image.fromarray(np.maximum(np.asarray(footprint),np.asarray(part)))
+            canvas=Image.new('L',(2048,1152));canvas.paste(footprint,(f['x'],f['y']))
+            union=np.maximum(union,np.asarray(canvas))
+            if f['renderedMesh']:self.assertLessEqual(abs(f.get('rootY',f['y']+f['height'])-cfg['baseline']),cfg['baselineTolerance'])
+            self.assertEqual(f['parallax'],1)
+            self.assertEqual((f['width'],f['height']),(f['frameWidth'],f['frameHeight']))
+        # Every interior column intersects the touching low rock foundation.
+        self.assertTrue((union[995:1056,32:2000]>32).any(axis=0).all())
+        from scipy.ndimage import label
+        components,_=label(union>32);sizes=np.bincount(components.ravel())[1:]
+        self.assertGreater(sizes.max()/sizes.sum(),.995,'Reef pieces must touch as one dominant assemblage')
     def test_surface_atlas_and_larger_bubble(self):
         self.assertEqual(build.dimensions(ROOT/'roku/images/surface-waves.png'),(2048,512))
         self.assertEqual(build.dimensions(ROOT/'roku/images/bubble.png'),(32,32))

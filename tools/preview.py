@@ -25,22 +25,18 @@ def fish(canvas,f,mode):
     for part in ['body','fin']:
         count=sp['poseCount']if part=='body'else sp['finPoseCount']
         phase=f['phase']if part=='body'else f.get('finPhase',f['phase']*.6)
-        position=(math.sin(phase)+1)*.5*(count-1);first=int(position);fraction=position-first;second=min(first+1,count-1)
+        pose=int((math.sin(phase)+1)*.5*(count-1)+.5)
+        view=int(position+.5)%sp['yawCount']
         atlas=asset(sp['image'if part=='body'else 'finImage'].split('/')[-1])
-        denom=1-blend*fraction
-        weights=[1,fraction,blend*(1-fraction)/denom if denom>1e-8 else 0,blend*fraction]
-        for view,pose,opacity in [(lo,first,weights[0]),(lo,second,weights[1]),((lo+1)%sp['yawCount'],first,weights[2]),((lo+1)%sp['yawCount'],second,weights[3])]:
-            if opacity<=.001:continue
-            fr=sp['frames'if part=='body'else 'finFrames'][view*count+pose]
-            layer=Image.new('RGBA',im.size)
-            piece=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
-            texture_scale=sp.get('finTextureScale',1)if part=='fin'else 1
-            if texture_scale!=1:piece=piece.resize((piece.width*texture_scale,piece.height*texture_scale),Image.Resampling.BICUBIC)
-            layer.alpha_composite(piece,(round(sp['frameW']/2-fr['anchorX']*texture_scale),round(sp['frameH']/2-fr['anchorY']*texture_scale)))
-            width_scale=width/sp['viewWidths'][view]
-            layer=layer.resize((round(layer.width*width_scale),layer.height),Image.Resampling.BICUBIC)
-            if opacity<1:layer.putalpha(layer.getchannel('A').point(lambda v:round(v*opacity)))
-            im.alpha_composite(layer,(round((im.width-layer.width)/2),0))
+        fr=sp['frames'if part=='body'else 'finFrames'][view*count+pose]
+        layer=Image.new('RGBA',im.size)
+        piece=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
+        texture_scale=sp.get('finTextureScale',1)if part=='fin'else 1
+        if texture_scale!=1:piece=piece.resize((piece.width*texture_scale,piece.height*texture_scale),Image.Resampling.LANCZOS)
+        layer.alpha_composite(piece,(round(sp['frameW']/2-fr['anchorX']*texture_scale),round(sp['frameH']/2-fr['anchorY']*texture_scale)))
+        width_scale=width/sp['viewWidths'][view]
+        layer=layer.resize((round(layer.width*width_scale),layer.height),Image.Resampling.LANCZOS)
+        im.alpha_composite(layer,(round((im.width-layer.width)/2),0))
     haze=1-f['z'];tint=(255,int(239-haze*25),int(240-haze*10))if mode=='Sunset'else(int(255-haze*65),int(247-haze*32),255)
     im=ImageChops.multiply(im,Image.new('RGBA',im.size,(*tint,255)))
     sc=f['scale']*sp['length']/sp['renderLength']*f['size'];im=im.resize((max(1,round(im.width*sc)),max(1,round(im.height*sc))),Image.Resampling.LANCZOS)
@@ -69,20 +65,17 @@ def render(frame,mode='Sunset',density='Medium'):
             elif e['active']<24:
                 sc=.25+e['z']*.4
                 paste(img,asset('mote.png'),e['x']-cam*(.4+e['z']*.6),e['y'],sc,opacity=105/255)
-    for formation in TANK['formations']:
-        offset=64+(cam-64)*formation['parallax']
-        paste(img,asset('coral-shadow.png'),formation['x']+formation['width']*.1-offset,formation['y']+formation['height']-60,formation['width']*.8/128,.75)
     previous=0;fish_index=0
     for formation in TANK['formations']:
         depth=formation['z'];effects(previous,depth);previous=depth
         while fish_index<len(fs) and fs[fish_index]['z']<depth:
             fish(img,fs[fish_index],mode);fish_index+=1
         atlas=asset(formation['image'].split('/')[-1]);fw=formation['frameWidth'];fh=formation['frameHeight']
-        offset=64+(cam-64)*formation['parallax'];position=max(0,min(2,(cam-8)/56));first=int(position);blend=position-first
-        for view,opacity in [(first,1),(min(first+1,2),blend)]:
-            layer=atlas.crop((view*fw,0,(view+1)*fw,fh))
-            if mode!='Sunset':layer=ImageChops.multiply(layer,Image.new('RGBA',layer.size,(221,235,255,255)))
-            paste(img,layer,formation['x']-offset,formation['y']-36,formation['width']/fw,formation['height']/fh,opacity)
+        view=int(max(0,min(1,(cam-8)/112))*(formation['frames']-1)+.5);columns=formation.get('columns',1)
+        vx=view%columns*fw;vy=view//columns*fh;layer=atlas.crop((vx,vy,vx+fw,vy+fh))
+        offset=64+(cam-64)*formation['parallax']
+        if mode!='Sunset':layer=ImageChops.multiply(layer,Image.new('RGBA',layer.size,(221,235,255,255)))
+        paste(img,layer,formation['x']-offset,formation['y']-36)
     phase=t%WAVES['period']*WAVES['frames']/WAVES['period'];first=int(phase);blend=phase-first
     cfg=WAVES['sand'];sand=asset('sand-caustics.png')
     for j in range(2):

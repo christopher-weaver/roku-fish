@@ -21,9 +21,13 @@ sub Main()
         a.fish[f.name]=body : a.fins[f.name]=fins
     end for
     for i=0 to s.cfg.formations.Count()-1
-        a.formations.Push([{normal:"reef:"+s.cfg.formations[i].id},{normal:"reef:"+s.cfg.formations[i].id},{normal:"reef:"+s.cfg.formations[i].id}])
+        views=[]
+        for view=0 to s.cfg.formations[i].frames-1
+            views.Push({normal:"reef:"+s.cfg.formations[i].id})
+        end for
+        a.formations.Push(views)
     end for
-    screen={calls:[],SetAlphaEnable:RenderAlpha,Clear:RenderClear,DrawScaledObject:RenderScaled}
+    screen={calls:[],SetAlphaEnable:RenderAlpha,Clear:RenderClear,DrawScaledObject:RenderScaled,DrawObject:RenderObject}
     r={screen:screen,scale:1#,rotation:false,fractionalPan:false,fractionalFish:false,placement:{}}
     ReefRender(r,s,a)
     order={} : count={} : blends=0 : reflected=0
@@ -36,15 +40,15 @@ sub Main()
             if call.sx<0 then reflected=reflected+1
         end if
     end for
-    if order["body:"+s.fish[0].name]>=order["reef:right-garden"] then print "FAIL rear fish ordering" : return
-    if order["body:"+s.fish[1].name]<=order["reef:branching-coral"] or order["body:"+s.fish[1].name]>=order["reef:green-cup"] then print "FAIL mid-ground fish ordering" : return
-    if order["body:"+s.fish[2].name]<=order["reef:central-clam"] then print "FAIL front fish ordering" : return
+    if order["body:"+s.fish[0].name]>=order["reef:sea-fan"] then print "FAIL rear fish ordering" : return
+    if order["body:"+s.fish[1].name]<=order["reef:connected-reef"] or order["body:"+s.fish[1].name]>=order["reef:foreground-reef"] then print "FAIL mid-ground fish ordering" : return
+    if order["body:"+s.fish[2].name]<=order["reef:sea-anemone"] then print "FAIL front fish ordering" : return
     for i=0 to 2
         name=s.fish[i].name
-        if count["body:"+name]<>4 or count["fin:"+name]<>4 then print "FAIL body or fin view blend" : return
+        if count["body:"+name]<>1 or count["fin:"+name]<>1 then print "FAIL body or fin view blend" : return
     end for
-    if blends<>9 or reflected<>0 then print "FAIL blend alpha or reflection ";blends;reflected : return
-    print "PASS production renderer interleaves rear, middle and front fish with six rendered islands; body/fin articulation blends with positive scales only"
+    if blends<>0 or reflected<>0 then print "FAIL blend alpha or reflection ";blends;reflected : return
+    print "PASS production renderer interleaves rear, middle and front fish with connected reef layers and rendered marine life; exactly one opaque body/tail and one fin per fish, positive scales only"
 end sub
 sub RenderAlpha(enabled as boolean)
 end sub
@@ -52,5 +56,10 @@ sub RenderClear(color as integer)
 end sub
 function RenderScaled(x as integer,y as integer,sx as float,sy as float,source as dynamic,tint as integer) as boolean
     m.calls.Push({source:source,sx:sx,alpha:tint and 255})
+    return true
+end function
+
+function RenderObject(x as integer,y as integer,source as dynamic,tint as integer) as boolean
+    m.calls.Push({source:source,sx:1#,alpha:tint and 255})
     return true
 end function

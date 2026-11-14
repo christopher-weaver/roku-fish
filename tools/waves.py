@@ -9,7 +9,22 @@ FRAMES=32;PERIOD=8.0
 
 def sand_mask(size=(2048,1152)):
     im=Image.new('L',(2048,1152));ImageDraw.Draw(im).polygon([(0,971),(300,995),(640,986),(900,1000),(1140,1030),(1420,995),(1780,980),(2048,975),(2048,1152),(0,1152)],fill=255)
-    return im.filter(ImageFilter.GaussianBlur(8)).resize(size,Image.Resampling.LANCZOS)
+    im=im.filter(ImageFilter.GaussianBlur(8))
+    tank=ROOT/'roku/scenes/tank.json'
+    if tank.exists():
+        occupied=np.zeros((1152,2048),dtype=float)
+        for formation in json.loads(tank.read_text()).get('formations',[]):
+            sprite=Image.open(ROOT/'roku'/formation['image'][5:]).convert('RGBA')
+            fw=formation['frameWidth'];fh=formation['frameHeight'];columns=formation['columns']
+            footprint=Image.new('L',(fw,fh))
+            for view in range(formation['frames']):
+                vx=view%columns*fw;vy=view//columns*fh
+                alpha=sprite.crop((vx,vy,vx+fw,vy+fh)).getchannel('A')
+                footprint=Image.fromarray(np.maximum(np.asarray(footprint),np.asarray(alpha)))
+            matte=Image.new('L',(2048,1152));matte.paste(footprint,(formation['x'],formation['y']))
+            occupied=np.maximum(occupied,np.asarray(matte,dtype=float)/255)
+        im=Image.fromarray(np.uint8(np.asarray(im)*(1-occupied)))
+    return im.resize(size,Image.Resampling.LANCZOS)
 
 def height(x,phase):
     a=2*np.pi*x/512-phase
@@ -21,7 +36,7 @@ def build():
     caustics=Image.new('RGBA',(2048,96))
     sy,sx=np.mgrid[:128,:256];fy,fx=np.mgrid[:24,:256]
     ground=np.asarray(sand_mask().crop((0,960,2048,1152)).resize((256,24),Image.Resampling.LANCZOS),dtype=float)/255
-    rgb=np.asarray(Image.open(ROOT/'assets/source/reef-close-reference.png').convert('RGB').resize((2048,1152),Image.Resampling.LANCZOS).crop((0,960,2048,1152)).resize((256,24)),dtype=float)
+    rgb=np.asarray(Image.open(ROOT/'assets/source/background-matched-sunset.png').convert('RGB').resize((2048,1152),Image.Resampling.LANCZOS).crop((0,960,2048,1152)).resize((256,24)),dtype=float)
     luminance=gaussian_filter(rgb@np.array([.2126,.7152,.0722]),1.5)
     ridge_detail=np.clip((luminance-gaussian_filter(luminance,4))/18+.5,0,1)
     for frame in range(FRAMES):
