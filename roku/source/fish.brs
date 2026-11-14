@@ -49,8 +49,9 @@ sub ReefFishStep(s as object, f as object, dt as double)
     if f.y > 820 then dy = dy - (f.y - 820) * 5
     desired = ReefAngle(dx, dz)
     turn = ReefAngleDelta(f.heading, desired)
-    maxTurn = f.turnRate * dt
-    f.heading = ReefWrap(f.heading + ReefClamp(turn, -maxTurn, maxTurn), 6.283185307)
+    targetYawVelocity = ReefClamp(turn * 1.8, -f.turnRate, f.turnRate)
+    f.yawVelocity = f.yawVelocity + ReefClamp(targetYawVelocity - f.yawVelocity, -1.4 * dt, 1.4 * dt)
+    f.heading = ReefWrap(f.heading + f.yawVelocity * dt, 6.283185307)
     desiredSpeed = f.sp.speed * s.motion
     if f.state = "Hovering" then desiredSpeed = desiredSpeed * 0.12
     if Abs(turn) > 1.1 then desiredSpeed = desiredSpeed * 0.55
@@ -80,6 +81,9 @@ sub ReefFishStep(s as object, f as object, dt as double)
     ' Emergency wall brake is continuous (no wrapping / teleporting).
     f.pitch = f.pitch + (ReefClamp(-f.vy / 35, -0.22, 0.22) - f.pitch) * dt * 2
     f.phase = ReefWrap(f.phase + dt * f.sp.beat * 6.283185307 * (0.3 + f.speed / f.sp.speed * 0.7), 6.283185307)
+    finBeat = 1.5
+    if f.sp.finBeat <> invalid then finBeat = f.sp.finBeat
+    f.finPhase = ReefWrap(f.finPhase + dt * finBeat * f.finRate * 6.283185307 * (0.7 + f.speed / f.sp.speed * 0.3), 6.283185307)
     if wall and f.state <> "Hiding" then f.state = "Avoidance"
     if not wall and Abs(turn) > 0.7 and f.state = "Cruising" then f.state = "Turning"
 end sub

@@ -1,3 +1,3 @@
-Validated manifest, native entry points, 6 species, 31 images and all atlas regions
-/workspace/work/deep-reef/dist/deep-reef-screensaver.zip
-3,340,478 bytes; ZIP integrity verified; SHA256 7338e69ef887014eb5f9c42b34a3182821cb66f945e6b83587bec9bd37105548
+Validated manifest, native entry points, 6 species, 38 images and all atlas regions
+/workspace/roku-fish/dist/deep-reef-screensaver.zip
+3,779,298 bytes; ZIP integrity verified; SHA256 44f7782d1c98d37a16b176270611e8deea81455ee98083c1c5ec9905ff04f4ec

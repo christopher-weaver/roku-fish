@@ -15,15 +15,22 @@ def paste(canvas,im,x,y,sx=1,sy=None,opacity=1):
     if opacity!=1:im=im.copy();im.putalpha(im.getchannel('A').point(lambda v:round(v*opacity)))
     canvas.alpha_composite(im,(round(x),round(y)))
 def fish(canvas,f,mode):
-    sp=SPEC[f['name']];yaw=round((f['heading']%(2*math.pi))*16/(2*math.pi))%16
-    pose=int((math.sin(f['phase'])+1)*1.49);fr=sp['frames'][yaw*3+pose]
-    im=asset(f['name']+'-atlas.png').crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
-    haze=1-f['z'];tint=(255,int(239-haze*25),int(240-haze*10)) if mode=='Sunset' else (int(255-haze*65),int(247-haze*32),255)
-    overlay=Image.new('RGBA',im.size,(*tint,255));im=ImageChops.multiply(im,overlay)
+    sp=SPEC[f['name']];yaw=int((f['heading']%(2*math.pi))*sp['yawCount']/(2*math.pi)+.5)%sp['yawCount']
+    pose=int((math.sin(f['phase'])+1)*.5*(sp['poseCount']-1)+.5);fr=sp['frames'][yaw*sp['poseCount']+pose]
+    im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
+    body=asset(f['name']+'-atlas.png').crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
+    im.alpha_composite(body,(round(sp['frameW']/2-fr['anchorX']),round(sp['frameH']/2-fr['anchorY'])))
+    finpose=int((math.sin(f.get('finPhase',f['phase']*.6))+1)*.5*(sp['finPoseCount']-1)+.5)
+    fr=sp['finFrames'][yaw*sp['finPoseCount']+finpose]
+    fin=asset(f['name']+'-fins.png').crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
+    im.alpha_composite(fin,(round(sp['frameW']/2-fr['anchorX']),round(sp['frameH']/2-fr['anchorY'])))
+    haze=1-f['z'];tint=(255,int(239-haze*25),int(240-haze*10))if mode=='Sunset'else(int(255-haze*65),int(247-haze*32),255)
+    im=ImageChops.multiply(im,Image.new('RGBA',im.size,(*tint,255)))
     sc=f['scale']*sp['length']/sp['renderLength']*f['size'];im=im.resize((max(1,round(im.width*sc)),max(1,round(im.height*sc))),Image.Resampling.LANCZOS)
     angle=f['pitch']*57.29578*(-1 if math.cos(f['heading'])<0 else 1)
     im=im.rotate(angle,resample=Image.Resampling.BICUBIC,expand=True)
     paste(canvas,im,f['sx']-im.width/2,f['sy']-im.height/2)
+
 def render(frame,mode='Sunset',density='Medium'):
     cam=frame['camera'];t=frame['time'];warm=mode=='Sunset';suf='-sunset' if warm else ''
     img=Image.new('RGBA',(1920,1080),(24,42,66,255))
@@ -44,7 +51,7 @@ def render(frame,mode='Sunset',density='Medium'):
             if not lo<=e['z']<hi:continue
             if e['bubble']:
                 if e['active']-48>=6:continue
-                sc=.24+e['z']*.34;al=max(0,min(1,(e['y']-38)/50))*150/255
+                sc=.42+e['z']*.45;al=max(0,min(1,(e['y']-38)/50))*150/255
                 paste(img,asset('bubble.png'),e['x']-cam*(.6+e['z']*.4),e['y'],sc,opacity=al)
             elif e['active']<24:
                 sc=.25+e['z']*.4
@@ -64,6 +71,11 @@ def render(frame,mode='Sunset',density='Medium'):
         if f['z']>=.78:fish(img,f,mode)
     effects(.48,1.01)
     for k in range(3):paste(img,asset('ray.png'),150+k*590+math.sin(t*.07+k)*24-cam*.25,-70,2,1.8,(65+18*math.sin(t*.13+k))/255*day)
+    phase=t%12;first=int(phase);blend=phase-first
+    surface=asset('surface-ripples.png')
+    for j in range(2):
+        index=(first+j)%12;piece=surface.crop(((index%4)*512,(index//4)*80,(index%4+1)*512,(index//4+1)*80))
+        for tile in range(5):paste(img,piece,-512+tile*512+12*math.sin(t*2*math.pi/24)-cam*.18,4,opacity=(blend if j else 1-blend)*(105+65*day)/255)
     if night:paste(img,Image.new('RGBA',img.size,(8,16,57,round(night*255))),0,0)
     warmth={'Sunset':38,'Dusk':20.9}.get(mode,0)
     if warmth:paste(img,Image.new('RGBA',img.size,(241,105,108,round(warmth))),0,0)
@@ -74,13 +86,14 @@ def make_previews():
     high=[f for f in allframes if f['time']<0]
     if high:(PRE/'high-frame.json').write_text(json.dumps(high[0]))
     frames=[f for f in allframes if f['time']>=0]
-    if len(frames)<61:raise RuntimeError('Export must complete all 61 production-world frames')
+    if len(frames)<601:raise RuntimeError('Export must complete all 601 production-world frames')
     (PRE/'frames.json').write_text(json.dumps(frames,separators=(',',':')))
-    frame=frames[20]
+    at=lambda t:min(frames,key=lambda f:abs(f['time']-t))
+    frame=at(20)
     for mode in ['Sunset','Daylight','Dusk','Moonlight']:render(frame,mode).save(PRE/(mode.lower()+'.png'),optimize=True)
     render(frame,'Sunset','Low').save(PRE/'low-density.png')
     render(frame,'Sunset','High').save(PRE/'high-density.png')
-    for t in [0,12,40,60]:render(frames[t]).save(PRE/f'time-{t:02}.jpg',quality=94)
+    for t in [0,12,40,60]:render(at(t)).save(PRE/f'time-{t:02}.jpg',quality=94)
     # Explicit visual fixtures for occlusion (production projection and real asset masks).
     import copy
     f=copy.deepcopy(frame);f['fish']=[]

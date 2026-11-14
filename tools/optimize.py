@@ -5,10 +5,10 @@ import imagequant
 ROOT=Path(__file__).resolve().parents[1]
 def optimize(atlases_only=False):
     for p in sorted((ROOT/'roku/images').glob('*.png')):
-        if atlases_only and 'atlas' not in p.name:continue
+        if atlases_only and 'atlas' not in p.name and '-fins' not in p.name:continue
         im=Image.open(p).convert('RGBA')
         if 'reef-' in p.name:colors=256;dither=.75
-        elif 'atlas' in p.name:colors=192;dither=.45
+        elif 'atlas' in p.name or '-fins' in p.name:colors=160;dither=.3
         else:colors=160;dither=.4
         im=imagequant.quantize_pil_image(im,max_colors=colors,dithering_level=dither,max_quality=90)
         im.save(p,optimize=True)

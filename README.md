@@ -8,9 +8,9 @@ A self-contained native Roku aquarium screensaver with a pink, orange and red **
 
 ![Default sunset aquarium](docs/previews/sunset.png)
 
-The aquarium includes ocellaris clownfish, yellow tang, royal gramma, emperor angelfish, Moorish idol and blue-green chromis. Each has 16 mesh-rendered yaw orientations and three body/tail poses. Fish cruise, explore, hover, hide, turn and loosely school. Depth changes their scale, apparent speed, tint and position relative to two transparent reef surfaces. Soft coral moves; caustics, light shafts, particles and sparse bubbles animate independently.
+The aquarium includes ocellaris clownfish, yellow tang, royal gramma, emperor angelfish, Moorish idol and blue-green chromis. Each has 20 mesh-rendered yaw orientations, four body/tail poses, and five independently animated pectoral-fin poses per view. Bodies are slightly slimmer. Fish cruise, explore, hover, hide, turn and loosely school. Depth changes their scale, apparent speed, tint and position relative to two transparent reef surfaces. Soft coral moves; caustics, light shafts, a rippling water surface, particles and larger sparse bubbles animate independently. Fixed simulation ticks, interpolated positions and damped turns keep swimming smooth. The background uses richer, more saturated sunset colors.
 
-Settings persist in the Roku registry: lighting (Sunset, Daylight, Dusk, Moonlight, Automatic), 12/18/24-fish populations, camera Off/Subtle/Slow, bubbles, particles, movement, quality, clock, FPS, and Restore Defaults. Clock and FPS default off. Automatic uses the device's local time. All interaction belongs to the separate settings entry point.
+Settings persist in the Roku registry: lighting (Sunset, Daylight, Dusk, Moonlight, Automatic), 12/18/24-fish populations, camera Off/Subtle/Slow, bubbles, particles, movement, quality, clock, FPS, and Restore Defaults. Clock and FPS default off. Camera movement defaults to Slow, sweeping left to right and back over four minutes. Existing saved settings are retained; choose Camera movement → Slow to enable the widest sweep. Automatic uses the device's local time. All interaction belongs to the separate settings entry point.
 
 ## Build
 
@@ -81,3 +81,7 @@ git push
 ```
 
 For a new release version, use `python tools/build.py --increment` instead. The **Verify sideload ZIP** GitHub Actions workflow checks every push and pull request for a missing or stale package. `AGENTS.md` records the same requirement for future coding sessions.
+
+## Version 1.0.2
+
+Fixes the Roku shared-array iterator issue that advanced only the first fish. All 12/18/24 fish now update independently. Adds smoother swimming, moving pectoral fins, slimmer fish, larger bubbles, animated surface ripples, a wider slow camera sweep and more saturated reef colors. The host tests now emulate Roku’s single enumeration cursor so this device-specific regression cannot silently pass the JavaScript interpreter again.

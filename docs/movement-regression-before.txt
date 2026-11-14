@@ -1,0 +1,3 @@
+PASS native shared-cursor behavior reproduced
+Fish updated= 1  animated= 1  expected= 18
+FAIL every fish must advance on Roku

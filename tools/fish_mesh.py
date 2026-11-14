@@ -1,87 +1,144 @@
-"""Construct textured volume meshes from licensed alpha silhouettes; render real yaw / bend poses.
-Mesh reconstruction is deliberately lightweight, not a substitute for a sculpted anatomical model.
-The checked-in .npz files can also be imported into Blender with tools/blender_render.py.
+"""Build slim textured fish volumes and independently articulated pectoral fins.
+All poses are rendered offline; runtime uses cropped atlas regions and no shaders.
 """
 from pathlib import Path
-import json, math, os
+import json, math
 import numpy as np
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 from scipy.ndimage import distance_transform_edt, gaussian_filter
 ROOT=Path(__file__).resolve().parents[1];SRC=ROOT/'assets/source';OUT=ROOT/'roku/images'
 SPECIES=[
- ('ocellaris_clownfish','Ocellaris clownfish',120,36,2.8,False,.35),
- ('yellow_tang','Yellow tang',155,49,2.0,False,.25),
- ('royal_gramma','Royal gramma',110,33,2.6,False,.27),
- ('emperor_angelfish','Emperor angelfish',190,44,1.8,False,.27),
- ('moorish_idol','Moorish idol',172,43,2.0,False,.21),
- ('green_chromis','Blue-green chromis',90,53,3.2,True,.30)]
+ ('ocellaris_clownfish','Ocellaris clownfish',120,36,2.8,False,.28,1.8),
+ ('yellow_tang','Yellow tang',155,49,2.0,False,.20,1.25),
+ ('royal_gramma','Royal gramma',110,33,2.6,False,.216,1.6),
+ ('emperor_angelfish','Emperor angelfish',190,44,1.8,False,.216,1.05),
+ ('moorish_idol','Moorish idol',172,43,2.0,False,.168,1.3),
+ ('green_chromis','Blue-green chromis',90,53,3.2,True,.24,2.0)]
+# Texture-space fin outlines and the forward attachment point. Fish face right.
+FIN_RIGS={
+ 'ocellaris_clownfish': ([(.69,.45),(.60,.43),(.49,.51),(.48,.65),(.58,.70),(.68,.60)],(.69,.48)),
+ 'yellow_tang': ([(.72,.48),(.65,.46),(.56,.54),(.58,.66),(.69,.61)],(.72,.49)),
+ 'royal_gramma': ([(.70,.46),(.64,.45),(.54,.57),(.59,.67),(.68,.59)],(.70,.48)),
+ 'emperor_angelfish': ([(.75,.57),(.68,.55),(.59,.66),(.65,.78),(.74,.68)],(.75,.58)),
+ 'moorish_idol': ([(.76,.64),(.69,.61),(.60,.68),(.64,.80),(.74,.73)],(.76,.65)),
+ 'green_chromis': ([(.69,.45),(.62,.46),(.53,.57),(.58,.70),(.67,.61)],(.69,.47))}
+YAW_COUNT=20;BODY_BENDS=[-.19,-.063333,.063333,.19];FIN_ANGLES=[0,.20,.40,.60,.80]
 VS='''#version 330
-in vec3 pos;in vec2 uv;uniform float yaw;uniform float bend;out vec2 texuv;out float shade;
-void main(){vec3 p=pos;float rear=max(0.0,0.28-p.x);p.z+=bend*rear*rear;p.x+=bend*bend*rear*rear*rear*.85;float c=cos(yaw),s=sin(yaw);vec3 q=vec3(p.x*c-p.z*s,p.y,p.x*s+p.z*c);gl_Position=vec4(q.x*.9,q.y*.9,-q.z*.4,1);texuv=uv;shade=.86+.14*(p.y+1.0)/2.0;}
+in vec3 pos;in vec2 uv;uniform float yaw;uniform float bend;
+uniform float finAngle;uniform float finPass;uniform vec2 hinge;
+out vec2 texuv;out float shade;
+void main(){vec3 p=pos;
+if(finPass>.5){float travel=max(0.0,hinge.x-p.x);float side=sign(p.z);p.x+=travel*(1.0-cos(finAngle));p.z+=side*sin(finAngle)*travel;}
+float rear=max(0.0,.28-p.x);p.z+=bend*rear*rear;p.x+=bend*bend*rear*rear*rear*.85;
+float c=cos(yaw),s=sin(yaw);vec3 q=vec3(p.x*c-p.z*s,p.y,p.x*s+p.z*c);
+gl_Position=vec4(q.x*.9,q.y*.9,-q.z*.4,1);texuv=uv;shade=.86+.14*(p.y+1.0)/2.0;}
 '''
 FS='''#version 330
-uniform sampler2D photo;in vec2 texuv;in float shade;out vec4 outcol;
-void main(){vec4 c=texture(photo,texuv);if(c.a<.08)discard;outcol=vec4(c.rgb*shade,c.a);}
+uniform sampler2D photo;uniform float depthOnly;in vec2 texuv;in float shade;out vec4 outcol;
+void main(){vec4 c=texture(photo,texuv);if(c.a<.08)discard;outcol=depthOnly>.5?vec4(0):vec4(c.rgb*shade,c.a);}
 '''
-def make_mesh(name,thick):
-    im=Image.open(SRC/(name+'.png')).convert('RGBA');bb=im.getchannel('A').getbbox();im=im.crop(bb)
+
+def prepare_texture(name):
+    im=Image.open(SRC/(name+'.png')).convert('RGBA');im=im.crop(im.getchannel('A').getbbox())
     im=ImageEnhance.Color(im).enhance(.84);im=ImageEnhance.Contrast(im).enhance(.94)
-    w=200;h=max(40,round(w*im.height/im.width));small=im.resize((w,h),Image.Resampling.LANCZOS)
-    a=np.asarray(small.getchannel('A'));mask=a>50;dist=distance_transform_edt(mask)
-    # Smooth lens volume; fins remain thin. A thick peduncle and rounded snout survive turns.
-    depth=gaussian_filter(dist,.65);depth=depth/max(depth.max(),1)*thick
-    verts=[];uv=[];faces=[]
-    ids={}
+    outline,hinge=FIN_RIGS[name]
+    mask=Image.new('L',im.size);ImageDraw.Draw(mask).polygon([(round(x*im.width),round(y*im.height))for x,y in outline],fill=255)
+    mask=mask.filter(ImageFilter.GaussianBlur(max(.6,im.width*.002)))
+    fin=im.copy();fin.putalpha(Image.fromarray(np.minimum(np.asarray(mask),np.asarray(im.getchannel('A')))))
+    # Underpaint the old fin with nearby body scales so the moving fin is not duplicated.
+    shift=max(2,round(im.height*.14));sample=im.copy()
+    sample.paste(im.crop((0,0,im.width,im.height-shift)),(0,shift))
+    body=Image.composite(sample,im,mask);body.putalpha(im.getchannel('A'))
+    body.save(SRC/(name+'-texture.png'));fin.save(SRC/(name+'-pectoral.png'))
+    return im,body,fin,mask,hinge
+
+def make_mesh(name,thick):
+    original,body,fin,finmask,hinge=prepare_texture(name)
+    w=200;h=max(40,round(w*original.height/original.width))
+    a=np.asarray(original.resize((w,h),Image.Resampling.LANCZOS).getchannel('A'))
+    mask=a>50;dist=distance_transform_edt(mask);depth=gaussian_filter(dist,.65);depth=depth/max(depth.max(),1)*thick
+    verts=[];uv=[];faces=[];ids={}
     for side in [-1,1]:
         for y in range(h):
             for x in range(w):
                 if mask[y,x]:
                     ids[side,y,x]=len(verts)
-                    verts.append([2*x/(w-1)-1, (1-2*y/(h-1))*h/w,side*depth[y,x]])
+                    verts.append([2*x/(w-1)-1,(1-2*y/(h-1))*h/w*.92,side*depth[y,x]])
                     uv.append([x/(w-1),1-y/(h-1)])
     for side in [-1,1]:
         for y in range(h-1):
             for x in range(w-1):
                 keys=[(side,y,x),(side,y,x+1),(side,y+1,x),(side,y+1,x+1)]
                 if all(k in ids for k in keys):
-                    i,j,k,l=[ids[q]for q in keys];faces.extend([[i,k,j],[j,k,l]] if side==1 else [[i,j,k],[j,l,k]])
-    # Stitch the silhouette rim so front and back turns show volume instead of a flat card.
+                    i,j,k,l=[ids[q]for q in keys];faces.extend([[i,k,j],[j,k,l]]if side==1 else [[i,j,k],[j,l,k]])
     for y in range(h-1):
         for x in range(w-1):
             for dy,dx in [(0,1),(1,0)]:
-                a0=(1,y,x);b0=(1,y+dy,x+dx)
-                if a0 not in ids or b0 not in ids:continue
-                # All neighboring edges can be stitched; internal strips are hidden by depth test.
-                if dist[y,x] > 1.5 and dist[y+dy,x+dx]>1.5:continue
-                i=ids[a0];j=ids[b0];k=ids[-1,y,x];l=ids[-1,y+dy,x+dx];faces.extend([[i,j,k],[j,l,k]])
-    verts=np.array(verts,np.float32);uv=np.array(uv,np.float32);faces=np.array(faces,np.int32)
-    np.savez_compressed(SRC/(name+'.npz'),vertices=verts,uv=uv,faces=faces)
-    im.save(SRC/(name+'-texture.png'))
-    return verts,uv,faces,im
+                if (1,y,x)not in ids or (1,y+dy,x+dx)not in ids:continue
+                if dist[y,x]>1.5 and dist[y+dy,x+dx]>1.5:continue
+                i=ids[1,y,x];j=ids[1,y+dy,x+dx];k=ids[-1,y,x];l=ids[-1,y+dy,x+dx];faces.extend([[i,j,k],[j,l,k]])
+    v=np.array(verts,np.float32);uv=np.array(uv,np.float32);faces=np.array(faces,np.int32)
+    fm=np.asarray(finmask.resize((w,h),Image.Resampling.LANCZOS));fins=[]
+    for face in faces:
+        points=v[face];ys=np.rint((1-points[:,1]/(.92*h/w))*.5*(h-1)).astype(int);xs=np.rint((points[:,0]+1)*.5*(w-1)).astype(int)
+        if np.all(fm[np.clip(ys,0,h-1),np.clip(xs,0,w-1)]>20):fins.append(face)
+    fv=v.copy();fv[:,2]+=np.sign(fv[:,2])*.012
+    fins=np.array(fins,np.int32)
+    np.savez_compressed(SRC/(name+'.npz'),vertices=v,uv=uv,faces=faces,fin_vertices=fv,fin_faces=fins,fin_hinge=np.array([hinge[0]*2-1,(1-hinge[1]*2)*h/w*.92]))
+    return v,uv,faces,fv,fins,body,fin,hinge
+
+def pack(images,width=1024):
+    x=y=row_h=0;positions=[]
+    for im,meta in images:
+        if x+im.width+4>width:x=0;y+=row_h+4;row_h=0
+        positions.append((x+2,y+2,im,meta));x+=im.width+4;row_h=max(row_h,im.height)
+    height=y+row_h+4
+    if height>2048:
+        if width==2048:raise ValueError('Atlas exceeds Roku texture limit')
+        return pack(images,2048)
+    atlas=Image.new('RGBA',(width,height));frames=[]
+    for x,y,im,meta in positions:
+        atlas.paste(im,(x,y));frames.append(dict(meta,x=x,y=y,w=im.width,h=im.height))
+    return atlas,frames
+
+def cropped(shot,yaw,pose,fw,fh):
+    alpha=shot.getchannel('A').point(lambda v:0 if v<4 else v);shot.putalpha(alpha)
+    box=alpha.getbbox() or (fw//2,fh//2,fw//2+1,fh//2+1)
+    x0,y0,x1,y1=box;box=(max(0,x0-2),max(0,y0-2),min(fw,x1+2),min(fh,y1+2))
+    return shot.crop(box),{'yaw':yaw*360/YAW_COUNT,'pose':pose,'anchorX':fw/2-box[0],'anchorY':fh/2-box[1]}
 
 def build():
     import moderngl
     ctx=moderngl.create_standalone_context(backend='egl');p=ctx.program(vertex_shader=VS,fragment_shader=FS)
     fw,fh=192,168;fbo=ctx.simple_framebuffer((fw*2,fh*2),components=4);fbo.use();ctx.enable(moderngl.DEPTH_TEST)
-    atlasdata={};contact=Image.new('RGB',(6*256,6*150),(27,45,58))
-    for row,(name,label,size,speed,beat,school,thick) in enumerate(SPECIES):
-        v,uv,faces,im=make_mesh(name,thick)
+    contact=Image.new('RGB',(6*256,6*150),(27,45,58));atlasdata={}
+    for row,(name,label,size,speed,beat,school,thick,finbeat)in enumerate(SPECIES):
+        v,uv,faces,fv,fins,body,fin,hinge=make_mesh(name,thick)
         vb=ctx.buffer(np.hstack((v,uv)).astype('f4').tobytes());ib=ctx.buffer(faces.tobytes());vao=ctx.vertex_array(p,[(vb,'3f 2f','pos','uv')],ib)
-        tex=ctx.texture(im.size,4,im.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());tex.filter=(moderngl.LINEAR,moderngl.LINEAR);tex.use()
-        # 16 full-circle views and three distinct volume-bent body/tail poses (no mirrored frames).
-        aw,ah=fw*8,fh*6;atlas=Image.new('RGBA',(aw,ah));frames=[]
-        for yaw in range(16):
-            for phase,bend in enumerate([-.19,0,.19]):
-                p['yaw'].value=yaw*2*math.pi/16;p['bend'].value=bend
-                fbo.clear(0,0,0,0,depth=1);vao.render()
-                shot=Image.frombytes('RGBA',fbo.size,fbo.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).resize((fw,fh),Image.Resampling.LANCZOS)
-                index=yaw*3+phase;x=index%8*fw;y=index//8*fh
-                atlas.paste(shot,(x,y));frames.append({'x':x,'y':y,'w':fw,'h':fh,'yaw':yaw*22.5,'pose':phase})
-                if phase==1 and yaw in [0,2,4,6,8,12]:
-                    col=[0,2,4,6,8,12].index(yaw);thumb=shot.copy();thumb.thumbnail((250,142));contact.paste(thumb,(col*256,row*150),thumb)
-        atlas.save(OUT/(name+'-atlas.png'),optimize=True)
-        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.png','width':aw,'height':ah,'frameW':fw,'frameH':fh,'yawCount':16,'poseCount':3,'length':size,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames}
-        vao.release();vb.release();ib.release();tex.release();print(name,'48 mesh-rendered frames')
+        fb=ctx.buffer(np.hstack((fv,uv)).astype('f4').tobytes());fi=ctx.buffer(fins.tobytes());fvao=ctx.vertex_array(p,[(fb,'3f 2f','pos','uv')],fi)
+        tex=ctx.texture(body.size,4,body.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());ftex=ctx.texture(fin.size,4,fin.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes())
+        for t in [tex,ftex]:t.filter=(moderngl.LINEAR,moderngl.LINEAR)
+        p['hinge'].value=(hinge[0]*2-1,0)
+        def read():return Image.frombytes('RGBA',fbo.size,fbo.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).resize((fw,fh),Image.Resampling.LANCZOS)
+        shots=[];finshots=[]
+        for yaw in range(YAW_COUNT):
+            p['yaw'].value=yaw*2*math.pi/YAW_COUNT
+            for pose,bend in enumerate(BODY_BENDS):
+                p['bend'].value=bend;p['finPass'].value=0;p['finAngle'].value=0;p['depthOnly'].value=0;tex.use()
+                fbo.color_mask=(True,True,True,True);fbo.clear(0,0,0,0,depth=1);vao.render();shot=read()
+                shots.append(cropped(shot,yaw,pose,fw,fh))
+                if pose==1 and yaw in [0,2,5,8,10,15]:
+                    col=[0,2,5,8,10,15].index(yaw);thumb=shot.copy();thumb.thumbnail((250,142));contact.paste(thumb,(col*256,row*150),thumb)
+            for pose,angle in enumerate(FIN_ANGLES):
+                fbo.color_mask=(True,True,True,True);fbo.clear(0,0,0,0,depth=1)
+                p['bend'].value=0;p['finPass'].value=0;p['depthOnly'].value=1;tex.use();vao.render()
+                p['depthOnly'].value=0;p['finPass'].value=1;p['finAngle'].value=angle;ftex.use();fvao.render()
+                finshots.append(cropped(read(),yaw,pose,fw,fh))
+        atlas,frames=pack(shots);finatlas,finframes=pack(finshots,512)
+        atlas.save(OUT/(name+'-atlas.png'),optimize=True);finatlas.save(OUT/(name+'-fins.png'),optimize=True)
+        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.png','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'poseCount':len(BODY_BENDS),'length':size,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finImage':'pkg:/images/'+name+'-fins.png','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick}
+        for obj in [vao,vb,ib,fvao,fb,fi,tex,ftex]:obj.release()
+        print(name,len(frames),'body poses,',len(finframes),'independent fin poses; atlas',atlas.size,flush=True)
     (ROOT/'roku/scenes/species.json').write_text(json.dumps(atlasdata,indent=2))
-    (ROOT/'docs/previews').mkdir(exist_ok=True,parents=True);contact.save(ROOT/'docs/previews/fish-orientations.jpg',quality=94)
+    contact.save(ROOT/'docs/previews/fish-orientations.jpg',quality=94)
 if __name__=='__main__':build()

@@ -1,7 +1,9 @@
 ' Separation for every species; alignment and cohesion only for chromis.
 function ReefNeighbors(s as object, f as object) as object
     steer = { x: 0#, y: 0#, z: 0#, hx: 0#, hz: 0#, cx: 0#, cy: 0#, cz: 0#, count: 0, alarm: false }
-    for each other in s.fish
+    ' Indexed access is safe even when the caller is visiting this same array.
+    for neighborIndex = 0 to s.fish.Count() - 1
+        other = s.fish[neighborIndex]
         if other.id <> f.id
             dx = f.x - other.x : dy = f.y - other.y : dz = (f.z - other.z) * 800
             distance = dx * dx + dy * dy + dz * dz

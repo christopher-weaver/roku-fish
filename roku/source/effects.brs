@@ -61,3 +61,14 @@ sub ReefQualitySample(s as object, seconds as double, frameCount as integer)
     if s.adaptation >= 12 then s.quality = ReefClamp(s.quality - 0.08, 0.3, 1) : s.adaptation = 6
     if s.fps > 29 and s.adaptation = 0 then s.quality = ReefClamp(s.quality + 0.02, 0.3, 1)
 end sub
+
+function ReefBubbleScale(z as double) as double
+    ' 32px source rings yield 13-28px bubbles, versus the former 5-12px specks.
+    return 0.42 + ReefClamp(z, 0, 1) * 0.45
+end function
+
+function ReefSurface(t as double) as object
+    phase = ReefWrap(t, 12#)
+    first = Int(phase)
+    return { first: first, second: (first + 1) mod 12, blend: phase - first, offset: 12 * Sin(ReefWrap(t, 24#) * 6.283185307 / 24#) }
+end function

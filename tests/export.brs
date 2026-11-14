@@ -8,15 +8,16 @@ sub Main()
     highWorld.time=-1#
     ExportFrame(highWorld)
     for i=0 to 600
-        if i mod 10=0 then ExportFrame(s)
-        ReefStep(s,0.1)
+        ExportFrame(s)
+        ReefAdvance(s,0.1)
     end for
 end sub
 sub ExportFrame(s as object)
     frame={time:s.time,camera:s.camera,fish:[],effects:[]}
     for each f in s.fish
-        p=ReefProjection(f,s.camera)
-        frame.fish.Push({id:f.id,name:f.name,x:f.x,y:f.y,z:f.z,sx:p.x,sy:p.y,scale:p.scale,heading:f.heading,pitch:f.pitch,phase:f.phase,size:f.size,state:f.state})
+        pose=ReefDisplayPose(f,s.renderAlpha)
+        p=ReefProjection(pose,s.camera)
+        frame.fish.Push({id:f.id,name:f.name,x:f.x,y:f.y,z:f.z,sx:p.x,sy:p.y,scale:p.scale,heading:pose.heading,pitch:pose.pitch,phase:pose.phase,finPhase:pose.finPhase,size:f.size,state:f.state})
     end for
     for each e in s.effects
         frame.effects.Push(e)

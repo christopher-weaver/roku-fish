@@ -18,7 +18,7 @@ def sunset(a):
     warm=np.stack([.98*lum+.24,.34*lum+.06,.40*lum+.12],-1)
     g=f*(1-blue[:,:,None]*.73)+warm*blue[:,:,None]*.73
     g=g*np.array([1.12,.91,.96])+lum[:,:,None]*np.array([.055,.012,.012])
-    return Image.fromarray(np.uint8(np.clip(g,0,1)*255))
+    return ImageEnhance.Color(Image.fromarray(np.uint8(np.clip(g,0,1)*255))).enhance(1.18)
 
 def splash(size):
     from PIL import ImageFont
@@ -53,6 +53,8 @@ def build():
     front=(v>.67)&((u<.33)|(u>.82))
     mid=mask.copy(); mid[front]=0
     near=mask.copy();near[~front]=0
+    reef=ImageEnhance.Color(reef).enhance(1.28)
+    reef=ImageEnhance.Contrast(reef).enhance(1.04)
     for name,alpha in [('reef-mid',mid),('reef-front',near)]:
         im=reef.convert('RGBA');im.putalpha(Image.fromarray(np.uint8(alpha*255)))
         # Crop sparse transparent top band, recorded in scene configuration.
@@ -89,12 +91,24 @@ def build():
         Image.fromarray(c).filter(ImageFilter.GaussianBlur(1)).save(OUT/f'caustic-{k}.png')
     y,x=np.mgrid[:512,:128];a=np.exp(-((x-64)/28)**2)*(1-y/512)**1.5
     ray=np.zeros((512,128,4),dtype=np.uint8);ray[:,:,:3]=[255,210,190];ray[:,:,3]=(a*60).astype('uint8');Image.fromarray(ray).save(OUT/'ray.png')
-    for name,size in [('mote',8),('bubble',20)]:
+    for name,size in [('mote',8),('bubble',32)]:
         im=Image.new('RGBA',(size,size));d=ImageDraw.Draw(im)
         if name=='bubble':
-            d.ellipse((2,2,size-3,size-3),outline=(220,235,255,90),width=1);d.arc((4,3,size-5,size-5),200,270,fill=(255,245,240,175),width=2)
+            d.ellipse((2,2,size-3,size-3),outline=(220,235,255,120),width=2);d.arc((4,3,size-7,size-7),200,270,fill=(255,245,240,175),width=2)
         else:d.ellipse((2,2,5,5),fill=(255,225,220,120));im=im.filter(ImageFilter.GaussianBlur(.7))
         im.save(OUT/(name+'.png'))
+    # Seamless drifting wavelets at the water surface, faded into the open water.
+    surface=Image.new('RGBA',(2048,240))
+    yy,xx=np.mgrid[:80,:512];envelope=np.clip(1-yy/80,0,1)**1.5
+    for frame in range(12):
+        phase=frame*2*math.pi/12
+        ribbons=np.zeros((80,512),dtype=float)
+        for layer in range(4):
+            ridge=10+layer*17+3*np.sin(xx*2*math.pi/512*(layer+1)+phase)+2*np.sin(xx*4*math.pi/512-phase+layer)
+            ribbons+=np.exp(-((yy-ridge)/1.2)**2)*(.7+.3*np.cos(xx*2*math.pi/512+phase+layer))
+        rgba=np.zeros((80,512,4),dtype=np.uint8);rgba[:,:,:3]=[255,245,235];rgba[:,:,3]=np.uint8(np.clip(ribbons*envelope*86,0,110))
+        surface.paste(Image.fromarray(rgba).filter(ImageFilter.GaussianBlur(.7)),((frame%4)*512,(frame//4)*80))
+    surface.save(OUT/'surface-ripples.png',optimize=True)
     # Compact obstacle occupancy is used by both runtime and visual preview.
     grid=[]
     for y in range(0,1080,48):

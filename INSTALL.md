@@ -47,3 +47,7 @@ Exit any running preview on the TV before updating. The helper uses the installe
 - **Preview seems locked after update:** dismiss the active screensaver, return to settings and preview again. Reboot the Roku if a prior developer app is wedged.
 
 The ZIP is validated locally, but the installation and registration steps have not been exercised on hardware in this environment.
+
+## Updating to 1.0.2
+
+Dismiss the active screensaver before uploading the new ZIP, then preview it again after installation. Saved preferences are retained. For the full slow back-and-forth sweep choose **Camera movement → Slow**. Use **Bubble density → Low** or **Medium** to see the larger bubbles; an existing Off setting remains Off.

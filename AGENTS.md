@@ -7,3 +7,5 @@ The user requires the sideloadable ZIP to remain included on GitHub.
 - Before committing, run `python tools/check_release.py`. It checks that the committed package paths are tracked and rebuilds the current source to detect a stale package.
 - For a release version bump, use `python tools/build.py --increment`, then stage the updated manifest, ZIP, and report together.
 - Native screensaver requirements remain authoritative: keep `RunScreenSaver()` and `RunScreenSaverSettings()`, no `Main()` or `RunUserInterface()`, no video playback or runtime network dependency.
+
+- Roku objects have one shared `ifEnum` cursor. Use indexed loops when visiting fish, including across neighbor/behavior calls; nested `for each` over the same array can update only the first fish. Run `python tools/test.py` with the single-cursor compatibility adapter after movement changes.

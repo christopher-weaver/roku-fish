@@ -27,3 +27,7 @@ Reference review:
 | roku-fishtank | SG layered reef, species brains, segmented photo rigs, schooling, data-driven scenes, host BrightScript and browser tests, native settings and sideload workflow | MIT root license; six source portraits reused with full notices and source provenance. Own runtime/projection/atlas mesh pipeline used here. |
 
 Source code and license files were inspected locally. Review of reference implementations is not a claim that their hardware tests were rerun. No private Roku APIs, Unity/Unreal runtime, arbitrary runtime shaders or proprietary Roku assets are used.
+
+## Native iteration rule
+
+Roku objects maintain one `ifEnum` cursor. Nested enumeration of the same fish array, even through a neighbor function, can end the outer loop after its first item. The fish update and neighbor scan now use numeric indices. The test adapter explicitly reproduces this rule; the unmodified JavaScript-backed interpreter did not. References: [Roku developer discussion of shared enumeration](https://forum.developer.roku.com/t/for-each-bug-one-iteration-breaks-another/5160) and [nested-loop behavior](https://forum.developer.roku.com/t/nested-for-each-loops-behavior/7289).

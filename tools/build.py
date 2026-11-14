@@ -59,12 +59,14 @@ def validate():
     species=json.loads((ROKU/'scenes/species.json').read_text())
     if len(species)<6:errors.append('Need at least six species')
     for name,sp in species.items():
-        image=ROKU/sp['image'][5:]
-        if not image.exists():errors.append('Missing atlas '+str(image));continue
-        w,h=dimensions(image)
-        if len(sp['frames'])!=sp['yawCount']*sp['poseCount']:errors.append('Atlas frame count '+name)
-        for f in sp['frames']:
-            if min(f['x'],f['y'])<0 or f['x']+f['w']>w or f['y']+f['h']>h:errors.append('Out-of-bounds frame '+name)
+        for image_key,frames_key,pose_key in [('image','frames','poseCount'),('finImage','finFrames','finPoseCount')]:
+            image=ROKU/sp[image_key][5:]
+            if not image.exists():errors.append('Missing atlas '+str(image));continue
+            w,h=dimensions(image)
+            if len(sp[frames_key])!=sp['yawCount']*sp[pose_key]:errors.append('Atlas frame count '+name+' '+frames_key)
+            for f in sp[frames_key]:
+                if min(f['x'],f['y'])<0 or min(f['w'],f['h'])<1 or f['x']+f['w']>w or f['y']+f['h']>h:errors.append('Out-of-bounds frame '+name)
+                if 'anchorX' not in f or 'anchorY' not in f:errors.append('Missing cropped-frame anchor '+name)
     for fhd,size in [('icon-fhd.jpg',(540,405)),('icon-hd.jpg',(290,218)),('splash-fhd.jpg',(1920,1080)),('splash-hd.jpg',(1280,720)),('splash-sd.jpg',(720,480))]:
         if dimensions(ROKU/'images'/fhd)!=size:errors.append('Manifest art dimensions '+fhd)
     if errors:raise ValueError('\n'.join(errors))

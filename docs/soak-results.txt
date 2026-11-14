@@ -4,4 +4,4 @@ SOAK simulated seconds= 1800  bounds violations= 0
 SOAK simulated seconds= 2400  bounds violations= 0
 SOAK simulated seconds= 3000  bounds violations= 0
 SOAK simulated seconds= 3600  bounds violations= 0
-SOAK RESULT violations= 0  fish= 6  effects= 72  x= 110.12166650540267 , 1912.0350357294142  z= 0.05790652918159575 , 0.9675969134915183
+SOAK RESULT violations= 0  fish= 6  effects= 72  x= 136.09224057890424 , 1885.7872408504743  z= 0.05852047739934453 , 0.9611125554298657

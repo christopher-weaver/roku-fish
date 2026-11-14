@@ -9,27 +9,38 @@ end function
 
 sub ReefDraw(r as object, x as double, y as double, sx as double, sy as double, bmp as dynamic, tint as integer)
     if bmp = invalid then return
-    r.screen.DrawScaledObject(Int(x * r.scale), Int(y * r.scale), sx * r.scale, sy * r.scale, bmp, tint)
+    r.screen.DrawScaledObject(Int(x * r.scale + 0.5), Int(y * r.scale + 0.5), sx * r.scale, sy * r.scale, bmp, tint)
 end sub
 
 sub ReefDrawFish(r as object, s as object, a as object, f as object)
     frames = a.fish[f.name]
     if frames = invalid then return
-    p = ReefProjection(f, s.camera)
+    pose = ReefDisplayPose(f, s.renderAlpha)
+    p = ReefProjection(pose, s.camera)
     if p.x < -200 or p.x > 2120 then return
-    yaw = Int(ReefWrap(f.heading, 6.283185307) * 16 / 6.283185307 + 0.5) mod 16
-    pose = Int((Sin(f.phase) + 1) * 1.49)
-    index = yaw * 3 + pose
+    yaw = Int(ReefWrap(pose.heading, 6.283185307) * f.sp.yawCount / 6.283185307 + 0.5) mod f.sp.yawCount
+    bodyPose = Int((Sin(pose.phase) + 1) * 0.5 * (f.sp.poseCount - 1) + 0.5)
+    index = yaw * f.sp.poseCount + bodyPose
     scale = p.scale * f.sp.length / f.sp.renderLength * f.size
-    haze = 1 - f.z
+    haze = 1 - pose.z
     tint = ReefRGBA(Int(255 - haze * 65), Int(247 - haze * 32), 255, 255)
     if s.settings.lighting = "Sunset" then tint = ReefRGBA(255, Int(239 - haze * 25), Int(240 - haze * 10), 255)
     if r.rotation
-        angle = f.pitch * 57.29578
-        if Cos(f.heading) < 0 then angle = -angle
-        r.screen.DrawTransformedObject(Int(p.x * r.scale), Int(p.y * r.scale), angle, scale * r.scale, scale * r.scale, frames[index], tint)
+        angle = pose.pitch * 57.29578
+        if Cos(pose.heading) < 0 then angle = -angle
+        r.screen.DrawTransformedObject(Int(p.x * r.scale + 0.5), Int(p.y * r.scale + 0.5), angle, scale * r.scale, scale * r.scale, frames[index], tint)
     else
         ReefDraw(r, p.x, p.y, scale, scale, frames[index], tint)
+    end if
+    finFrames = a.fins[f.name]
+    if finFrames <> invalid
+        finPose = Int((Sin(pose.finPhase) + 1) * 0.5 * (f.sp.finPoseCount - 1) + 0.5)
+        index = yaw * f.sp.finPoseCount + finPose
+        if r.rotation
+            r.screen.DrawTransformedObject(Int(p.x * r.scale + 0.5), Int(p.y * r.scale + 0.5), angle, scale * r.scale, scale * r.scale, finFrames[index], tint)
+        else
+            ReefDraw(r, p.x, p.y, scale, scale, finFrames[index], tint)
+        end if
     end if
 end sub
 
@@ -44,7 +55,8 @@ sub ReefDrawEffects(r as object, s as object, a as object, lo as double, hi as d
             if e.bubble
                 if e.active - 48 < bubbles
                     alpha = Int(ReefClamp((e.y - 38) / 50, 0, 1) * 150)
-                    ReefDraw(r, e.x - s.camera * (0.6 + e.z * 0.4), e.y, 0.24 + e.z * 0.34, 0.24 + e.z * 0.34, a.bubble, ReefRGBA(255, 237, 238, alpha))
+                    size = ReefBubbleScale(e.z)
+                    ReefDraw(r, e.x - s.camera * (0.6 + e.z * 0.4), e.y, size, size, a.bubble, ReefRGBA(255, 237, 238, alpha))
                 end if
             else if e.active < particles
                 ' Fade optional particles smoothly as Auto quality responds to frame measurements.
@@ -52,6 +64,20 @@ sub ReefDrawEffects(r as object, s as object, a as object, lo as double, hi as d
                 if opacity > 0 then ReefDraw(r, e.x - s.camera * (0.4 + e.z * 0.6), e.y, 0.25 + e.z * 0.4, 0.25 + e.z * 0.4, a.mote, ReefRGBA(255, 231, 224, Int(105 * opacity)))
             end if
         end if
+    end for
+end sub
+
+sub ReefDrawSurface(r as object, s as object, a as object)
+    if a.surface.Count() = 0 then return
+    wave = ReefSurface(s.time)
+    for pass = 0 to 1
+        weight = 1 - wave.blend
+        index = wave.first
+        if pass = 1 then weight = wave.blend : index = wave.second
+        color = ReefRGBA(255, 232, 215, Int(weight * (105 + 65 * s.lighting[0])))
+        for tile = 0 to 4
+            ReefDraw(r, -512 + tile * 512 + wave.offset - s.camera * 0.18, 4, 1, 1, a.surface[index], color)
+        end for
     end for
 end sub
 
@@ -80,7 +106,8 @@ sub ReefRender(r as object, s as object, a as object)
     ' Stable insertion sort of references, not copied fish. Persistent list has bounded length.
     if s.sorted = invalid then s.sorted = []
     s.sorted.Clear()
-    for each f in s.fish
+    for fishIndex = 0 to s.fish.Count() - 1
+        f = s.fish[fishIndex]
         s.sorted.Push(f)
         j = s.sorted.Count() - 1
         while j > 0
@@ -114,6 +141,7 @@ sub ReefRender(r as object, s as object, a as object)
     for k = 0 to 2
         ReefDraw(r, 150 + k * 590 + Sin(s.time * 0.07 + k) * 24 - s.camera * 0.25, -70, 2.0, 1.8, a.ray, ReefRGBA(255, 223, 210, Int((65 + 18 * Sin(s.time * 0.13 + k)) * s.lighting[0])))
     end for
+    ReefDrawSurface(r, s, a)
     if s.lighting[2] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(8, 16, 57, Int(s.lighting[2])))
     if s.lighting[3] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(241, 105, 108, Int(s.lighting[3])))
     if s.settings.clock = "On" then screen.DrawText(s.clockText, Int(1660 * r.scale), Int(970 * r.scale), &hF6DFD4B0, r.font)

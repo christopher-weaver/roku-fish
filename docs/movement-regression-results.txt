@@ -1,0 +1,6 @@
+PASS native shared-cursor behavior reproduced
+Fish updated= 18  animated= 18  expected= 18
+PASS every fish advances with native cursor semantics
+PASS all body and pectoral phases advance at  Low  density
+PASS all body and pectoral phases advance at  Medium  density
+PASS all body and pectoral phases advance at  High  density

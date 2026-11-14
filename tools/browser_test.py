@@ -1,6 +1,6 @@
 """Development-only Chromium inspection of the exported native simulation recording."""
 from pathlib import Path
-import json,time,shutil
+import json,time,shutil,os
 from playwright.sync_api import sync_playwright
 ROOT=Path(__file__).resolve().parents[1]
 errors=[];checks=[]
@@ -8,12 +8,19 @@ with sync_playwright()as p:
     browser=p.chromium.launch(headless=True,executable_path=shutil.which('chromium'),args=['--no-sandbox'])
     page=browser.new_page(viewport={'width':1440,'height':1060},device_scale_factor=1)
     page.on('pageerror',lambda e:errors.append(str(e)))
-    page.goto('http://127.0.0.1:8000/docs/preview.html',wait_until='networkidle')
+    page.goto(os.environ.get('PREVIEW_URL','http://127.0.0.1:8000/docs/preview.html'),wait_until='networkidle')
     page.wait_for_function('window.reefPreview?.ready===true')
+    page.evaluate('window.reefPreview.seek(0)')
+    start=page.evaluate('window.reefPreview.inspect()')
+    if start['samples']!=601 or len(start['fish'])!=18:raise RuntimeError('Preview must sample at 10 Hz to preserve fin/tail rhythms')
+    page.evaluate('window.reefPreview.seek(2)')
+    end=page.evaluate('window.reefPreview.inspect()')
+    if not all(a['phase']!=b['phase'] and a['finPhase']!=b['finPhase']for a,b in zip(start['fish'],end['fish'])):raise RuntimeError('A fish body or pectoral animation is frozen')
+    checks.append('All 18 body and pectoral animations advance in 601 native-world snapshots')
     page.evaluate('window.reefPreview.seek(20)')
     page.wait_for_timeout(120)
     page.locator('canvas').screenshot(path=str(ROOT/'docs/previews/browser-sunset.png'))
-    checks.append('All 25 preview runtime images and production snapshots loaded in Chromium')
+    checks.append('All 32 preview runtime images and production snapshots loaded in Chromium')
     for mode in ['Daylight','Dusk','Moonlight','Sunset']:
         page.select_option('#mode',mode)
         page.wait_for_timeout(90)

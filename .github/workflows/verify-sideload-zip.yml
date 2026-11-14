@@ -24,3 +24,23 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_release_tracking.py' -v
       - name: Ensure rebuilding leaves the release unchanged
         run: git diff --exit-code -- dist/deep-reef-screensaver.zip dist/build-report.json
+
+  verify-native-motion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install the pinned BrightScript tools
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Compile native sources
+        run: npm run check
+      - name: Check every fish with Roku shared-cursor semantics
+        run: >-
+          node tests/roku_runner.cjs --root roku
+          roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs
+          roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs
+          roku/source/effects.brs tests/movement_regression.brs

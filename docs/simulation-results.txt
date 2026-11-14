@@ -23,4 +23,11 @@ PASS  school alignment and cohesion
 PASS  short range separation
 PASS  coral depth plane crossing blocked
 PASS  daily phase rollover
-RESULT passed= 25  failed= 0
+PASS  camera sweeps left right left with smooth endpoints
+PASS  water surface animation loops continuously
+PASS  bubbles are larger across depth
+PASS  fixed ticks withstand jittery rendering intervals
+PASS  fixed simulation catches up with a bounded amount of work
+PASS  rendering interpolates between fixed simulation poses
+PASS  pectoral fins have independent animation phases
+RESULT passed= 32  failed= 0

@@ -15,12 +15,12 @@
   "camera": {
     "center": 64,
     "Subtle": {
-      "amplitude": 12,
-      "period": 480
+      "amplitude": 40,
+      "period": 180
     },
     "Slow": {
-      "amplitude": 48,
-      "period": 360
+      "amplitude": 56,
+      "period": 240
     }
   },
   "softCoral": {

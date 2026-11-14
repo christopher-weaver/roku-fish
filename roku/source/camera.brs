@@ -1,9 +1,21 @@
 ' Coordinates are 1920x1080 design pixels. z=0 rear wall, z=1 front glass.
-function ReefCamera(t as double, mode as string) as double
+function ReefCamera(t as double, mode as string, config = invalid as dynamic) as double
     if mode = "Off" then return 64#
-    amplitude = 12# : period = 480#
-    if mode = "Slow" then amplitude = 48# : period = 360#
-    return 64# + amplitude * Sin(ReefWrap(t, period) * 6.283185307 / period)
+    amplitude = 40# : period = 180#
+    if mode = "Slow" then amplitude = 56# : period = 240#
+    if config <> invalid and config[mode] <> invalid
+        amplitude = config[mode].amplitude : period = config[mode].period
+    end if
+    return 64# - amplitude * Cos(ReefWrap(t, period) * 6.283185307 / period)
+end function
+
+function ReefDisplayPose(f as object, alpha as double) as object
+    pose = { x: f.previousX + (f.x - f.previousX) * alpha, y: f.previousY + (f.y - f.previousY) * alpha, z: f.previousZ + (f.z - f.previousZ) * alpha }
+    pose.heading = f.previousHeading + ReefAngleDelta(f.previousHeading, f.heading) * alpha
+    pose.pitch = f.previousPitch + (f.pitch - f.previousPitch) * alpha
+    pose.phase = f.previousPhase + ReefAngleDelta(f.previousPhase, f.phase) * alpha
+    pose.finPhase = f.previousFinPhase + ReefAngleDelta(f.previousFinPhase, f.finPhase) * alpha
+    return pose
 end function
 
 function ReefProjection(f as object, camera as double) as object

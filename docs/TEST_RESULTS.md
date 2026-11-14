@@ -1,32 +1,34 @@
-# Test results — 2026-11-13
+# Deep Reef 1.0.2 — verification results
 
-Release: Deep Reef 1.0.1 (manifest 1 / 0 / 1). Default lighting: Sunset.
+Default scene: saturated pink/orange/red Sunset, Slow camera sweep, Medium fish density.
 
-| Gate | Result | Scope |
-|---|---|---|
-| BrighterScript 0.73.8 compilation | PASS, no reported diagnostics | Native sources and SG settings |
-| Python package/asset suite | PASS, 12 tests | Real ZIP, manifest, images, atlas bounds/poses, notices, offline runtime, missing-device refusal |
-| Production BrightScript simulation | PASS, 25 checks | Actual brain/projection/settings/lighting functions; OS registry adapter |
-| Extended host simulation | PASS, 3,600 simulated seconds | 36,000 steps; six principal fish; 72 effect slots; zero tank-bound violations |
-| Chromium inspection | PASS, no page errors | 25 preview textures, four palettes, seek/pause/resume and canvas screenshot |
-| Blender optional pipeline | PASS, one transparent view + editable blend | Tested with --limit 1; default pipeline remains ModernGL |
-| ZIP integrity and root structure | PASS | manifest is at archive root; no source-only art/tests/tools |
-| Roku hardware/deployment | NOT RUN | No ROKU_IP or ROKU_DEV_PASSWORD configured |
+| Check | Result |
+|---|---|
+| Native source / settings compilation | PASS, BrighterScript 0.73.8, no diagnostics |
+| Python package, asset and Git tracking tests | PASS, 19 tests |
+| Production BrightScript behavior / timing tests | PASS, 32 checks with Roku single-cursor semantics |
+| Reported one-fish bug | Reproduced before the fix: 1/18 fish updated. Fixed indexed loops: 18/18 update and animate |
+| Population regression | Every body and pectoral phase advances for 30 frames at Low / Medium / High density |
+| Extended simulation | PASS, 3,600 simulated seconds, 36,000 steps, six principal fish, 72 effect slots, zero boundary violations |
+| Browser preview | PASS, no page errors; 601 snapshots at 10 Hz; all 18 body/fin animations advance; 32 preview textures load; four lighting modes and controls work |
+| Offline Blender pipeline | PASS, one slim fish view with articulated fins and editable scene |
+| Sideload ZIP | PASS, root manifest, valid entries, all assets and atlas bounds, under 4,000,000 bytes |
+| Actual Roku device | Not tested in this environment |
 
-Package: **3,340,478 bytes**, below the conservative 4,000,000-byte budget.
+ZIP: **3,779,298 bytes**.
 
-SHA-256: `7338e69ef887014eb5f9c42b34a3182821cb66f945e6b83587bec9bd37105548`.
+SHA-256: `44f7782d1c98d37a16b176270611e8deea81455ee98083c1c5ec9905ff04f4ec`.
 
-All 31 image files and six species catalogs validate; textures are at most 2048 pixels per dimension. Each fish atlas contains 16 distinct yaw views × three actual mesh-bent swim poses; the package tests also compare the side-view pose pixels to detect a frozen tail.
+All **38 images** validate. Each species now uses 20 real yaw views, four body/tail poses and five separately timed pectoral poses per yaw. Cropped sprites carry anchors, and fin textures are tested to exclude the full body. Fish bodies are 8% shorter vertically and 20% thinner in depth than 1.0.1.
 
-The one-hour simulation's observed ranges were X 110.12–1912.04 and Z 0.05791–0.96760. Fish count remained six and effect count 72. It does not establish memory-leak freedom in the Roku interpreter/driver. The final camera projection adds depth-dependent parallax; the soak's collision projection uses camera zero and is algebraically unchanged by that display-only adjustment. The complete 25-check suite was rerun afterward, including a new assertion inside the existing perspective check for relative near/far camera motion.
+The new surface atlas loops without a seam, bubbles are approximately 13–28 logical pixels instead of 5–12, and the default camera goes left → right → left over 240 seconds with zero velocity at each reversal. Tests cover fixed-step accumulation with jittery render intervals, bounded catch-up and previous/current pose interpolation. Region filtering is smooth outside Performance mode.
 
-Final visual review inspected the refined photographic fish sheet, default sunset, front/behind reef masking, close oblique fish, multiple lighting modes and compressed textures. The default sunset screenshot comes from an unmodified 20-second production-world snapshot. The occlusion/close-up fixtures deliberately place fish for inspection.
+The one-hour soak observed X 136.09–1885.79 and Z 0.05852–0.96111. Fish/effect populations remained bounded. This tests production simulation through a host compatibility adapter, not Roku GPU memory or frame rate. The earlier interpreter's independent JavaScript cursors missed the native enumeration bug; all current BrightScript checks explicitly emulate Roku's shared cursor.
 
-Remaining hardware checks: real screensaver discovery/registration, idle startup, actual native GPU output, stable 30 FPS, driver/script memory trend, settings persistence across power cycles, remote dismissal, and repeated activations. FHD/HD fallback is implemented but not device-verified. Silhouette-derived fish head geometry and limited registered-plate camera travel are documented fidelity tradeoffs.
+Calculated active Sunset texture storage is approximately 51.4 MiB RGBA, or 67.2 MiB including FHD double buffers before interpreter/driver overhead. Cropping saves memory despite adding independent fins. These are estimates from image dimensions, not measured device memory.
 
-See compiler-results.txt, package-results.txt, simulation-results.txt, soak-results.txt, browser-results.json and blender-smoke-results.txt for retained evidence.
+Visual review includes the saturated default aquarium, front/behind coral masking, side/oblique body and fin strokes, surface comparisons and larger bubbles. The browser uses actual exported native-world snapshots at 10 Hz to avoid aliasing tail and fin rhythms. The pectoral GIF and deliberately placed close-up fixtures are inspection aids, not runtime video.
 
-## GitHub publication checks
+Retained logs: `compiler-results.txt`, `package-results.txt`, `simulation-results.txt`, `movement-regression-results.txt`, `soak-results.txt`, `browser-results.json`, `blender-smoke-results.txt`.
 
-All 16 Python package/release tests passed before the initial GitHub commit (the original 12 package tests plus four release-tracking tests). `python tools/check_release.py` confirmed that the tracked 3,340,478-byte ZIP reproduces from the source. `.gitattributes` disables LFS filtering for the ZIP, `.gitignore` explicitly retains it, and the Verify sideload ZIP workflow checks missing/stale package failures on future pushes and pull requests. The original device-verification limitations above remain unchanged.
+Remaining device checks: install/registration on the user's Roku, native GPU output, actual FPS, hardware memory trend, remote dismissal, repeated activation and power-cycle persistence. Saved preferences remain in place; choose Camera → Slow or Bubble density → Low/Medium if those settings were previously Off.

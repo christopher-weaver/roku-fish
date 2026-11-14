@@ -10,7 +10,13 @@ function ReefLoadAssets(s as object) as object
     suffix = ""
     plate = "water-day.jpg"
     if warm then suffix = "-sunset" : plate = "water-sunset.jpg"
-    a = { plate: ReefBitmap("pkg:/images/" + plate), mid: ReefBitmap("pkg:/images/reef-mid" + suffix + ".png"), front: ReefBitmap("pkg:/images/reef-front" + suffix + ".png"), mote: ReefBitmap("pkg:/images/mote.png"), bubble: ReefBitmap("pkg:/images/bubble.png"), ray: ReefBitmap("pkg:/images/ray.png"), coral: [], caustics: [], fish: {} }
+    a = { plate: ReefBitmap("pkg:/images/" + plate), mid: ReefBitmap("pkg:/images/reef-mid" + suffix + ".png"), front: ReefBitmap("pkg:/images/reef-front" + suffix + ".png"), mote: ReefBitmap("pkg:/images/mote.png"), bubble: ReefBitmap("pkg:/images/bubble.png"), ray: ReefBitmap("pkg:/images/ray.png"), coral: [], caustics: [], fish: {}, fins: {}, surface: [] }
+    surface = ReefBitmap("pkg:/images/surface-ripples.png")
+    if surface <> invalid
+        for i = 0 to 11
+            a.surface.Push(CreateObject("roRegion", surface, (i mod 4) * 512, Int(i / 4) * 80, 512, 80))
+        end for
+    end if
     b = ReefBitmap("pkg:/images/soft-coral" + suffix + ".png")
     if b <> invalid
         for i = 0 to 2
@@ -28,10 +34,22 @@ function ReefLoadAssets(s as object) as object
             frames = []
             for each frame in sp.frames
                 reg = CreateObject("roRegion", b, frame.x, frame.y, frame.w, frame.h)
-                reg.SetPretranslation(-sp.frameW / 2, -sp.frameH / 2)
+                reg.SetPretranslation(-frame.anchorX, -frame.anchorY)
+                if s.settings.quality <> "Performance" then reg.SetScaleMode(1)
                 frames.Push(reg)
             end for
             a.fish[name] = frames
+        end if
+        b = ReefBitmap(sp.finImage)
+        if b <> invalid
+            frames = []
+            for each frame in sp.finFrames
+                reg = CreateObject("roRegion", b, frame.x, frame.y, frame.w, frame.h)
+                reg.SetPretranslation(-frame.anchorX, -frame.anchorY)
+                if s.settings.quality <> "Performance" then reg.SetScaleMode(1)
+                frames.Push(reg)
+            end for
+            a.fins[name] = frames
         end if
     end for
     return a

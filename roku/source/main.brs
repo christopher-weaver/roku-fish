@@ -40,7 +40,7 @@ sub RunScreenSaver()
             s.clockText = date.GetHours().ToStr() + ":" + minute
             localAt = nowMs / 1000#
         end if
-        ReefStep(s, elapsed)
+        ReefAdvance(s, elapsed)
         ReefLightingStep(s, hour, elapsed)
         ReefRender(renderer, s, assets)
         screen.SwapBuffers()

@@ -47,7 +47,7 @@ sub Main()
     cameraGood=true
     for i=0 to 2000
         cx=ReefCamera(i*177.37,"Slow")
-        if cx<16 or cx>112 then cameraGood=false
+        if cx<8 or cx>120 then cameraGood=false
     end for
     Check(cameraGood and ReefCamera(600#,"Off")=64,"camera covers viewport at all boundaries")
     day=ReefLighting(12#,"Automatic",7#,18.5) : night=ReefLighting(0#,"Automatic",7#,18.5) : dusk=ReefLighting(19#,"Automatic",7#,18.5)
@@ -74,6 +74,23 @@ sub Main()
     Check(f.z<0.48,"coral depth plane crossing blocked")
     a.time=86399.98 : ReefStep(a,0.1)
     Check(a.time>=0 and a.time<1,"daily phase rollover")
+    Check(ReefCamera(0#,"Slow")=8 and Abs(ReefCamera(120#,"Slow")-120)<0.0001 and ReefCamera(240#,"Slow")=8,"camera sweeps left right left with smooth endpoints")
+    wave=ReefSurface(11.99) : seam=ReefSurface(12#)
+    Check(wave.first=11 and wave.second=0 and seam.first=0 and seam.blend=0,"water surface animation loops continuously")
+    Check(ReefBubbleScale(0#)*32>=13 and ReefBubbleScale(1#)*32>=27,"bubbles are larger across depth")
+    fixedA=ReefWorld(prefs,species,occ,99) : fixedB=ReefWorld(prefs,species,occ,99)
+    ReefAdvance(fixedA,0.1)
+    ReefAdvance(fixedB,0.01) : ReefAdvance(fixedB,0.025) : ReefAdvance(fixedB,0.015) : ReefAdvance(fixedB,0.05)
+    Check(Abs(fixedA.time-fixedB.time)<0.000001 and fixedA.fish[7].x=fixedB.fish[7].x,"fixed ticks withstand jittery rendering intervals")
+    beforeTime=fixedA.time : ReefAdvance(fixedA,12#)
+    Check(fixedA.time-beforeTime<0.101,"fixed simulation catches up with a bounded amount of work")
+    interpolated=ReefDisplayPose(fixedA.fish[7],0.5)
+    Check(Abs(interpolated.x-(fixedA.fish[7].previousX+fixedA.fish[7].x)*0.5)<0.00001,"rendering interpolates between fixed simulation poses")
+    allFins=true
+    for i=0 to fixedA.fish.Count()-1
+        if fixedA.fish[i].finPhase=fixedA.fish[i].phase then allFins=false
+    end for
+    Check(allFins,"pectoral fins have independent animation phases")
     print "RESULT passed=";m.passed;" failed=";m.failed
 end sub
 sub Check(condition as boolean,name as string)

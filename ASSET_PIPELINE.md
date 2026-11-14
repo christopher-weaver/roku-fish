@@ -23,9 +23,9 @@ The fish refinement uses the same licensed species profiles with more photograph
 
 ## Stages
 
-`tools/art.py` resamples the reef to the registered 2048×1152 plate, applies the sunset color transform, extracts two alpha occlusion surfaces with hand-reviewed silhouette envelopes and water rejection, creates occupancy cells, and builds three scan-line-deformed soft-coral frames. It generates eight caustic tiles, ray/particle/bubble sprites and manifest art. It preserves matching source pixel coordinates so the layers align.
+`tools/art.py` resamples the reef to the registered 2048×1152 plate, applies the sunset color transform, extracts two alpha occlusion surfaces with hand-reviewed silhouette envelopes and water rejection, creates occupancy cells, and builds three scan-line-deformed soft-coral frames. It increases reef saturation, generates eight caustic tiles, a twelve-frame surface-wave atlas, ray/particle sprites, 32px bubble rings and manifest art. It preserves matching source pixel coordinates so the layers align.
 
-`tools/fish_mesh.py` normalizes each fish's alpha portrait, constructs front and back volume surfaces using a smoothed distance-field thickness and stitches the silhouette rim. Fins remain thinner than the body. UV coordinates project the detailed licensed portrait onto both flanks. The mesh rotates through **16 distinct full-circle yaw angles** and bends through **three swimming poses**. Every frame is rasterized in 3D with depth testing; no runtime image squash substitutes for turning. The resulting atlases are 1536×1008, with 192×168 registered cells. `species.json` records each frame's position, orientation and pose. A six-species orientation contact sheet is generated for review.
+`tools/fish_mesh.py` normalizes each fish's alpha portrait, constructs front and back volume surfaces using a smoothed distance-field thickness and stitches the silhouette rim. Fins remain thinner than the body. UV coordinates project the detailed licensed portrait onto both flanks. The mesh rotates through **20 distinct full-circle yaw angles** and bends through **four swimming poses**. Every frame is rasterized in 3D with depth testing; no runtime image squash substitutes for turning. Each frame is first rendered on a registered 192×168 canvas, then transparently cropped and packed onto a ≤2048px atlas with an explicit anchor. Pectoral fins are extracted from the licensed source, the old painted fin is underpainted with neighboring body scales, and paired fin meshes swing around their attachment points. Five stroke angles per yaw are depth-tested against the body and packed separately, so runtime fin timing is independent of tail timing. Body height is reduced by 8% and thickness by 20%. `species.json` records each frame's position, orientation and pose. A six-species orientation contact sheet is generated for review.
 
 These are silhouette-derived volume models, with simpler head anatomy than a sculpted or scanned fish. This is a material fidelity compromise. The source models and pipeline are included so better anatomical meshes can replace them. The species interface and runtime need not change when atlases are replaced.
 
@@ -41,15 +41,15 @@ With Blender available:
 blender --background --python tools/blender_render.py -- --species yellow_tang --output work/blender
 ```
 
-The script loads the same NPZ mesh and normalized photo texture, renders 48 transparent views, and saves an editable `.blend`. These optional Blender renders are inspection/replacement outputs; the default atlas build uses the ModernGL rasterizer. To replace a model, preserve the frame center and nominal length, render the same yaw/pose grid, pack it to the species atlas and update the frame metadata and asset catalog. Review the contact sheet before packaging.
+The script loads the same NPZ mesh and normalized photo texture, renders up to 80 transparent views with a selected articulated fin pose (`--fin-pose 0` through `4`), and saves an editable `.blend`. These optional Blender renders are inspection/replacement outputs; the default atlas build uses the ModernGL rasterizer. To replace a model, preserve the frame center and nominal length, render the same yaw/pose grid, pack it to the species atlas and update the frame metadata and asset catalog. Review the contact sheet before packaging.
 
 ## Preview exports
 
 After installing Node development dependencies:
 
 ```sh
-npx brs --root roku roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs roku/source/effects.brs tests/export.brs > work/frames.log
+node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs roku/source/effects.brs tests/export.brs > work/frames.log
 python tools/preview.py
 ```
 
-Create `work/` first if necessary. The exporter runs the actual production movement rules, emits a high-density fixture plus 61 deterministic timeline snapshots, and the Python utility composites those states with runtime assets. It writes Sunset/Daylight/Dusk/Moonlight, low/high density, front/behind occlusion and close three-quarter samples. The browser inspection recording uses the same exports. Screenshot fixtures explicitly marked occlusion/three-quarter place fish for inspection; the default sunset image uses an unmodified production snapshot.
+Create `work/` first if necessary. The exporter runs the actual production movement rules, emits a high-density fixture plus 601 deterministic timeline snapshots at 10 Hz, and the Python utility composites those states with runtime assets. It writes Sunset/Daylight/Dusk/Moonlight, low/high density, front/behind occlusion and close three-quarter samples. The browser inspection recording uses the same exports. Screenshot fixtures explicitly marked occlusion/three-quarter place fish for inspection; the default sunset image uses an unmodified production snapshot.

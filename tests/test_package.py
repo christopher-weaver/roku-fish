@@ -18,13 +18,18 @@ class PackageChecks(unittest.TestCase):
     def test_three_swim_poses_and_full_turn(self):
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
         for sp in species.values():
-            self.assertEqual(len(sp['frames']),48)
-            self.assertEqual({f['pose']for f in sp['frames']},{0,1,2})
-            self.assertEqual(len({f['yaw']for f in sp['frames']}),16)
+            self.assertEqual(len(sp['frames']),sp['yawCount']*sp['poseCount'])
+            self.assertEqual({f['pose']for f in sp['frames']},set(range(sp['poseCount'])))
+            self.assertGreaterEqual(sp['poseCount'],4)
+            self.assertEqual(len({f['yaw']for f in sp['frames']}),20)
             from PIL import Image,ImageChops
             atlas=Image.open(ROOT/'roku'/sp['image'][5:]).convert('RGBA')
             first,second=sp['frames'][:2]
-            def crop(f):return atlas.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h']))
+            def crop(f):
+                im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
+                part=atlas.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h']))
+                im.alpha_composite(part,(int(sp['frameW']/2-f['anchorX']),int(sp['frameH']/2-f['anchorY'])))
+                return im
             self.assertIsNotNone(ImageChops.difference(crop(first),crop(second)).getbbox(), 'Side-view tail poses must visibly differ')
     def test_occlusion_masks_have_alpha(self):
         from PIL import Image
@@ -56,4 +61,26 @@ class PackageChecks(unittest.TestCase):
         env=dict(os.environ);env.pop('ROKU_IP',None);env.pop('ROKU_DEV_PASSWORD',None)
         r=subprocess.run([sys.executable,str(ROOT/'tools/deploy.py')],capture_output=True,text=True,env=env)
         self.assertNotEqual(r.returncode,0);self.assertIn('Set ROKU_IP',r.stderr)
+    def test_independent_fin_atlases(self):
+        from PIL import Image,ImageChops
+        species=json.loads((ROOT/'roku/scenes/species.json').read_text())
+        for sp in species.values():
+            self.assertEqual(len(sp['finFrames']),sp['yawCount']*sp['finPoseCount'])
+            atlas=Image.open(ROOT/'roku'/sp['finImage'][5:]).convert('RGBA')
+            poses=[]
+            for f in [sp['finFrames'][0],sp['finFrames'][sp['finPoseCount']-1]]:
+                self.assertLess(f['w']*f['h'],sp['frameW']*sp['frameH']*.3,'Fin texture must not contain an entire fish')
+                self.assertLessEqual(f['x']+f['w'],atlas.width);self.assertLessEqual(f['y']+f['h'],atlas.height)
+                im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
+                im.alpha_composite(atlas.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h'])),(int(sp['frameW']/2-f['anchorX']),int(sp['frameH']/2-f['anchorY'])))
+                poses.append(im)
+            self.assertIsNotNone(ImageChops.difference(*poses).getbbox())
+    def test_slim_fish_geometry(self):
+        species=json.loads((ROOT/'roku/scenes/species.json').read_text())
+        for sp in species.values():
+            self.assertEqual(sp['bodyHeightFactor'],.92)
+            self.assertLessEqual(sp['bodyThickness'],.28)
+    def test_surface_atlas_and_larger_bubble(self):
+        self.assertEqual(build.dimensions(ROOT/'roku/images/surface-ripples.png'),(2048,240))
+        self.assertEqual(build.dimensions(ROOT/'roku/images/bubble.png'),(32,32))
 if __name__=='__main__':unittest.main()

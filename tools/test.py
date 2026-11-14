@@ -15,8 +15,8 @@ def brs_run(test,log):
     work=ROOT/'work';work.mkdir(exist_ok=True)
     settings=(ROOT/'roku/source/settings-model.brs').read_text().replace('CreateObject("roRegistrySection", "deep-reef-v1")','ReefTestRegistry("deep-reef-v1")')
     (work/'settings-test.brs').write_text(settings)
-    args=[binary('brs'),'--root','roku']+[f'roku/source/{s}.brs'for s in SOURCES]+['work/settings-test.brs','tests/registry-stub.brs',f'tests/{test}.brs']
-    result=subprocess.run(args,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    args=['node','tests/roku_runner.cjs','--root','roku']+[f'roku/source/{s}.brs'for s in SOURCES]+['work/settings-test.brs','tests/registry-stub.brs',f'tests/{test}.brs']
+    result=subprocess.run(args,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=dict(os.environ,BRS_BIN=binary('brs')))
     (ROOT/log).write_text(result.stdout)
     if result.returncode or re.search(r'(?m)^FAIL|not a function|Attempting to return|Syntax|Error|error:',result.stdout):raise RuntimeError(result.stdout[-5000:])
     return result.stdout
@@ -27,7 +27,8 @@ if __name__=='__main__':
         if check.returncode:raise RuntimeError(check.stdout+check.stderr)
         subprocess.run([sys.executable,'-m','unittest','discover','-s','tests','-p','test_*.py','-v'],cwd=ROOT,check=True)
         output=brs_run('simulation','docs/simulation-results.txt')
-        if not re.search(r'RESULT passed=\s*25\s+failed=\s*0',output):raise RuntimeError('Simulation did not complete 25 checks')
+        if not re.search(r'RESULT passed=\s*32\s+failed=\s*0',output):raise RuntimeError('Simulation did not complete 32 checks')
+        print(brs_run('movement_regression','docs/movement-regression-results.txt'))
         print(output)
         if '--soak'in sys.argv:
             output=brs_run('soak','docs/soak-results.txt')
