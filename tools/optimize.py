@@ -5,18 +5,18 @@ import imagequant
 ROOT=Path(__file__).resolve().parents[1]
 def optimize(atlases_only=False,effects_only=False):
     for p in sorted((ROOT/'roku/images').glob('*.png')):
-        if effects_only and p.name not in ['surface-waves.png','sand-caustics.png']:continue
-        if atlases_only and 'atlas' not in p.name and '-fins' not in p.name:continue
+        if effects_only and p.name not in ['surface-waves.png','sand-caustics.png','sand-wave-shadows.png']:continue
+        if atlases_only and 'atlas' not in p.name and '-fins' not in p.name and '-tails' not in p.name:continue
         if Image.open(p).mode=='P':continue
         im=Image.open(p).convert('RGBA')
-        if p.name in ['surface-waves.png','sand-caustics.png']:colors=96;dither=0
+        if p.name in ['surface-waves.png','sand-caustics.png','sand-wave-shadows.png']:colors=96;dither=0
         elif 'reef-' in p.name:colors=256;dither=.75
-        elif 'atlas' in p.name or '-fins' in p.name:
-            colors=64 if '-fins' in p.name else 80 if p.name.startswith(('ocellaris_clownfish','royal_gramma','green_chromis')) else 88
+        elif 'atlas' in p.name or '-fins' in p.name or '-tails' in p.name:
+            colors=80 if '-fins' in p.name else 112 if '-tails' in p.name else 144
             dither=0
         else:colors=160;dither=.4
         im=imagequant.quantize_pil_image(im,max_colors=colors,dithering_level=dither,max_quality=95)
-        if 'atlas' in p.name or '-fins' in p.name:
+        if 'atlas' in p.name or '-fins' in p.name or '-tails' in p.name:
             im.convert('RGBA').save(p.with_suffix('.webp'),lossless=True,method=6,exact=True)
             p.unlink()
         else:

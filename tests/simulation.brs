@@ -10,12 +10,12 @@ sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     occ=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     a=ReefWorld(prefs,species,occ,47831) : b=ReefWorld(prefs,species,occ,47831)
-    Check(a.fish.Count()=18,"medium population")
+    Check(a.fish.Count()=8,"medium population")
     Check(a.fish[4].x=b.fish[4].x and a.fish[4].heading=b.fish[4].heading,"seed initialization repeats")
     low=ReefValidateSettings({density:"Low"}) : high=ReefValidateSettings({density:"High"})
     lowWorld=ReefWorld(low,species,occ,1) : highWorld=ReefWorld(high,species,occ,1)
-    Check(lowWorld.fish.Count()=12,"low population")
-    Check(highWorld.fish.Count()=24,"high population")
+    Check(lowWorld.fish.Count()=6,"low population")
+    Check(highWorld.fish.Count()=10,"high population")
     badSpeed=0 : badTurn=0 : badBoundary=0 : maxAccel=0#
     for tick=0 to 599
         previous=[]

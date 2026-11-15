@@ -2,10 +2,18 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
     s = { rng: seed * 1#, fish: [], settings: settings, species: species, occupancy: occupancy, time: 0#, displayTime: 0#, camera: 64#, accumulator: 0#, renderAlpha: 0#, effects: [], quality: 1#, fps: 60#, renderFps: 60#, pacingPressure: 0#, clockText: "", frames: 0, sampleFrames: 0, sampleTime: 0#, adaptation: 0#, lastHour: -1#, lighting: [0#,0#,0#,0#], tint: &hFFFFFFFF }
     if s.rng <= 0 then s.rng = 1#
     s.cfg = ParseJson(ReadAsciiFile("pkg:/scenes/tank.json"))
-    if s.cfg = invalid then s.cfg = {speciesOrder: species.Keys(), populations: {Low:12,Medium:18,High:24}, occlusionDepths:[0.48,0.78], dawn:7#,dusk:18.5}
+    if s.cfg = invalid then s.cfg = {speciesOrder: species.Keys(), populations: {Low:6,Medium:8,High:10}, occlusionDepths:[0.48,0.78], dawn:7#,dusk:18.5}
     s.camera = ReefCamera(0#, settings.camera, s.cfg.camera)
     s.navigation = ParseJson(ReadAsciiFile("pkg:/scenes/navigation.json"))
-    names = s.cfg.speciesOrder
+    names = []
+    for speciesIndex=0 to s.cfg.speciesOrder.Count()-1
+        names.Push(s.cfg.speciesOrder[speciesIndex])
+    end for
+    ' A seeded shuffle gives each activation a varied, non-repeating species roster.
+    for speciesIndex=names.Count()-1 to 1 step -1
+        other=Int(ReefRange(s,0,speciesIndex+0.99999))
+        swap=names[speciesIndex] : names[speciesIndex]=names[other] : names[other]=swap
+    end for
     count = s.cfg.populations[settings.density]
     if settings.quality = "Performance"
         s.quality = 0.5 : s.renderFps = 30#
@@ -15,7 +23,6 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
     if settings.movement = "Active" then s.motion = 1.3
     for i = 0 to count - 1
         index = i mod names.Count()
-        if i >= 12 and i mod 2 = 0 then index = names.Count() - 1
         name = names[index]
         sp = species[name]
         if sp <> invalid

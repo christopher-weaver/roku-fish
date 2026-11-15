@@ -13,7 +13,11 @@ SPECIES=[
  ('royal_gramma','Royal gramma',110,33,2.6,False,.216,1.6),
  ('emperor_angelfish','Emperor angelfish',190,44,1.8,False,.216,1.05),
  ('moorish_idol','Moorish idol',172,43,2.0,False,.168,1.3),
- ('green_chromis','Blue-green chromis',90,53,3.2,True,.24,2.0)]
+ ('green_chromis','Blue-green chromis',90,53,3.2,True,.24,2.0),
+ ('blue_tang','Regal blue tang',165,46,2.1,False,.20,1.4),
+ ('copperband_butterflyfish','Copperband butterflyfish',155,37,1.9,False,.17,1.2),
+ ('banggai_cardinalfish','Banggai cardinalfish',120,29,2.4,False,.18,1.5),
+ ('mandarin_dragonet','Mandarin dragonet',115,25,2.2,False,.24,1.7)]
 # Texture-space fin outlines and the forward attachment point. Fish face right.
 FIN_RIGS={
  'ocellaris_clownfish': ([(.69,.45),(.60,.43),(.49,.51),(.48,.65),(.58,.70),(.68,.60)],(.69,.48)),
@@ -22,16 +26,29 @@ FIN_RIGS={
  'emperor_angelfish': ([(.75,.57),(.68,.55),(.59,.66),(.65,.78),(.74,.68)],(.75,.58)),
  'moorish_idol': ([(.76,.64),(.69,.61),(.60,.68),(.64,.80),(.74,.73)],(.76,.65)),
  'green_chromis': ([(.69,.45),(.62,.46),(.53,.57),(.58,.70),(.67,.61)],(.69,.47))}
-YAW_COUNT=64;UNIQUE_VIEWS=YAW_COUNT;BODY_BENDS=list(np.linspace(-.19,.19,4));FIN_ANGLES=list(np.linspace(0,.8,5))
+FIN_RIGS.update({
+ 'blue_tang': ([(.75,.46),(.68,.43),(.57,.49),(.62,.69),(.72,.65)],(.75,.47)),
+ 'copperband_butterflyfish': ([(.70,.48),(.64,.45),(.52,.48),(.52,.64),(.67,.65)],(.70,.49)),
+ 'banggai_cardinalfish': ([(.76,.55),(.68,.53),(.56,.63),(.62,.76),(.73,.67)],(.76,.56)),
+ 'mandarin_dragonet': ([(.74,.53),(.65,.53),(.49,.69),(.53,.92),(.74,.97),(.82,.81)],(.74,.54))})
+# Caudal peduncle cut in normalized source space. The idol's dorsal streamer
+# remains on the body even where it extends behind the tail attachment.
+TAIL_RIGS={name:(.24,0,1)for name,*_ in SPECIES}
+TAIL_RIGS.update(moorish_idol=(.27,.42,.91),blue_tang=(.25,0,1),
+ copperband_butterflyfish=(.21,.32,.78),banggai_cardinalfish=(.35,.23,.76),
+ mandarin_dragonet=(.29,.32,.91))
+YAW_COUNT=64;UNIQUE_VIEWS=YAW_COUNT//2+1;BODY_BENDS=list(np.linspace(-.19,.19,4));FIN_ANGLES=list(np.linspace(0,.8,5))
 VS='''#version 330
-in vec3 pos;in vec2 uv;uniform float yaw;uniform float bend;
+in vec3 pos;in vec2 uv;in vec3 normal;uniform float yaw;uniform float bend;uniform float tailRoot;
 uniform float finAngle;uniform float finPass;uniform vec2 hinge;
 out vec2 texuv;out float shade;
 void main(){vec3 p=pos;
 if(finPass>.5){float travel=max(0.0,hinge.x-p.x);float side=sign(p.z);p.x+=travel*(1.0-cos(finAngle));p.z+=side*sin(finAngle)*travel;}
-float rear=max(0.0,.28-p.x);p.z+=bend*rear*rear;p.x+=bend*bend*rear*rear*rear*.85;
+float rear=max(0.0,tailRoot-p.x);p.z+=bend*rear*rear;p.x+=bend*bend*rear*rear*rear*.85;
 float c=cos(yaw),s=sin(yaw);vec3 q=vec3(p.x*c-p.z*s,p.y,p.x*s+p.z*c);
-gl_Position=vec4(q.x*.9,q.y*.9,-q.z*.4,1);texuv=uv;shade=.86+.14*(p.y+1.0)/2.0;}
+gl_Position=vec4(q.x*.9,q.y*.9,-q.z*.4,1);texuv=uv;
+vec3 n=normalize(vec3(normal.x*c-normal.z*s,normal.y,normal.x*s+normal.z*c));
+shade=.83+.17*max(0.0,dot(n,normalize(vec3(-.25,.65,1.0))));}
 '''
 FS='''#version 330
 uniform sampler2D photo;uniform float depthOnly;in vec2 texuv;in float shade;out vec4 outcol;
@@ -54,9 +71,19 @@ def prepare_texture(name):
 
 def make_mesh(name,thick):
     original,body,fin,finmask,hinge=prepare_texture(name)
-    w=320;h=max(40,round(w*original.height/original.width))
+    w=384;h=max(40,round(w*original.height/original.width))
     a=np.asarray(original.resize((w,h),Image.Resampling.LANCZOS).getchannel('A'))
-    mask=a>50;dist=distance_transform_edt(mask);depth=gaussian_filter(dist,.65);depth=depth/max(depth.max(),1)*thick
+    mask=a>50;dist=distance_transform_edt(mask)
+    # Rounded anatomical cross-sections; narrow peripheral fins stay thin instead
+    # of inflating along with the torso. Preserve the approved slim proportions.
+    radius=gaussian_filter(dist.max(axis=0),4)
+    center=gaussian_filter(np.argmax(dist,axis=0).astype(float),4)
+    yy,xx=np.mgrid[:h,:w];cross=np.clip(1-((yy-center)/np.maximum(radius*1.15,1))**2,0,1)**.5
+    bulk=(radius/max(radius.max(),1))**.65
+    depth=(.006+cross*bulk*thick)*np.clip(dist/2,0,1)
+    depth=gaussian_filter(depth,.65)*mask
+    gy,gx=np.gradient(depth,2*.92/w,2/w)
+    normals=[]
     verts=[];uv=[];faces=[];ids={}
     for side in [-1,1]:
         for y in range(h):
@@ -65,6 +92,7 @@ def make_mesh(name,thick):
                     ids[side,y,x]=len(verts)
                     verts.append([2*x/(w-1)-1,(1-2*y/(h-1))*h/w*.92,side*depth[y,x]])
                     uv.append([x/(w-1),1-y/(h-1)])
+                    n=np.array([-gx[y,x],gy[y,x],side]);normals.append(n/np.linalg.norm(n))
     for side in [-1,1]:
         for y in range(h-1):
             for x in range(w-1):
@@ -84,8 +112,11 @@ def make_mesh(name,thick):
         if np.all(fm[np.clip(ys,0,h-1),np.clip(xs,0,w-1)]>20):fins.append(face)
     fv=v.copy();fv[:,2]+=np.sign(fv[:,2])*.012
     fins=np.array(fins,np.int32)
-    np.savez_compressed(SRC/(name+'.npz'),vertices=v,uv=uv,faces=faces,fin_vertices=fv,fin_faces=fins,fin_hinge=np.array([hinge[0]*2-1,(1-hinge[1]*2)*h/w*.92]))
-    return v,uv,faces,fv,fins,body,fin,hinge
+    root,top,bottom=TAIL_RIGS[name]
+    centroids=uv[faces].mean(axis=1);caudal=(centroids[:,0]<root)&(centroids[:,1]>1-bottom)&(centroids[:,1]<1-top)
+    body_faces=faces[~caudal];tail_faces=faces[caudal];normals=np.array(normals,np.float32)
+    np.savez_compressed(SRC/(name+'.npz'),vertices=v,uv=uv,normals=normals,faces=faces,body_faces=body_faces,tail_faces=tail_faces,fin_vertices=fv,fin_faces=fins,fin_hinge=np.array([hinge[0]*2-1,(1-hinge[1]*2)*h/w*.92]))
+    return v,uv,normals,body_faces,tail_faces,fv,fins,body,fin,hinge
 
 def pack(images,width=1024):
     x=y=row_h=0;positions=[]
@@ -107,52 +138,83 @@ def cropped(shot,yaw,pose,fw,fh):
     x0,y0,x1,y1=box;box=(max(0,x0-2),max(0,y0-2),min(fw,x1+2),min(fh,y1+2))
     return shot.crop(box),{'yaw':yaw*360/YAW_COUNT,'pose':pose,'anchorX':fw/2-box[0],'anchorY':fh/2-box[1]}
 
+def contact_sheet(data):
+    contact=Image.new('RGB',(6*256,len(data)*150),(27,45,58))
+    for row,(name,sp)in enumerate(data.items()):
+        for col,yaw in enumerate([0,4,8,12,16,24]):
+            shot=Image.new('RGBA',(sp['frameW'],sp['frameH']))
+            for suffix,key,count,pose,scale in [('-atlas','frames',1,0,1),('-tails','tailFrames',sp['tailPoseCount'],1,1),('-fins','finFrames',sp['finPoseCount'],2,sp['finTextureScale'])]:
+                atlas=Image.open(ROOT/'work/fish-raw'/(name+suffix+'.png')).convert('RGBA')
+                f=sp[key][yaw*count+pose];part=atlas.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h']))
+                if scale!=1:part=part.resize((part.width*scale,part.height*scale),Image.Resampling.LANCZOS)
+                shot.alpha_composite(part,(round(sp['frameW']/2-f['anchorX']*scale),round(sp['frameH']/2-f['anchorY']*scale)))
+            shot.thumbnail((250,130));contact.paste(shot,(col*256,row*150),shot)
+        ImageDraw.Draw(contact).text((3,row*150+133),sp['label'],fill=(230,235,240))
+    contact.save(ROOT/'docs/previews/fish-orientations.jpg',quality=94)
+
 def build(species_list=None):
     import moderngl
     ctx=moderngl.create_standalone_context(backend='egl');p=ctx.program(vertex_shader=VS,fragment_shader=FS)
     fw,fh=224,196;fbo=ctx.simple_framebuffer((fw*4,fh*4),components=4);fbo.use();ctx.enable(moderngl.DEPTH_TEST)
-    contact=Image.new('RGB',(6*256,6*150),(27,45,58));atlasdata={}
+    atlasdata={}
     for row,(name,label,size,speed,beat,school,thick,finbeat)in enumerate(SPECIES if species_list is None else species_list):
         if name in ['ocellaris_clownfish','royal_gramma','green_chromis']:
-            fw,fh=208,182
-        else:
             fw,fh=224,196
+        else:
+            fw,fh=240,210
         fbo.release();fbo=ctx.simple_framebuffer((fw*4,fh*4),components=4);fbo.use()
-        v,uv,faces,fv,fins,body,fin,hinge=make_mesh(name,thick)
-        vb=ctx.buffer(np.hstack((v,uv)).astype('f4').tobytes());ib=ctx.buffer(faces.tobytes());vao=ctx.vertex_array(p,[(vb,'3f 2f','pos','uv')],ib)
-        fb=ctx.buffer(np.hstack((fv,uv)).astype('f4').tobytes());fi=ctx.buffer(fins.tobytes());fvao=ctx.vertex_array(p,[(fb,'3f 2f','pos','uv')],fi)
+        v,uv,normals,faces,tails,fv,fins,body,fin,hinge=make_mesh(name,thick)
+        vb=ctx.buffer(np.hstack((v,uv,normals)).astype('f4').tobytes());ib=ctx.buffer(faces.tobytes());vao=ctx.vertex_array(p,[(vb,'3f 2f 3f','pos','uv','normal')],ib)
+        ti=ctx.buffer(tails.tobytes());tvao=ctx.vertex_array(p,[(vb,'3f 2f 3f','pos','uv','normal')],ti)
+        fb=ctx.buffer(np.hstack((fv,uv,normals)).astype('f4').tobytes());fi=ctx.buffer(fins.tobytes());fvao=ctx.vertex_array(p,[(fb,'3f 2f 3f','pos','uv','normal')],fi)
         tex=ctx.texture(body.size,4,body.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());ftex=ctx.texture(fin.size,4,fin.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes())
         for t in [tex,ftex]:t.filter=(moderngl.LINEAR,moderngl.LINEAR)
         p['hinge'].value=(hinge[0]*2-1,0)
+        p['tailRoot'].value=TAIL_RIGS[name][0]*2-1
         def read():return Image.frombytes('RGBA',fbo.size,fbo.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).resize((fw,fh),Image.Resampling.LANCZOS)
-        shots=[];finshots=[]
+        shots=[];tailshots=[];finshots=[]
         for yaw in range(UNIQUE_VIEWS):
             p['yaw'].value=yaw*2*math.pi/YAW_COUNT
+            p['bend'].value=0;p['finPass'].value=0;p['finAngle'].value=0;p['depthOnly'].value=0;tex.use()
+            fbo.color_mask=(True,True,True,True);fbo.clear(0,0,0,0,depth=1);vao.render()
+            shots.append(cropped(read(),yaw,0,fw,fh))
             for pose,bend in enumerate(BODY_BENDS):
-                p['bend'].value=bend;p['finPass'].value=0;p['finAngle'].value=0;p['depthOnly'].value=0;tex.use()
-                fbo.color_mask=(True,True,True,True);fbo.clear(0,0,0,0,depth=1);vao.render();shot=read()
-                shots.append(cropped(shot,yaw,pose,fw,fh))
-                if pose==1 and yaw in [0,4,8,12,16,24]:
-                    col=[0,4,8,12,16,24].index(yaw);thumb=shot.copy();thumb.thumbnail((250,142));contact.paste(thumb,(col*256,row*150),thumb)
+                fbo.clear(0,0,0,0,depth=1);p['bend'].value=0;p['depthOnly'].value=1;vao.render()
+                p['depthOnly'].value=0;p['bend'].value=bend;tvao.render();shot=read()
+                tailshots.append(cropped(shot,yaw,pose,fw,fh))
             for pose,angle in enumerate(FIN_ANGLES):
                 fbo.color_mask=(True,True,True,True);fbo.clear(0,0,0,0,depth=1)
                 p['bend'].value=0;p['finPass'].value=0;p['depthOnly'].value=1;tex.use();vao.render()
                 p['depthOnly'].value=0;p['finPass'].value=1;p['finAngle'].value=angle;ftex.use();fvao.render()
                 finshots.append(cropped(read(),yaw,pose,fw,fh))
         atlas,unique=pack(shots)
+        tailatlas,unique_tails=pack(tailshots)
         finshots=[(shot.resize((max(1,round(shot.width/2)),max(1,round(shot.height/2))),Image.Resampling.LANCZOS),dict(meta,anchorX=meta['anchorX']/2,anchorY=meta['anchorY']/2))for shot,meta in finshots]
         finatlas,unique_fins=pack(finshots,512)
-        # All directions are actual upright renders. Runtime uses positive
-        # scales on every device; no reflection/negative-scale driver path.
-        frames=[dict(f,flipX=False)for f in unique]
-        finframes=[dict(f,flipX=False)for f in unique_fins]
-        view_widths=[max(f['w']-4 for f in frames[yaw*len(BODY_BENDS):(yaw+1)*len(BODY_BENDS)])for yaw in range(YAW_COUNT)]
-        atlas.save(OUT/(name+'-atlas.png'),optimize=True);finatlas.save(OUT/(name+'-fins.png'),optimize=True)
+        # The model has bilateral texture/geometry. Share actual upright
+        # views on its reverse side, never a runtime reflection. Tail bends
+        # reverse phase on that side so their world-space deflection agrees.
+        def directions(unique,count,tail=False):
+            result=[]
+            for yaw in range(YAW_COUNT):
+                view=min(yaw,YAW_COUNT-yaw)
+                for pose in range(count):
+                    source=count-1-pose if tail and yaw>YAW_COUNT//2 else pose
+                    result.append(dict(unique[view*count+source],yaw=yaw*360/YAW_COUNT,pose=pose,flipX=False))
+            return result
+        frames=directions(unique,1)
+        finframes=directions(unique_fins,len(FIN_ANGLES))
+        tailframes=directions(unique_tails,len(BODY_BENDS),True)
+        def full_width(yaw):
+            parts=[frames[yaw]]+tailframes[yaw*len(BODY_BENDS):(yaw+1)*len(BODY_BENDS)]
+            return max(1,max(f['w']-f['anchorX']for f in parts)+max(f['anchorX']for f in parts)-4)
+        view_widths=[full_width(yaw)for yaw in range(YAW_COUNT)]
+        atlas.save(OUT/(name+'-atlas.png'),optimize=True);tailatlas.save(OUT/(name+'-tails.png'),optimize=True);finatlas.save(OUT/(name+'-fins.png'),optimize=True)
         raw=ROOT/'work/fish-raw';raw.mkdir(parents=True,exist_ok=True)
-        for suffix in ['-atlas.png','-fins.png']:shutil.copy2(OUT/(name+suffix),raw/(name+suffix))
-        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.webp','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'viewWidths':view_widths,'poseCount':len(BODY_BENDS),'length':size*1.6,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finTextureScale':2,'finImage':'pkg:/images/'+name+'-fins.webp','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick,'collisionHalfWidth':max(max(f['anchorX'],f['w']-f['anchorX']) for f in frames+[dict(f,anchorX=f['anchorX']*2,anchorY=f['anchorY']*2,w=f['w']*2,h=f['h']*2)for f in finframes]),'collisionHalfHeight':max(max(f['anchorY'],f['h']-f['anchorY']) for f in frames+[dict(f,anchorX=f['anchorX']*2,anchorY=f['anchorY']*2,w=f['w']*2,h=f['h']*2)for f in finframes])}
-        for obj in [vao,vb,ib,fvao,fb,fi,tex,ftex]:obj.release()
+        for suffix in ['-atlas.png','-fins.png','-tails.png']:shutil.copy2(OUT/(name+suffix),raw/(name+suffix))
+        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.webp','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'uniqueYawViews':UNIQUE_VIEWS,'viewWidths':view_widths,'poseCount':1,'tailPoseCount':len(BODY_BENDS),'tailFrames':tailframes,'tailImage':'pkg:/images/'+name+'-tails.webp','meshRevision':2,'meshVertices':len(v),'meshTriangles':len(faces)+len(tails),'length':size*1.6,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finTextureScale':2,'finImage':'pkg:/images/'+name+'-fins.webp','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick,'collisionHalfWidth':max(max(f['anchorX'],f['w']-f['anchorX']) for f in frames+tailframes+[dict(f,anchorX=f['anchorX']*2,anchorY=f['anchorY']*2,w=f['w']*2,h=f['h']*2)for f in finframes]),'collisionHalfHeight':max(max(f['anchorY'],f['h']-f['anchorY']) for f in frames+tailframes+[dict(f,anchorX=f['anchorX']*2,anchorY=f['anchorY']*2,w=f['w']*2,h=f['h']*2)for f in finframes])}
+        for obj in [vao,tvao,ti,vb,ib,fvao,fb,fi,tex,ftex]:obj.release()
         print(name,len(frames),'body poses,',len(finframes),'independent fin poses; atlas',atlas.size,flush=True)
     (ROOT/'roku/scenes/species.json').write_text(json.dumps(atlasdata,indent=2))
-    contact.save(ROOT/'docs/previews/fish-orientations.jpg',quality=94)
+    contact_sheet(atlasdata)
 if __name__=='__main__':build()

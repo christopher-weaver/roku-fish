@@ -13,5 +13,5 @@ sub Main()
             if f.x<0 or f.x>2048 or f.z<0 or f.z>1 then print "FAIL bounds" : return
         end for
     end for
-    print "PASS targeted collision check: 60 physics ticks, 18 fish, all physical/interpolated footprints clear of the connected reef, fan and anemone"
+    print "PASS targeted collision check: 60 physics ticks, 8 fish, all physical/interpolated footprints clear of the connected reef, fan and anemone"
 end sub

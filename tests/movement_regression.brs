@@ -33,6 +33,13 @@ sub Main()
     for each density in ["Low","Medium","High"]
         prefs=ReefValidateSettings({density:density})
         world=ReefWorld(prefs,species,occupancy,1900000001)
+        seen={}
+        if world.fish.Count()<>world.cfg.populations[density] then print "FAIL population" : return
+        for i=0 to world.fish.Count()-1
+            name=world.fish[i].name
+            if seen.DoesExist(name) then print "FAIL repeated species" : return
+            seen[name]=true
+        end for
         for frame=0 to 29
             previous=[]
             for i=0 to world.fish.Count()-1

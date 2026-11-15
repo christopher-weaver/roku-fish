@@ -1,1 +1,1 @@
-PASS targeted collision check: 60 physics ticks, 18 fish, all physical/interpolated footprints clear of the connected reef, fan and anemone
+PASS targeted collision check: 60 physics ticks, 8 fish, all physical/interpolated footprints clear of the connected reef, fan and anemone

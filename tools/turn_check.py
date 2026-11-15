@@ -29,7 +29,7 @@ def check_blending():
     for name,sp in species.items():
         atlas=Image.open(ROOT/'roku'/sp['image'][5:]).convert('RGBA');size=(sp['frameW']*2,sp['frameH']*2);cache={}
         for yaw in range(sp['yawCount']):
-            fr=sp['frames'][yaw*sp['poseCount']+3];im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
+            fr=sp['frames'][yaw*sp['poseCount']+min(3,sp['poseCount']-1)];im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
             im.alpha_composite(atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h'])),(int(sp['frameW']/2-fr['anchorX']),int(sp['frameH']/2-fr['anchorY'])))
             if fr['flipX']:im=im.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
             cache[yaw]=im

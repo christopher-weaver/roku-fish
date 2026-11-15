@@ -1,7 +1,7 @@
 {
   "checks": [
-    "All 18 body and pectoral animations advance in the short native-world recording",
-    "All 23 preview runtime images and production snapshots loaded in Chromium",
+    "All 8 body and pectoral animations advance in the short native-world recording",
+    "All fish, coral and wave-shadow images and production snapshots loaded in Chromium",
     {
       "lighting": "Daylight",
       "sample_pixel": [

@@ -43,7 +43,7 @@ sub Main()
         end for
     end for
     if violations<>0 then print "FAIL coral intersections at simulation or interpolated poses ";violations : return
-    print "PASS 30 seconds, 18 fish, whole footprints and interpolated poses stay clear without position jumps"
+    print "PASS 30 seconds, 8 fish, whole footprints and interpolated poses stay clear without position jumps"
     s=ReefWorld(prefs,species,occ,1)
     if s.renderFps<>60 then print "FAIL default 60Hz target" : return
     for i=0 to 2

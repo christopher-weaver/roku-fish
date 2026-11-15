@@ -9,15 +9,20 @@ function ReefLoadAssets(s as object) as object
     warm = s.settings.lighting = "Sunset"
     plate = "water-day.webp"
     if warm then plate = "water-sunset.webp"
-    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), formations: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, surface: [] }
+    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), formations: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
     surface = ReefBitmap("pkg:/images/surface-waves.png")
+    shadow = ReefBitmap("pkg:/images/sand-wave-shadows.png")
     sand = ReefBitmap("pkg:/images/sand-caustics.png")
     if a.waveConfig <> invalid
         for i = 0 to a.waveConfig.frames - 1
             if surface <> invalid
                 cfg = a.waveConfig.surface
                 a.surface.Push(ReefLayer(surface, (i mod cfg.columns) * cfg.width, Int(i / cfg.columns) * cfg.height, cfg.width, cfg.height))
+            end if
+            if shadow <> invalid
+                cfg = a.waveConfig.shadow
+                a.sandShadows.Push(ReefLayer(shadow, (i mod cfg.columns) * cfg.width, Int(i / cfg.columns) * cfg.height, cfg.width, cfg.height))
             end if
             if sand <> invalid
                 cfg = a.waveConfig.sand
@@ -33,10 +38,14 @@ function ReefLoadAssets(s as object) as object
         end for
         a.formations.Push(views)
     end for
-    for each name in s.species
+    ' Load only the unique species present at this density.
+    for fishIndex=0 to s.fish.Count()-1
+        name=s.fish[fishIndex].name
         sp = s.species[name]
         b = ReefBitmap(sp.image)
         if b <> invalid then a.fish[name] = ReefFishFrames(b,sp.frames,s.settings.quality)
+        b = ReefBitmap(sp.tailImage)
+        if b <> invalid then a.tails[name] = ReefFishFrames(b,sp.tailFrames,s.settings.quality)
         b = ReefBitmap(sp.finImage)
         if b <> invalid then a.fins[name] = ReefFishFrames(b,sp.finFrames,s.settings.quality)
     end for

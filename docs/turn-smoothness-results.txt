@@ -1,3 +1,3 @@
 PASS opposite target changes retain bounded turn speed, acceleration and jerk; cubic display headings preserve endpoint velocities
-PASS all six fish retain continuous silhouette widths across every yaw index boundary
+PASS all ten species retain continuous silhouette widths across every yaw index boundary
 PASS positive-scale pitched fish retain their fractional center

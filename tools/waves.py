@@ -34,6 +34,7 @@ def build():
     out=ROOT/'roku/images'
     surface=Image.new('RGBA',(2048,512))
     caustics=Image.new('RGBA',(2048,96))
+    shadows=Image.new('RGBA',(2048,96))
     sy,sx=np.mgrid[:128,:256];fy,fx=np.mgrid[:24,:256]
     ground=np.asarray(sand_mask().crop((0,960,2048,1152)).resize((256,24),Image.Resampling.LANCZOS),dtype=float)/255
     rgb=np.asarray(Image.open(ROOT/'assets/source/background-matched-sunset.png').convert('RGB').resize((2048,1152),Image.Resampling.LANCZOS).crop((0,960,2048,1152)).resize((256,24)),dtype=float)
@@ -61,9 +62,20 @@ def build():
         rgba[:,:,:3]=np.where((signal>0)[:,:,None],np.array([255,235,197]),np.array([35,24,32]))
         rgba[:,:,3]=np.uint8(np.clip(np.abs(signal)*ground*(18+30*ridge_detail),0,48))
         caustics.paste(Image.fromarray(rgba).filter(ImageFilter.GaussianBlur(.4)),((frame%8)*256,(frame//8)*24))
+        # Wave troughs bend and sweep a translucent shadow across the existing
+        # photographed sand highlights. Width and strength vary with the SAME
+        # periodic wave field as the surface; all coral remains masked out.
+        warped=fx*8+depth*105+24*height(fx*3+fy*6,phase)
+        trough=np.clip((-height(warped,phase)-.10)/1.15,0,1)**1.4
+        strength=.72+.28*np.sin(phase+fx/37+fy/8)**2
+        highlight=np.clip(luminance/180,.45,1)*(0.65+0.35*ridge_detail)
+        rgba=np.zeros((24,256,4),dtype=np.uint8);rgba[:,:,:3]=[28,24,43]
+        rgba[:,:,3]=np.uint8(np.clip(trough*strength*highlight*ground*105,0,96))
+        shadows.paste(Image.fromarray(rgba).filter(ImageFilter.GaussianBlur(.32)),((frame%8)*256,(frame//8)*24))
+    shadows.save(out/'sand-wave-shadows.png',optimize=True)
     surface.save(out/'surface-waves.png',optimize=True)
     caustics.save(out/'sand-caustics.png',optimize=True)
-    (ROOT/'roku/scenes/waves.json').write_text(json.dumps({'frames':FRAMES,'period':PERIOD,'surface':{'width':256,'height':128,'columns':8,'scale':2},'sand':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960}},indent=2)+'\n')
+    (ROOT/'roku/scenes/waves.json').write_text(json.dumps({'frames':FRAMES,'period':PERIOD,'surface':{'width':256,'height':128,'columns':8,'scale':2},'sand':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960},'shadow':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960}},indent=2)+'\n')
     for pattern in ['caustic-*.png','surface-ripples.png','sun-dapple.png']:
         for p in out.glob(pattern):p.unlink()
     (ROOT/'roku/scenes/dapple.json').unlink(missing_ok=True)

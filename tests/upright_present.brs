@@ -1,23 +1,26 @@
 sub Main()
     sp=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))["yellow_tang"]
-    body=[] : fins=[]
+    body=[] : fins=[] : tails=[]
     for i=0 to sp.frames.Count()-1
         body.Push({normal:"body",fractional:"body"})
     end for
     for i=0 to sp.finFrames.Count()-1
         fins.Push({normal:"fin",fractional:"fin"})
     end for
+    for i=0 to sp.tailFrames.Count()-1
+        tails.Push({normal:"tail",fractional:"tail"})
+    end for
     screen={bad:false,calls:0,DrawTransformedObject:UprightCapture}
     r={screen:screen,scale:1#,canvasOffset:0#,rotation:true,fractionalFish:true,placement:{}}
     s={camera:64#,settings:{lighting:"Sunset"}}
-    a={fish:{yellow_tang:body},fins:{yellow_tang:fins}}
+    a={fish:{yellow_tang:body},fins:{yellow_tang:fins},tails:{yellow_tang:tails}}
     f={name:"yellow_tang",sp:sp,size:1#}
     for degrees=0 to 360 step 3
         f.renderPose={x:900#,y:400#,z:0.7,heading:degrees/57.295779513#,pitch:Sin(degrees/57.295779513#)*0.22,phase:degrees*0.1,finPhase:degrees*0.2}
         ReefDrawFish(r,s,a,f)
     end for
-    if screen.bad or screen.calls<>242 then print "FAIL upright transforms" : return
-    print "PASS full-circle pitched fish draw body and fins with positive scales only; no runtime reflections"
+    if screen.bad or screen.calls<>363 then print "FAIL upright transforms" : return
+    print "PASS full-circle pitched fish draw body, tail and fins with positive scales only; no runtime reflections"
     output={calls:[],SetAlphaEnable:PresentAlpha,Clear:PresentClear,DrawScaledObject:PresentCapture,DrawObject:PresentObject}
     s.settings.clock="Off" : s.settings.fps="Off"
     for each scale in [0.6666666667,1#]

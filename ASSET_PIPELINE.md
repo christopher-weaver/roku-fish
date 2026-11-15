@@ -18,7 +18,7 @@ Activate the venv using the normal command for your shell. The headless mesh ren
 - `assets/source/reef-close-reference.png`: historical 1672×941 reference-inspired close reef. It preserves the requested sunset palette, full-width coral and defined sand ridges. Provenance and prompt notes are in `assets/source/PROVENANCE.md`.
 - `assets/source/reef-midground-cutout.png`: historical generated RGBA isolation retained from version 1.0.6. The exact source pixels are checked in.
 - `reef-original.png` and `empty-original.png`: retained historical sources used by earlier releases.
-- Six licensed/refined photographic fish portraits, plus source sheets. The Paul Robello MIT notices and provenance remain in `assets/licenses/` and CREDITS.
+- Six licensed/refined photographic fish portraits and four new generated portraits, plus source sheets. The Paul Robello MIT notices and provenance remain in `assets/licenses/` and CREDITS.
 - `*-texture.png`, `*-pectoral.png` and NPZ volumes are derived from those portraits and rebuildable offline.
 
 ## Connected reef and matched environment
@@ -37,9 +37,9 @@ Activate the venv using the normal command for your shell. The headless mesh ren
 
 ## Fish
 
-`fish_mesh.py` renders all 64 directions directly with positive upright geometry, four body bends and five independently hinged fin poses. There is no runtime mirror/negative-scale dependency. One nearest direction/tail/fin pose is drawn at a time, with continuous movement, pitch and width transforms; there are no overlapping anatomy images. Body canvases retain 224×196 or 208×182 registration and 4× supersampling. Fin crops are stored at half resolution with explicit 2× display scale and fractional anchors; body detail is unchanged in resolution.
+`fish_mesh.py` fills 64 heading slots from 33 upright bilateral views with positive scales. The reverse half reuses matching body/fin views and reverses caudal-bend phase; it never reflects a runtime sprite. Each direction has one body image, four independently bent caudal-tail poses and five hinged pectoral-fin poses. Body and tail face sets partition the complete mesh without duplicating any tail geometry. Tail and pectoral passes are depth-tested against the body. Rounded anatomical cross-sections, thin peripheral fins and vertex-normal lighting replace the older uniformly inflated relief. Source grids are 384 samples wide, canvases are 240×210 or 224×196, and renders use 4× supersampling. Fin crops remain half resolution with explicit 2× scale and fractional anchors. Only species actually present are loaded on Roku.
 
-`optimize.py` uses 88-color large-fish body palettes, 80-color small-fish palettes and 64-color fin palettes without dithering, stored in lossless WebP containers. The coral atlases use quality 69; water plates quality 74. `catalog.py` records image dimensions/checksums and `build.py` checks texture/frame bounds and the four-million-byte ZIP budget. Raw fish atlases remain cached under ignored work/fish-raw. Regenerate from source pixels instead of repeatedly quantizing delivered output.
+`extract_additional_fish.py` extracts the four new portraits from the fixed source sheet; it does not require a generation service. `optimize.py` quantizes fresh raw atlases without dithering into lossless WebP. Body palettes use 144 colors, tails 112, fins 80. Coral and backgrounds are unchanged from 1.0.8. `waves.py` adds a 32-frame dark shadow atlas using the same periodic field as the surface and sand light; the photographic highlights and grain remain beneath it. `catalog.py` records dimensions/checksums and `build.py` checks all three fish-part atlases and the four-million-byte ZIP budget. Raw atlases are cached under ignored work/fish-raw; never repeatedly quantize delivered images.
 
 ## Preview and editing
 

@@ -64,9 +64,9 @@ def validate():
             total_texture+=w*h*4
         except ValueError as e:errors.append(str(e))
     species=json.loads((ROKU/'scenes/species.json').read_text())
-    if len(species)<6:errors.append('Need at least six species')
+    if len(species)<10:errors.append('Need at least ten species')
     for name,sp in species.items():
-        for image_key,frames_key,pose_key in [('image','frames','poseCount'),('finImage','finFrames','finPoseCount')]:
+        for image_key,frames_key,pose_key in [('image','frames','poseCount'),('finImage','finFrames','finPoseCount'),('tailImage','tailFrames','tailPoseCount')]:
             image=ROKU/sp[image_key][5:]
             if not image.exists():errors.append('Missing atlas '+str(image));continue
             w,h=dimensions(image)

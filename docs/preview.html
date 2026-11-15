@@ -8,7 +8,7 @@ let frames,species,waveConfig,tank,assets={},playing=true,t=1.5,last=0;
 try{
  [frames,species,waveConfig,tank]=await Promise.all([fetch('previews/frames.json').then(r=>r.json()),fetch('../roku/scenes/species.json').then(r=>r.json()),fetch('../roku/scenes/waves.json').then(r=>r.json()),fetch('../roku/scenes/tank.json').then(r=>r.json())]);
  const duration=frames.at(-1).time;slider.max=duration;
- const names=['water-day.webp','water-sunset.webp',...tank.formations.map(f=>f.image.split('/').pop()),'mote.png','bubble.png','ray.png','surface-waves.png','sand-caustics.png',...Object.values(species).flatMap(sp=>[sp.image.split('/').pop(),sp.finImage.split('/').pop()])];
+ const names=['water-day.webp','water-sunset.webp',...tank.formations.map(f=>f.image.split('/').pop()),'mote.png','bubble.png','ray.png','surface-waves.png','sand-caustics.png','sand-wave-shadows.png',...Object.values(species).flatMap(sp=>[sp.image.split('/').pop(),sp.finImage.split('/').pop(),sp.tailImage.split('/').pop()])];
  await Promise.all(names.map(n=>new Promise((resolve,reject)=>{let im=new Image;im.onload=()=>{assets[n]=im;resolve()};im.onerror=()=>reject(new Error('Missing image '+n));im.src='../roku/images/'+n})));
  for(const name of tank.formations.map(f=>f.image.split('/').pop())){let source=assets[name],off=document.createElement('canvas');off.width=source.width;off.height=source.height;let ctx=off.getContext('2d');ctx.drawImage(source,0,0);let pixels=ctx.getImageData(0,0,off.width,off.height);for(let i=0;i<pixels.data.length;i+=4){pixels.data[i]*=221/255;pixels.data[i+1]*=235/255}ctx.putImageData(pixels,0,0);assets[name+'-cool']=off}
  const angle=(a,b,u)=>a+(((b-a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*u;
@@ -16,7 +16,7 @@ try{
  const draw=(n,x,y,sx=1,sy=sx,alpha=1)=>{if(alpha<=0)return;c.globalAlpha=alpha;let im=assets[n];c.drawImage(im,x,y,im.width*sx,im.height*sy);c.globalAlpha=1};
  function drawFish(f){const sp=species[f.name],pos=((f.heading%(2*Math.PI)+2*Math.PI)%(2*Math.PI))*sp.yawCount/(2*Math.PI),lo=Math.floor(pos),blend=pos-lo,width=sp.viewWidths[lo]*(1-blend)+sp.viewWidths[(lo+1)%sp.yawCount]*blend,s=f.scale*sp.length/sp.renderLength*f.size;
  c.save();c.translate(f.sx,f.sy);c.rotate(-f.pitch*(Math.cos(f.heading)<0?-1:1));c.filter=`brightness(${.82+.18*f.z})`;
- for(const part of ['body','fin']){const count=part==='body'?sp.poseCount:sp.finPoseCount,phase=part==='body'?f.phase:f.finPhase,pose=Math.round((Math.sin(phase)+1)*.5*(count-1)),view=Math.round(pos)%sp.yawCount,atlas=assets[(part==='body'?sp.image:sp.finImage).split('/').pop()],frames=part==='body'?sp.frames:sp.finFrames,fr=frames[view*count+pose],ts=part==='fin'?(sp.finTextureScale??1):1;
+ for(const part of ['body','tail','fin']){const count=part==='body'?sp.poseCount:part==='tail'?sp.tailPoseCount:sp.finPoseCount,phase=part!=='fin'?f.phase:f.finPhase,pose=Math.round((Math.sin(phase)+1)*.5*(count-1)),view=Math.round(pos)%sp.yawCount,atlas=assets[(part==='body'?sp.image:part==='tail'?sp.tailImage:sp.finImage).split('/').pop()],frames=part==='body'?sp.frames:part==='tail'?sp.tailFrames:sp.finFrames,fr=frames[view*count+pose],ts=part==='fin'?(sp.finTextureScale??1):1;
  c.save();c.scale(width/sp.viewWidths[view],1);c.drawImage(atlas,fr.x,fr.y,fr.w,fr.h,-fr.anchorX*s*ts,-fr.anchorY*s*ts,fr.w*s*ts,fr.h*s*ts);c.restore()}
  c.restore()}
 
@@ -32,6 +32,7 @@ try{
 
  let wave=displayTime%waveConfig.period*waveConfig.frames/waveConfig.period,sg=waveConfig.sand;
  for(let j=0;j<2;j++){let i=(Math.floor(wave)+j)%waveConfig.frames;c.globalAlpha=(j?wave%1:1-wave%1)*225/255*day;c.drawImage(assets['sand-caustics.png'],(i%sg.columns)*sg.width,Math.floor(i/sg.columns)*sg.height,sg.width,sg.height,sg.x-f.camera,sg.y-36,sg.width*sg.scale,sg.height*sg.scale)}c.globalAlpha=1;
+ for(let j=0;j<2;j++){const sg=waveConfig.shadow,i=(Math.floor(wave)+j)%waveConfig.frames;c.globalAlpha=(j?wave%1:1-wave%1)*(.25+.75*day);c.drawImage(assets['sand-wave-shadows.png'],i%sg.columns*sg.width,Math.floor(i/sg.columns)*sg.height,sg.width,sg.height,sg.x-f.camera,sg.y-36,sg.width*sg.scale,sg.height*sg.scale)}c.globalAlpha=1;
  fs.slice(fishIndex).forEach(drawFish);effects(previousDepth,1.01);for(let k=0;k<3;k++)draw('ray.png',150+k*590+Math.sin(displayTime*.07+k)*24-f.camera*.25,-70,2,1.8,(65+18*Math.sin(displayTime*.13+k))/255*day);
  let surf=assets['surface-waves.png'];for(let j=0;j<2;j++){let i=(Math.floor(wave)+j)%32;c.globalAlpha=(j?wave%1:1-wave%1)*(160+75*day)/255;for(let tile=0;tile<5;tile++)c.drawImage(surf,(i%8)*256,Math.floor(i/8)*128,256,128,-512+tile*512-f.camera,-8,512,128)}c.globalAlpha=1;
  if(day<1){c.fillStyle=`rgba(8,16,57,${(1-day)*150/255})`;c.fillRect(0,0,1920,1080)}if(warm||mode.value==='Dusk'){c.fillStyle=`rgba(241,105,108,${warm?38/255:20.9/255})`;c.fillRect(0,0,1920,1080)}}

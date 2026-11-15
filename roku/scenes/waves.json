@@ -14,5 +14,13 @@
     "scale": 8,
     "x": 0,
     "y": 960
+  },
+  "shadow": {
+    "width": 256,
+    "height": 24,
+    "columns": 8,
+    "scale": 8,
+    "x": 0,
+    "y": 960
   }
 }

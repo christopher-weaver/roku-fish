@@ -36,7 +36,7 @@ sub Main()
             if Abs(left.width-right.width)>0.001 then print "FAIL width jump ";name : return
         end for
     end for
-    print "PASS all six fish retain continuous silhouette widths across every yaw index boundary"
+    print "PASS all ten species retain continuous silhouette widths across every yaw index boundary"
     for sign=1 to 1
         for i=0 to 30
             angle=i*0.8-12#

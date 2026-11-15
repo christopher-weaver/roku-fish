@@ -41,6 +41,7 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     f.renderView = ReefFishView(pose.heading,f.sp,f.renderView)
     view = f.renderView
     bodyPosition = (Sin(pose.phase)+1)*0.5*(f.sp.poseCount-1)
+    tailPosition = (Sin(pose.phase)+1)*0.5*(f.sp.tailPoseCount-1)
     finPosition = (Sin(pose.finPhase)+1)*0.5*(f.sp.finPoseCount-1)
     scale = p.scale*f.sp.length/f.sp.renderLength*f.size
     haze = 1-pose.z
@@ -49,12 +50,13 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     angle = pose.pitch*57.29578
     if Cos(pose.heading)<0 then angle=0#-angle
     ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,view,scale,angle,red,green,blue)
+    if a.tails[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.tails[f.name],tailPosition,f.sp.tailPoseCount,view,scale,angle,red,green,blue)
     if a.fins[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.fins[f.name],finPosition,f.sp.finPoseCount,view,scale*f.sp.finTextureScale,angle,red,green,blue)
 end sub
 
 sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,position as double,count as integer,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer)
-    ' One coherent body/tail and one fin image. Crossfading different mesh
-    ' poses produces duplicate anatomy instead of geometric interpolation.
+    ' Body excludes caudal-tail geometry. One tail and one pectoral image
+    ' complete the fish; no crossfades, duplicate anatomy or reflections.
     poseIndex=Int(position+0.5)
     yaw=view.index
     sx=scale*view.width/sp.viewWidths[yaw]
@@ -137,6 +139,17 @@ sub ReefDrawCaustics(r as object, s as object, a as object)
     end for
 end sub
 
+sub ReefDrawSandShadows(r as object, s as object, a as object)
+    if a.sandShadows=invalid then return
+    if a.sandShadows.Count()=0 then return
+    wave=ReefSurface(s.displayTime) : cfg=a.waveConfig.shadow
+    for pass=0 to 1
+        weight=1-wave.blend : index=wave.first
+        if pass=1 then weight=wave.blend : index=wave.second
+        ReefDraw(r,cfg.x-s.camera,cfg.y-36,cfg.scale,cfg.scale,a.sandShadows[index],ReefRGBA(255,255,255,Int(weight*255*(0.25+0.75*s.lighting[0]))))
+    end for
+end sub
+
 sub ReefRender(r as object, s as object, a as object)
     screen = r.screen
     r.canvasOffset = 0#
@@ -178,6 +191,7 @@ sub ReefRender(r as object, s as object, a as object)
         ReefDraw(r,formation.x-offset,formation.y-36,1,1,a.formations[formationIndex][marineView],reefTint)
     end for
     ReefDrawCaustics(r, s, a)
+    ReefDrawSandShadows(r, s, a)
     while i < s.sorted.Count()
         ReefDrawFish(r, s, a, s.sorted[i]) : i = i + 1
     end while

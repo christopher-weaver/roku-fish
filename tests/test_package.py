@@ -3,7 +3,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'tools'))
 import build
 class PackageChecks(unittest.TestCase):
-    def test_manifest_and_assets(self):self.assertEqual(build.validate()['species'],6)
+    def test_manifest_and_assets(self):self.assertEqual(build.validate()['species'],10)
     def test_real_screensaver_only(self):
         s='\n'.join(p.read_text()for p in (ROOT/'roku/source').glob('*.brs'))
         self.assertRegex(s,r'sub RunScreenSaver\(');self.assertNotRegex(s,r'(?im)^\s*(sub|function)\s+(Main|RunUserInterface)\s*\(')
@@ -15,22 +15,50 @@ class PackageChecks(unittest.TestCase):
     def test_archive_budget(self):self.assertLessEqual((ROOT/'dist/deep-reef-screensaver.zip').stat().st_size,4_000_000)
     def test_no_lfs_placeholders(self):
         for p in (ROOT/'roku/images').iterdir():self.assertNotIn(b'version https://git-lfs',p.read_bytes()[:150])
-    def test_three_swim_poses_and_full_turn(self):
+    def test_independent_tail_poses_and_full_turn(self):
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
         for sp in species.values():
             self.assertEqual(len(sp['frames']),sp['yawCount']*sp['poseCount'])
             self.assertEqual({f['pose']for f in sp['frames']},set(range(sp['poseCount'])))
-            self.assertGreaterEqual(sp['poseCount'],4)
+            self.assertEqual(sp['poseCount'],1)
+            self.assertGreaterEqual(sp['tailPoseCount'],4)
             self.assertEqual(len({f['yaw']for f in sp['frames']}),sp['yawCount'])
             from PIL import Image,ImageChops
-            atlas=Image.open(ROOT/'roku'/sp['image'][5:]).convert('RGBA')
-            first,second=sp['frames'][:2]
+            atlas=Image.open(ROOT/'roku'/sp['tailImage'][5:]).convert('RGBA')
+            first,second=sp['tailFrames'][8*sp['tailPoseCount']],sp['tailFrames'][9*sp['tailPoseCount']-1]
             def crop(f):
                 im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
                 part=atlas.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h']))
                 im.alpha_composite(part,(int(sp['frameW']/2-f['anchorX']),int(sp['frameH']/2-f['anchorY'])))
                 return im
-            self.assertIsNotNone(ImageChops.difference(crop(first),crop(second)).getbbox(), 'Side-view tail poses must visibly differ')
+            self.assertIsNotNone(ImageChops.difference(crop(first),crop(second)).getbbox(), 'Three-quarter tail deflections must visibly differ')
+    def test_tail_geometry_partition_and_model_detail(self):
+        import numpy as np
+        species=json.loads((ROOT/'roku/scenes/species.json').read_text())
+        for name,sp in species.items():
+            with np.load(ROOT/'assets/source'/(name+'.npz'))as mesh:
+                body={tuple(f)for f in mesh['body_faces']};tail={tuple(f)for f in mesh['tail_faces']}
+                self.assertFalse(body & tail,'Caudal tail must not appear in the body image')
+                self.assertEqual(len(body)+len(tail),len(mesh['faces']))
+                self.assertGreater(len(tail),100)
+                self.assertGreater(len(mesh['vertices']),20000)
+                self.assertTrue(np.isfinite(mesh['normals']).all())
+                self.assertEqual(sp['meshRevision'],2)
+                self.assertGreaterEqual(sp['frameW'],224)
+    def test_sparse_roster_and_shadow_mask(self):
+        from PIL import Image
+        import numpy as np
+        from waves import sand_mask
+        cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
+        self.assertEqual(cfg['populations'],{'Low':6,'Medium':8,'High':10})
+        self.assertEqual(len(set(cfg['speciesOrder'])),10)
+        waves=json.loads((ROOT/'roku/scenes/waves.json').read_text());c=waves['shadow']
+        atlas=np.asarray(Image.open(ROOT/'roku/images/sand-wave-shadows.png').convert('RGBA'))
+        self.assertGreater(atlas[:,:,3].max(),50);self.assertLessEqual(atlas[:,:,3].max(),96)
+        ground=np.asarray(sand_mask().crop((0,960,2048,1152)).resize((256,24),Image.Resampling.LANCZOS))
+        for i in range(waves['frames']):
+            x=i%c['columns']*c['width'];y=i//c['columns']*c['height']
+            self.assertLessEqual(atlas[y:y+24,x:x+256,3][ground==0].max(),3)
     def test_occlusion_masks_have_alpha(self):
         from PIL import Image
         for formation in json.loads((ROOT/'roku/scenes/tank.json').read_text())['formations']:
@@ -92,7 +120,7 @@ class PackageChecks(unittest.TestCase):
         from PIL import Image,ImageChops
         cfg=json.loads((ROOT/'roku/scenes/waves.json').read_text())
         self.assertEqual(cfg['frames'],32)
-        for key,name in [('surface','surface-waves.png'),('sand','sand-caustics.png')]:
+        for key,name in [('surface','surface-waves.png'),('sand','sand-caustics.png'),('shadow','sand-wave-shadows.png')]:
             data=cfg[key];atlas=Image.open(ROOT/'roku/images'/name).convert('RGBA')
             self.assertEqual(atlas.size,(data['width']*data['columns'],data['height']*((cfg['frames']+data['columns']-1)//data['columns'])))
             def frame(i):
@@ -169,8 +197,9 @@ class PackageChecks(unittest.TestCase):
             self.assertEqual(sp['yawCount'],64)
             self.assertEqual(len(sp['viewWidths']),64)
             self.assertFalse(any(f['flipX']for f in sp['frames']))
-            self.assertEqual(len({(f['x'],f['y'])for f in sp['frames']}),64*4)
-            self.assertEqual(sp['poseCount'],4)
+            self.assertEqual(len({(f['x'],f['y'])for f in sp['frames']}),33)
+            self.assertEqual(sp['poseCount'],1)
+            self.assertEqual(sp['tailPoseCount'],4)
             self.assertEqual(sp['finPoseCount'],5)
     def test_precomputed_routes_and_coral_renders(self):
         nav=json.loads((ROOT/'roku/scenes/navigation.json').read_text());nodes=nav['nodes']

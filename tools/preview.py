@@ -22,13 +22,13 @@ def fish(canvas,f,mode):
     lo=int(position)%sp['yawCount'];blend=position-int(position)
     width=sp['viewWidths'][lo]*(1-blend)+sp['viewWidths'][(lo+1)%sp['yawCount']]*blend
     im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
-    for part in ['body','fin']:
-        count=sp['poseCount']if part=='body'else sp['finPoseCount']
-        phase=f['phase']if part=='body'else f.get('finPhase',f['phase']*.6)
+    for part in ['body','tail','fin']:
+        count=sp['poseCount']if part=='body'else sp['tailPoseCount']if part=='tail'else sp['finPoseCount']
+        phase=f['phase']if part!='fin'else f.get('finPhase',f['phase']*.6)
         pose=int((math.sin(phase)+1)*.5*(count-1)+.5)
         view=int(position+.5)%sp['yawCount']
-        atlas=asset(sp['image'if part=='body'else 'finImage'].split('/')[-1])
-        fr=sp['frames'if part=='body'else 'finFrames'][view*count+pose]
+        atlas=asset(sp['image'if part=='body'else 'tailImage'if part=='tail'else 'finImage'].split('/')[-1])
+        fr=sp['frames'if part=='body'else 'tailFrames'if part=='tail'else 'finFrames'][view*count+pose]
         layer=Image.new('RGBA',im.size)
         piece=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
         texture_scale=sp.get('finTextureScale',1)if part=='fin'else 1
@@ -50,7 +50,7 @@ def render(frame,mode='Sunset',density='Medium'):
     paste(img,asset('water-sunset.webp' if warm else 'water-day.webp'),-cam,-36)
     day={'Moonlight':.12,'Dusk':.52}.get(mode,1);night=(1-day)*150/255
     fs=sorted(frame['fish'],key=lambda f:f['z'])
-    if density=='Low':fs=[f for f in fs if f['id']<12]
+    if density=='Low':fs=[f for f in fs if f['id']<TANK['populations']['Low']]
     if density=='High':
         # Density preview comes from a separate production-world export when available.
         high=ROOT/'docs/previews/high-frame.json'
@@ -77,11 +77,13 @@ def render(frame,mode='Sunset',density='Medium'):
         if mode!='Sunset':layer=ImageChops.multiply(layer,Image.new('RGBA',layer.size,(221,235,255,255)))
         paste(img,layer,formation['x']-offset,formation['y']-36)
     phase=t%WAVES['period']*WAVES['frames']/WAVES['period'];first=int(phase);blend=phase-first
-    cfg=WAVES['sand'];sand=asset('sand-caustics.png')
-    for j in range(2):
-        index=(first+j)%WAVES['frames'];x=index%cfg['columns']*cfg['width'];y=index//cfg['columns']*cfg['height']
-        piece=sand.crop((x,y,x+cfg['width'],y+cfg['height']))
-        paste(img,piece,cfg['x']-cam,cfg['y']-36,cfg['scale'],opacity=(blend if j else 1-blend)*225/255*day)
+    for key,name in [('sand','sand-caustics.png'),('shadow','sand-wave-shadows.png')]:
+        cfg=WAVES[key];sand=asset(name)
+        for j in range(2):
+            index=(first+j)%WAVES['frames'];x=index%cfg['columns']*cfg['width'];y=index//cfg['columns']*cfg['height']
+            piece=sand.crop((x,y,x+cfg['width'],y+cfg['height']))
+            opacity=225/255*day if key=='sand'else .25+.75*day
+            paste(img,piece,cfg['x']-cam,cfg['y']-36,cfg['scale'],opacity=(blend if j else 1-blend)*opacity)
     for f in fs[fish_index:]:fish(img,f,mode)
     effects(previous,1.01)
     for k in range(3):paste(img,asset('ray.png'),150+k*590+math.sin(t*.07+k)*24-cam*.25,-70,2,1.8,(65+18*math.sin(t*.13+k))/255*day)
