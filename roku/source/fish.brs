@@ -76,13 +76,14 @@ sub ReefFishStep(s as object, f as object, dt as double)
     ' Never exceed the configured acceleration, even when night / settings change.
     if (f.x < 120 and Cos(f.heading) < 0) or (f.x > 1928 and Cos(f.heading) > 0) or (f.z < 0.08 and Sin(f.heading) < 0) or (f.z > 0.94 and Sin(f.heading) > 0) then desiredSpeed = 0
     desiredSpeed = desiredSpeed * (1 - f.avoidance)^2
+    desiredSpeed=desiredSpeed*(1-0.78*neighbors.traffic)
     f.targetSpeed = desiredSpeed
     desiredAcceleration = ReefClamp((desiredSpeed - f.speed) * 2, -f.acceleration, f.acceleration)
     f.speedAcceleration = f.speedAcceleration + ReefClamp(desiredAcceleration - f.speedAcceleration, -38 * dt, 38 * dt)
     f.speed = ReefClamp(f.speed + f.speedAcceleration * dt, 0, f.sp.speed * 1.3 * 1.18)
     f.desiredVx = Cos(f.heading) * f.speed
     f.desiredVz = Sin(f.heading) * f.speed / 800
-    f.desiredVy = ReefClamp(dy * 0.15, -f.sp.speed * s.motion * 0.33, f.sp.speed * s.motion * 0.33)
+    f.desiredVy = ReefClamp(dy * 0.15, -f.sp.speed * s.motion * (0.33+0.40*neighbors.traffic), f.sp.speed * s.motion * (0.33+0.40*neighbors.traffic))
     f.vx = f.desiredVx : f.vz = f.desiredVz
     f.vy = f.vy + ReefClamp(f.desiredVy - f.vy, -8 * dt, 8 * dt)
     candidate=f.candidate
@@ -100,6 +101,12 @@ sub ReefFishStep(s as object, f as object, dt as double)
             end if
         end if
         wall = true
+    end if
+    if ReefFishBlocked(s,f,f,candidate)
+        ' Keep the escape lane moving while yielding horizontal right of way.
+        candidate.x=f.x : candidate.z=f.z : f.vx=0# : f.vz=0#
+        if ReefFishBlocked(s,f,f,candidate) or ReefCoralBlocked(s,f,f,candidate) then candidate.y=f.y : f.vy=0#
+        wall=true
     end if
     f.x = candidate.x : f.y = candidate.y : f.z = candidate.z
     ' Emergency wall brake is continuous (no wrapping / teleporting).

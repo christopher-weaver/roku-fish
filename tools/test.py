@@ -32,6 +32,8 @@ if __name__=='__main__':
             if not re.search(r'RESULT passed=\s*32\s+failed=\s*0',output):raise RuntimeError('Simulation did not complete 32 checks')
         print(brs_run('movement_regression','docs/movement-regression-results.txt'))
         if '--quick' not in sys.argv:print(output)
+        print(brs_run('fish_traffic','docs/fish-traffic-results.txt'))
+        print(brs_run('marine_motion','docs/marine-motion-results.txt'))
         print(brs_run('settings_ui','docs/settings-results.txt'))
         if '--quick' not in sys.argv:print(brs_run('reef_collision','docs/collision-results.txt'))
         else:print(brs_run('quick_collision','docs/collision-results.txt'))
@@ -39,7 +41,7 @@ if __name__=='__main__':
         print(brs_run('render_depth','docs/render-depth-results.txt'))
         print(brs_run('upright_present','docs/upright-present-results.txt'))
         print(brs_run('turn_smoothness','docs/turn-smoothness-results.txt'))
-        if '--quick' not in sys.argv:subprocess.run([sys.executable,'tools/turn_check.py'],cwd=ROOT,check=True)
+        subprocess.run([sys.executable,'tools/turn_check.py'],cwd=ROOT,check=True)
         pan=brs_run('pan_precision','docs/pan-precision-results.txt')
         from pan_check import validate
         summary=validate(pan)

@@ -75,7 +75,7 @@ function ReefFishView(heading as double, species as object, result = invalid as 
     width = species.viewWidths[first] + (species.viewWidths[second] - species.viewWidths[first]) * blend
     if result=invalid then result={}
     result.index=nearest : result.first=first : result.second=second : result.blend=blend
-    result.widthScale=width/species.viewWidths[nearest] : result.width=width
+    result.widthScale=width/species.viewWidths[nearest] : result.width=width : result.sourceWidth=species.viewWidths[nearest]
     return result
 end function
 
@@ -122,4 +122,45 @@ end function
 function ReefPixelPhase(x as double) as object
     first = Int(x)
     return {first:first,blend:x-first}
+end function
+
+' Nonuniform, true mesh angles give four times the head-on rotation detail.
+function ReefBodyView(heading as double, species as object, result = invalid as dynamic) as object
+    if species.bodyAngles=invalid then return ReefFishView(heading,species,result)
+    angle=ReefWrap(heading,6.283185307)
+    angles=species.bodyAngles : last=angles.Count()-1
+    lo=0 : hi=last
+    while lo<hi
+        mid=Int((lo+hi+1)/2)
+        if angles[mid]<=angle then lo=mid else hi=mid-1
+    end while
+    first=lo : second=(first+1) mod angles.Count()
+    upper=angles[second]
+    if second=0 then upper=6.283185307
+    blend=ReefClamp((angle-angles[first])/(upper-angles[first]),0,1)
+    nearest=first
+    if blend>=0.5 then nearest=second
+    width=species.bodyViewWidths[first]+(species.bodyViewWidths[second]-species.bodyViewWidths[first])*blend
+    if result=invalid then result={}
+    result.index=nearest : result.first=first : result.second=second : result.blend=blend
+    result.width=width : result.sourceWidth=species.bodyViewWidths[nearest]
+    return result
+end function
+
+' Continuous, root-pinned current deformation. Adjacent bands share their Y
+' boundary; no animation frames, whole-object bobbing or pose crossfades.
+function ReefMarineBand(time as double, formation as object, bandY as double, bandHeight as double, result = invalid as dynamic) as object
+    motion=formation.motion
+    extent=formation.rootY-formation.y
+    top=ReefClamp(bandY/extent,0,1) : bottom=ReefClamp((bandY+bandHeight)/extent,0,1)
+    v=(top+bottom)*0.5 : w=(1-v)^2
+    phase=ReefWrap(time,motion.period)*6.283185307/motion.period
+    phase2=ReefWrap(time,motion.period*1.618)*6.283185307/(motion.period*1.618)
+    if result=invalid then result={}
+    result.dx=motion.amplitude*w*(0.72*Sin(phase+v*4)+0.28*Sin(phase2-v*7))
+    result.sx=1+motion.spread*w*Sin(phase2+v*5)
+    dyTop=motion.lift*(1-top)^2*Sin(phase2-top*3)
+    dyBottom=motion.lift*(1-bottom)^2*Sin(phase2-bottom*3)
+    result.dy=dyTop : result.sy=1+(dyBottom-dyTop)/bandHeight
+    return result
 end function

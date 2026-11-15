@@ -37,6 +37,19 @@ sub Main()
         end for
     end for
     print "PASS all ten species retain continuous silhouette widths across every yaw index boundary"
+    for each name in species
+        sp=species[name]
+        for index=0 to sp.bodyAngles.Count()-1
+            nextIndex=(index+1) mod sp.bodyAngles.Count()
+            upper=sp.bodyAngles[nextIndex]
+            if nextIndex=0 then upper=6.283185307#
+            boundary=(sp.bodyAngles[index]+upper)*0.5
+            a=ReefBodyView(boundary-0.0000001,sp) : b=ReefBodyView(boundary+0.0000001,sp)
+            if Abs(a.width-b.width)>0.001 then print "FAIL dense body width seam" : return
+            if a.sourceWidth<=0 or b.sourceWidth<=0 then print "FAIL invalid dense body scale" : return
+        end for
+    end for
+    print "PASS adaptive body angles preserve positive, continuous widths at every head-on boundary"
     for sign=1 to 1
         for i=0 to 30
             angle=i*0.8-12#

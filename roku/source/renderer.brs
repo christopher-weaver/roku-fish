@@ -40,6 +40,7 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     if p.x < -200 or p.x > 2120 then return
     f.renderView = ReefFishView(pose.heading,f.sp,f.renderView)
     view = f.renderView
+    f.bodyView=ReefBodyView(pose.heading,f.sp,f.bodyView)
     bodyPosition = (Sin(pose.phase)+1)*0.5*(f.sp.poseCount-1)
     tailPosition = (Sin(pose.phase)+1)*0.5*(f.sp.tailPoseCount-1)
     finPosition = (Sin(pose.finPhase)+1)*0.5*(f.sp.finPoseCount-1)
@@ -49,7 +50,7 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     if s.settings.lighting = "Sunset" then red=255 : green=Int(239-haze*25) : blue=Int(240-haze*10)
     angle = pose.pitch*57.29578
     if Cos(pose.heading)<0 then angle=0#-angle
-    ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,view,scale,angle,red,green,blue)
+    ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,f.bodyView,scale,angle,red,green,blue)
     if a.tails[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.tails[f.name],tailPosition,f.sp.tailPoseCount,view,scale,angle,red,green,blue)
     if a.fins[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.fins[f.name],finPosition,f.sp.finPoseCount,view,scale*f.sp.finTextureScale,angle,red,green,blue)
 end sub
@@ -59,7 +60,7 @@ sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,posit
     ' complete the fish; no crossfades, duplicate anatomy or reflections.
     poseIndex=Int(position+0.5)
     yaw=view.index
-    sx=scale*view.width/sp.viewWidths[yaw]
+    sx=scale*view.width/view.sourceWidth
     ReefDrawFishRegion(r,p.x,p.y,sx,scale,angle,frames[yaw*count+poseIndex],ReefRGBA(red,green,blue,255))
 end sub
 
@@ -188,7 +189,19 @@ sub ReefRender(r as object, s as object, a as object)
         end while
         offset = 64 + (s.camera - 64) * formation.parallax
         marineView=Int(ReefClamp((s.camera-8)/112#,0#,1#)*(formation.frames-1)+0.5)
-        ReefDraw(r,formation.x-offset,formation.y-36,1,1,a.formations[formationIndex][marineView],reefTint)
+        if formation.motion<>invalid and a.marineBands<>invalid
+            bands=a.marineBands[formationIndex][marineView]
+            bandHeight=a.marineBandHeights[formationIndex]
+            if r.marineWarp=invalid then r.marineWarp={}
+            for bandIndex=0 to bands.Count()-1
+                bandY=bandIndex*bandHeight
+                height=ReefMin(bandHeight,formation.frameHeight-bandY)
+                warp=ReefMarineBand(s.displayTime,formation,bandY,height,r.marineWarp)
+                ReefDrawFishRegion(r,formation.x-offset+formation.frameWidth/2#+warp.dx,formation.y-36+bandY+warp.dy,warp.sx,warp.sy,0#,bands[bandIndex],reefTint)
+            end for
+        else
+            ReefDraw(r,formation.x-offset,formation.y-36,1,1,a.formations[formationIndex][marineView],reefTint)
+        end if
     end for
     ReefDrawCaustics(r, s, a)
     ReefDrawSandShadows(r, s, a)

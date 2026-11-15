@@ -9,7 +9,7 @@ function ReefLoadAssets(s as object) as object
     warm = s.settings.lighting = "Sunset"
     plate = "water-day.webp"
     if warm then plate = "water-sunset.webp"
-    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), formations: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
+    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), formations: [], marineBands: [], marineBandHeights: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
     surface = ReefBitmap("pkg:/images/surface-waves.png")
     shadow = ReefBitmap("pkg:/images/sand-wave-shadows.png")
@@ -37,6 +37,21 @@ function ReefLoadAssets(s as object) as object
             views.Push(ReefLayer(bitmap,(view mod cfg.columns)*cfg.frameWidth,Int(view/cfg.columns)*cfg.frameHeight,cfg.frameWidth,cfg.frameHeight))
         end for
         a.formations.Push(views)
+        bands=[] : bandHeight=8
+        if cfg.motion<>invalid
+            bandHeight=cfg.motion.bandHeight
+            if s.settings.quality="Performance" then bandHeight=bandHeight*2
+            for view=0 to cfg.frames-1
+                metadata=[] : bandY=0
+                while bandY<cfg.frameHeight
+                    height=Int(ReefMin(bandHeight,cfg.frameHeight-bandY))
+                    metadata.Push({x:(view mod cfg.columns)*cfg.frameWidth,y:Int(view/cfg.columns)*cfg.frameHeight+bandY,w:cfg.frameWidth,h:height,anchorX:cfg.frameWidth/2#,anchorY:0#})
+                    bandY=bandY+height
+                end while
+                bands.Push(ReefFishFrames(bitmap,metadata,s.settings.quality))
+            end for
+        end if
+        a.marineBands.Push(bands) : a.marineBandHeights.Push(bandHeight)
     end for
     ' Load only the unique species present at this density.
     for fishIndex=0 to s.fish.Count()-1

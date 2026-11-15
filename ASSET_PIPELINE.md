@@ -58,3 +58,11 @@ blender --background --python tools/blender_render.py -- --species yellow_tang -
 ```
 
 The exporter reads the same NPZ rig and photo textures, supports fin poses 0–8, and saves an editable blend. These remain inspection/replacement renders; the production atlas build uses ModernGL. The meshes are silhouette-derived textured volumes rather than anatomical scans.
+
+## Adaptive turns and continuous marine bending (1.0.10)
+
+`dense_turns.py` follows the base fish build and renders 53 unique body views from the checked-in mesh/texture sources. Mirrored heading coverage fills 104 positive-scale slots. Sampling reaches 1.40625° between 78.75° and 101.25°, and 0.703125° immediately around 90°; equivalent backside slots are reused without runtime reflection. `ReefBodyView` searches the nonuniform angles and continuously matches the body silhouette width. Tail/pectoral atlases remain separately articulated. No anatomy crossfade is added.
+
+Marine bitmaps retain their seven photographic 3D-volume views. Immutable eight-pixel bands share each bitmap; a continuous two-frequency displacement/stretch field bends branches and tentacles without generating a frame atlas or modifying bitmap pixels at runtime. Vertical band boundaries share positions and roots remain pinned. Performance mode uses sixteen-pixel bands. Native fractional placement provides motion between integer pixels. Conservative occupancy reserves the entire tip excursion before navigation is rebuilt.
+
+`turn_check.py` compares actual adaptive body rasters with the 64-angle subset using single-pose rendering in both cases. It checks peak frame changes around head-on turns. Native tests also cover nonuniform width continuity, fish encounters, interpolated collision clearance and marine roots/band boundaries.

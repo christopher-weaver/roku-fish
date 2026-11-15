@@ -42,9 +42,11 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
             f.finPhase = ReefRange(s, 0, 6.283185307)
             f.finRate = ReefRange(s, 0.85, 1.15)
             ReefSafeSpawn(s, f)
-            ReefChooseTarget(s, f)
-            ReefSavePose(f)
-            s.fish.Push(f)
+            if ReefFishSafeSpawn(s, f)
+                ReefChooseTarget(s, f)
+                ReefSavePose(f)
+                s.fish.Push(f)
+            end if
         end if
     end for
     ReefEffectsInit(s)
@@ -74,7 +76,9 @@ sub ReefStep(s as object, elapsed as double)
     for fishIndex = 0 to s.fish.Count() - 1
         f = s.fish[fishIndex]
         ReefSavePose(f)
-        ReefFishStep(s, f, dt)
+    end for
+    for fishIndex = 0 to s.fish.Count() - 1
+        ReefFishStep(s, s.fish[fishIndex], dt)
     end for
     ReefEffectsStep(s, dt)
 end sub

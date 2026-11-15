@@ -18,11 +18,11 @@ class PackageChecks(unittest.TestCase):
     def test_independent_tail_poses_and_full_turn(self):
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
         for sp in species.values():
-            self.assertEqual(len(sp['frames']),sp['yawCount']*sp['poseCount'])
+            self.assertEqual(len(sp['frames']),sp.get('bodyYawCount',sp['yawCount'])*sp['poseCount'])
             self.assertEqual({f['pose']for f in sp['frames']},set(range(sp['poseCount'])))
             self.assertEqual(sp['poseCount'],1)
             self.assertGreaterEqual(sp['tailPoseCount'],4)
-            self.assertEqual(len({f['yaw']for f in sp['frames']}),sp['yawCount'])
+            self.assertEqual(len({f['yaw']for f in sp['frames']}),sp.get('bodyYawCount',sp['yawCount']))
             from PIL import Image,ImageChops
             atlas=Image.open(ROOT/'roku'/sp['tailImage'][5:]).convert('RGBA')
             first,second=sp['tailFrames'][8*sp['tailPoseCount']],sp['tailFrames'][9*sp['tailPoseCount']-1]
@@ -59,6 +59,17 @@ class PackageChecks(unittest.TestCase):
         for i in range(waves['frames']):
             x=i%c['columns']*c['width'];y=i//c['columns']*c['height']
             self.assertLessEqual(atlas[y:y+24,x:x+256,3][ground==0].max(),3)
+    def test_dense_frontal_angles_and_pinned_marine_rigs(self):
+        import math
+        species=json.loads((ROOT/'roku/scenes/species.json').read_text())
+        for sp in species.values():
+            angles=sp['bodyAngles'];self.assertEqual(angles,sorted(set(angles)))
+            self.assertEqual(sp['bodyYawCount'],104)
+            frontal=[a for a in angles if math.radians(78.75)-1e-7<=a<=math.radians(101.25)+1e-7]
+            self.assertEqual(len(frontal),21)
+            self.assertLessEqual(max(b-a for a,b in zip(frontal,frontal[1:])),math.radians(1.40625)+1e-8)
+        tank=json.loads((ROOT/'roku/scenes/tank.json').read_text())
+        self.assertEqual({f['id']for f in tank['formations']if 'motion'in f},{'sea-fan','sea-anemone'})
     def test_occlusion_masks_have_alpha(self):
         from PIL import Image
         for formation in json.loads((ROOT/'roku/scenes/tank.json').read_text())['formations']:
@@ -197,7 +208,7 @@ class PackageChecks(unittest.TestCase):
             self.assertEqual(sp['yawCount'],64)
             self.assertEqual(len(sp['viewWidths']),64)
             self.assertFalse(any(f['flipX']for f in sp['frames']))
-            self.assertEqual(len({(f['x'],f['y'])for f in sp['frames']}),33)
+            self.assertEqual(len({(f['x'],f['y'])for f in sp['frames']}),53)
             self.assertEqual(sp['poseCount'],1)
             self.assertEqual(sp['tailPoseCount'],4)
             self.assertEqual(sp['finPoseCount'],5)

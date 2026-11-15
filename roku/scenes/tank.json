@@ -71,7 +71,15 @@
       "z": 0.26,
       "halfDepth": 0.018,
       "parallax": 1,
-      "renderedMesh": true
+      "renderedMesh": true,
+      "motion": {
+        "amplitude": 5.0,
+        "period": 11.0,
+        "spread": 0.006,
+        "lift": 0.8,
+        "bandHeight": 8,
+        "clearance": 9
+      }
     },
     {
       "id": "connected-reef",
@@ -131,7 +139,15 @@
       "z": 0.75,
       "halfDepth": 0.025,
       "parallax": 1,
-      "renderedMesh": true
+      "renderedMesh": true,
+      "motion": {
+        "amplitude": 3.5,
+        "period": 8.5,
+        "spread": 0.012,
+        "lift": 1.2,
+        "bandHeight": 8,
+        "clearance": 7
+      }
     }
   ],
   "baseline": 1025,

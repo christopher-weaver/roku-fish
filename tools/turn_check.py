@@ -1,6 +1,6 @@
 """Quantize real fish transforms and compare view changes against atlas snapping."""
 from pathlib import Path
-import json,math,struct
+import json,math,struct,bisect
 import numpy as np
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[1]
@@ -24,37 +24,30 @@ def check_geometry():
     if worst>.002:raise AssertionError(f'Float32 fish center drift {worst}')
     return worst
 
-def check_blending():
-    species=json.loads((ROOT/'roku/scenes/species.json').read_text());results={}
-    for name,sp in species.items():
-        atlas=Image.open(ROOT/'roku'/sp['image'][5:]).convert('RGBA');size=(sp['frameW']*2,sp['frameH']*2);cache={}
-        for yaw in range(sp['yawCount']):
-            fr=sp['frames'][yaw*sp['poseCount']+min(3,sp['poseCount']-1)];im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
-            im.alpha_composite(atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h'])),(int(sp['frameW']/2-fr['anchorX']),int(sp['frameH']/2-fr['anchorY'])))
-            if fr['flipX']:im=im.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-            cache[yaw]=im
-        def render(angle,blend):
-            position=angle/(2*math.pi)*sp['yawCount'];lo=int(position)%sp['yawCount'];fraction=position-int(position)
-            nearest=round(position)%sp['yawCount'];width=sp['viewWidths'][lo]*(1-fraction)+sp['viewWidths'][(lo+1)%sp['yawCount']]*fraction
-            canvas=Image.new('RGBA',size,(72,45,81,255))
-            for view,alpha in ([(lo,1),((lo+1)%sp['yawCount'],fraction)]if blend else [(nearest,1)]):
-                source=cache[view];sx=width/sp['viewWidths'][view]if blend else 1
-                # Fixed output grid, matching continuous native scaling rather
-                # than introducing integer-resize steps into this measurement.
-                layer=source.transform(size,Image.Transform.AFFINE,(1/sx,0,sp['frameW']/2-size[0]/(2*sx),0,1,-sp['frameH']/2),Image.Resampling.BICUBIC)
-                if alpha<1:layer.putalpha(layer.getchannel('A').point(lambda v:round(v*alpha)))
-                canvas.alpha_composite(layer)
-            return np.asarray(canvas,dtype=np.float32)[:,:,:3]
-        snap=[];smooth=[];last_a=last_b=None
-        for degrees in np.linspace(10,80,281):
-            a=render(math.radians(degrees),False);b=render(math.radians(degrees),True)
-            if last_a is not None:snap.append(float(np.abs(a-last_a).sum()));smooth.append(float(np.abs(b-last_b).sum()))
-            last_a=a;last_b=b
-        ratio=max(smooth)/max(snap)
-        if ratio>=.65:raise AssertionError(f'{name}: turn transition peak remains {ratio:.3f} of snapped views')
-        results[name]=round(ratio,3)
-    return results
+def check_adaptive_turns():
+    r=ROOT;sps=json.loads((r/'roku/scenes/species.json').read_text());out={}
+    for name,sp in sps.items():
+     atlas=Image.open(r/'roku'/sp['image'][5:]).convert('RGBA');angles=sp['bodyAngles'];cache={}
+     for i,f in enumerate(sp['frames']):
+      im=Image.new('RGBA',(sp['frameW'],sp['frameH']));im.alpha_composite(atlas.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h'])),(round(sp['frameW']/2-f['anchorX']),round(sp['frameH']/2-f['anchorY'])));cache[i]=im
+     coarse=[i for i,a in enumerate(angles)if abs(math.degrees(a)/5.625-round(math.degrees(a)/5.625))<1e-6]
+     def render(a,indices):
+      vals=[angles[i]for i in indices];lo=bisect.bisect_right(vals,a)-1;hi=(lo+1)%len(vals);upper=vals[hi]if hi else 2*math.pi;t=(a-vals[lo])/(upper-vals[lo]);i=indices[lo if t<.5 else hi]
+      width=sp['bodyViewWidths'][indices[lo]]*(1-t)+sp['bodyViewWidths'][indices[hi]]*t;sx=width/sp['bodyViewWidths'][i];w,h=cache[i].size
+      layer=cache[i].transform((w,h),Image.Transform.AFFINE,(1/sx,0,w/2-w/(2*sx),0,1,0),Image.Resampling.BICUBIC);bg=Image.new('RGBA',(w,h),(60,50,80,255));bg.alpha_composite(layer);return np.asarray(bg,dtype=float)[:,:,:3]
+     peaks=[]
+     for indices in [coarse,list(range(len(angles)))]:
+      last=None;diff=[]
+      for a in np.radians(np.linspace(80,100,121)):
+       cur=render(a,indices)
+       if last is not None:diff.append(np.abs(cur-last).sum())
+       last=cur
+      peaks.append(max(diff))
+     out[name]=round(peaks[1]/peaks[0],3)
+    if max(out.values())>=.75:raise AssertionError('Head-on angle sampling failed to reduce peak image changes: '+str(out))
+    return out
+
 if __name__=='__main__':
-    report={'float32_max_center_error_px':check_geometry(),'peak_frame_change_ratio_vs_snapped_views':check_blending(),'scope':'Host math and raster comparison; actual Roku GPU/frame rate require device validation.'}
+    report={'float32_max_center_error_px':check_geometry(),'head_on_peak_frame_change_ratio_vs_64_angles':check_adaptive_turns(),'scope':'Host geometry and raster checks, no pose crossfades; actual Roku GPU/FPS require device validation.'}
     (ROOT/'docs/turn-visual-results.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))

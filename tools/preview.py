@@ -1,6 +1,6 @@
 """Render previews from actual BrightScript-exported world snapshots, not a Python fish brain."""
 from pathlib import Path
-import json, math, argparse
+import json, math, argparse, bisect
 from PIL import Image,ImageChops,ImageDraw,ImageFont
 ROOT=Path(__file__).resolve().parents[1];IM=ROOT/'roku/images';PRE=ROOT/'docs/previews'
 SPEC=json.loads((ROOT/'roku/scenes/species.json').read_text())
@@ -26,7 +26,11 @@ def fish(canvas,f,mode):
         count=sp['poseCount']if part=='body'else sp['tailPoseCount']if part=='tail'else sp['finPoseCount']
         phase=f['phase']if part!='fin'else f.get('finPhase',f['phase']*.6)
         pose=int((math.sin(phase)+1)*.5*(count-1)+.5)
-        view=int(position+.5)%sp['yawCount']
+        view=int(position+.5)%sp['yawCount'];part_width=width;source_width=sp['viewWidths'][view]
+        if part=='body' and 'bodyAngles'in sp:
+            heading=f['heading']%(2*math.pi);lo=bisect.bisect_right(sp['bodyAngles'],heading)-1;hi=(lo+1)%sp['bodyYawCount']
+            upper=sp['bodyAngles'][hi]if hi else 2*math.pi;u=(heading-sp['bodyAngles'][lo])/(upper-sp['bodyAngles'][lo])
+            view=lo if u<.5 else hi;part_width=sp['bodyViewWidths'][lo]*(1-u)+sp['bodyViewWidths'][hi]*u;source_width=sp['bodyViewWidths'][view]
         atlas=asset(sp['image'if part=='body'else 'tailImage'if part=='tail'else 'finImage'].split('/')[-1])
         fr=sp['frames'if part=='body'else 'tailFrames'if part=='tail'else 'finFrames'][view*count+pose]
         layer=Image.new('RGBA',im.size)
@@ -34,7 +38,7 @@ def fish(canvas,f,mode):
         texture_scale=sp.get('finTextureScale',1)if part=='fin'else 1
         if texture_scale!=1:piece=piece.resize((piece.width*texture_scale,piece.height*texture_scale),Image.Resampling.LANCZOS)
         layer.alpha_composite(piece,(round(sp['frameW']/2-fr['anchorX']*texture_scale),round(sp['frameH']/2-fr['anchorY']*texture_scale)))
-        width_scale=width/sp['viewWidths'][view]
+        width_scale=part_width/source_width
         layer=layer.resize((round(layer.width*width_scale),layer.height),Image.Resampling.LANCZOS)
         im.alpha_composite(layer,(round((im.width-layer.width)/2),0))
     haze=1-f['z'];tint=(255,int(239-haze*25),int(240-haze*10))if mode=='Sunset'else(int(255-haze*65),int(247-haze*32),255)
@@ -43,6 +47,26 @@ def fish(canvas,f,mode):
     angle=f['pitch']*57.29578*(-1 if math.cos(f['heading'])<0 else 1)
     im=im.rotate(angle,resample=Image.Resampling.BICUBIC,expand=True)
     paste(canvas,im,f['sx']-im.width/2,f['sy']-im.height/2)
+
+def marine_band(t,formation,y,h):
+    m=formation['motion'];extent=formation['rootY']-formation['y'];top=max(0,min(1,y/extent));bottom=max(0,min(1,(y+h)/extent));v=(top+bottom)/2;w=(1-v)**2
+    phase=t%m['period']*2*math.pi/m['period'];p2=t%(m['period']*1.618)*2*math.pi/(m['period']*1.618)
+    dx=m['amplitude']*w*(.72*math.sin(phase+v*4)+.28*math.sin(p2-v*7));sx=1+m['spread']*w*math.sin(p2+v*5)
+    a=m['lift']*(1-top)**2*math.sin(p2-top*3);b=m['lift']*(1-bottom)**2*math.sin(p2-bottom*3)
+    return dx,a,sx,1+(b-a)/h
+
+def deform_marine(layer,t,formation):
+    # Evaluate the same continuous band field on a fixed pixel grid. Premultiplied
+    # RGBA resampling preserves fine branches against transparent surroundings.
+    import numpy as np
+    from scipy.ndimage import map_coordinates
+    a=np.asarray(layer,dtype=float)/255;alpha=a[:,:,3];rgb=a[:,:,:3]*alpha[:,:,None];h,w=alpha.shape
+    yy,xx=np.mgrid[:h,:w];sx=np.zeros(h);dy=np.zeros(h);dx=np.zeros(h);sy=np.zeros(h)
+    for y in range(h):dx[y],dy[y],sx[y],sy[y]=marine_band(t,formation,y,1)
+    source_x=(xx-w/2-dx[:,None])/sx[:,None]+w/2;source_y=yy-dy[:,None]
+    coords=[source_y,source_x];out_a=map_coordinates(alpha,coords,order=1,mode='constant');out_rgb=np.stack([map_coordinates(rgb[:,:,i],coords,order=1,mode='constant')for i in range(3)],axis=2)
+    rgba=np.dstack((np.divide(out_rgb,np.maximum(out_a[:,:,None],1e-6)),out_a))
+    return Image.fromarray(np.uint8(np.clip(rgba*255,0,255)))
 
 def render(frame,mode='Sunset',density='Medium'):
     cam=frame['camera'];t=frame.get('displayTime',frame['time']);warm=mode=='Sunset';suf='-sunset' if warm else ''
@@ -73,6 +97,7 @@ def render(frame,mode='Sunset',density='Medium'):
         atlas=asset(formation['image'].split('/')[-1]);fw=formation['frameWidth'];fh=formation['frameHeight']
         view=int(max(0,min(1,(cam-8)/112))*(formation['frames']-1)+.5);columns=formation.get('columns',1)
         vx=view%columns*fw;vy=view//columns*fh;layer=atlas.crop((vx,vy,vx+fw,vy+fh))
+        if 'motion'in formation:layer=deform_marine(layer,t,formation)
         offset=64+(cam-64)*formation['parallax']
         if mode!='Sunset':layer=ImageChops.multiply(layer,Image.new('RGBA',layer.size,(221,235,255,255)))
         paste(img,layer,formation['x']-offset,formation['y']-36)

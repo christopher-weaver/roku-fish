@@ -45,6 +45,8 @@ def build(splash):
             im=Image.new('RGBA',(width,height));im.putalpha(Image.open(ROOT/'assets/source/marine-renders'/(name+'-views-footprint.png')))
             path=OUT/f'reef-{name}.webp'
             formation=dict(view,id=name,z=z,halfDepth=half,parallax=1,renderedMesh=True)
+            if name=='sea-fan':formation['motion']={'amplitude':5.0,'period':11.0,'spread':.006,'lift':.8,'bandHeight':8,'clearance':9}
+            if name=='sea-anemone':formation['motion']={'amplitude':3.5,'period':8.5,'spread':.012,'lift':1.2,'bandHeight':8,'clearance':7}
         else:
             rgba=np.array(im);alpha=rgba[:,:,3];valid=alpha>0
             distance,indices=distance_transform_edt(~valid,return_indices=True)
@@ -57,14 +59,21 @@ def build(splash):
         used.add(path.name);cfg['formations'].append(formation)
         cfg['occlusionDepths'].append(z)
         canvas=Image.new('L',(W,H));canvas.paste(im.getchannel('A'),(x,y));mask=np.array(canvas);union=np.maximum(union,mask)
-        planes.append(dict(id=name,z=z,halfDepth=half,parallax=1,rows=grid(mask)))
+        plane_rows=grid(mask)
+        if rendered:
+            from scipy.ndimage import maximum_filter
+            solid=np.array([[v=='#'for v in row]for row in plane_rows])
+            solid=maximum_filter(solid,size=5 if name=='sea-fan'else 3)
+            plane_rows=[''.join('#'if v else'.'for v in row)for row in solid]
+        planes.append(dict(id=name,z=z,halfDepth=half,parallax=1,rows=plane_rows))
     for path in OUT.glob('reef-*.webp'):
         if path.name not in used:path.unlink()
     for name in ['coral-shadow.png']:(OUT/name).unlink(missing_ok=True)
     cfg['notes']='Connected reference-aligned reef, shared 1025px foundation, slight staggering. Sharp single images; seven-view textured 3D volumes for fan and anemone. Background recreated after final layout.'
     cfg['baseline']=1025;cfg['baselineTolerance']=30
     (ROOT/'roku/scenes/tank.json').write_text(json.dumps(cfg,indent=2)+'\n')
-    occ={'cell':8,'rows':grid(union),'planes':planes};(ROOT/'roku/scenes/occupancy.json').write_text(json.dumps(occ,separators=(',',':')))
+    occupied=np.array([[[v=='#'for v in row]for row in plane['rows']]for plane in planes]).any(axis=0)
+    occ={'cell':8,'rows':[''.join('#'if v else'.'for v in row)for row in occupied],'planes':planes};(ROOT/'roku/scenes/occupancy.json').write_text(json.dumps(occ,separators=(',',':')))
     scene.build_navigation(occ)
     Image.fromarray(union).resize((1024,576)).save(ROOT/'docs/previews/reef-mask.png')
     background=Image.open(ROOT/'assets/source/background-matched-sunset.png').convert('RGB').resize((W,H),Image.Resampling.LANCZOS)

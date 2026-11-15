@@ -1,8 +1,8 @@
 {
   "banggai_cardinalfish-atlas.webp": {
     "width": 1024,
-    "height": 730,
-    "sha256": "5119ff1fc30a5d79e5d1bc5ad86b588b1aa70fbe664f09db728168c2fc6778c4"
+    "height": 876,
+    "sha256": "c7d0410468ef631c2cb822b5036ada97ab81b8169db559be4f72c6e79f2ebaa4"
   },
   "banggai_cardinalfish-fins.webp": {
     "width": 512,
@@ -16,8 +16,8 @@
   },
   "blue_tang-atlas.webp": {
     "width": 1024,
-    "height": 496,
-    "sha256": "4ddedaf866ee4d847173384717b2a7e64271a21a775166e34fe2fdfb374cd64d"
+    "height": 600,
+    "sha256": "e4acfb5dc6c22c32ceef8b81588a7dad95f002f019c8653f411440c89207ea12"
   },
   "blue_tang-fins.webp": {
     "width": 512,
@@ -36,8 +36,8 @@
   },
   "copperband_butterflyfish-atlas.webp": {
     "width": 1024,
-    "height": 680,
-    "sha256": "f9db5bea9a7f384760ebd7b21b59da7cab5ca651c2977d011577fa731135a95c"
+    "height": 817,
+    "sha256": "51a994b85f290cfbf36f26d7295c6a9f54537227c8ad9a523cc63dce3d057395"
   },
   "copperband_butterflyfish-fins.webp": {
     "width": 512,
@@ -51,8 +51,8 @@
   },
   "emperor_angelfish-atlas.webp": {
     "width": 1024,
-    "height": 471,
-    "sha256": "0bc1c3c06a86e36f60dcadf69b34b0e6331b8291ab008c00dc4209e8b521fa12"
+    "height": 565,
+    "sha256": "9fbc125e3dd794fd48c484678a0ff1394fa6d81dddcd97eb15a5f77074913a3c"
   },
   "emperor_angelfish-fins.webp": {
     "width": 512,
@@ -66,8 +66,8 @@
   },
   "green_chromis-atlas.webp": {
     "width": 1024,
-    "height": 301,
-    "sha256": "61d5cf67071db5180b33745e7bf7d4d575e77400219eed06409bbc05a1f2eb45"
+    "height": 449,
+    "sha256": "851a81c3f8f96f21b236b84297d0039c4050b1f6413040a58cde5507d6958653"
   },
   "green_chromis-fins.webp": {
     "width": 512,
@@ -96,8 +96,8 @@
   },
   "mandarin_dragonet-atlas.webp": {
     "width": 1024,
-    "height": 559,
-    "sha256": "67890d6413d6855434f2cc9f9063a43a8aac1256493241388bc07ed280fc0a56"
+    "height": 671,
+    "sha256": "2717e10021dd547b5bcdc7d7ff1271cfffd73f4353f6234c8d99f85a74b38155"
   },
   "mandarin_dragonet-fins.webp": {
     "width": 512,
@@ -111,8 +111,8 @@
   },
   "moorish_idol-atlas.webp": {
     "width": 1024,
-    "height": 575,
-    "sha256": "c4b1fe450aa7b3d7a77f0474cafa1683470877e6a0223e990398bd2b4ca96c89"
+    "height": 690,
+    "sha256": "97f3df39a0a9c86fac4c5cf29d0987a058246d3ac7bf74d3af99f8762338df13"
   },
   "moorish_idol-fins.webp": {
     "width": 512,
@@ -131,8 +131,8 @@
   },
   "ocellaris_clownfish-atlas.webp": {
     "width": 1024,
-    "height": 316,
-    "sha256": "befe390dce7e5d1621f795e1f193f145cac35abcc139615c84a7ab8513e73008"
+    "height": 472,
+    "sha256": "3d52c5d572a9b82a0aed0fbb0824a4fa3eabda551bd072a31bcfafeb7157da06"
   },
   "ocellaris_clownfish-fins.webp": {
     "width": 512,
@@ -171,8 +171,8 @@
   },
   "royal_gramma-atlas.webp": {
     "width": 1024,
-    "height": 302,
-    "sha256": "bbd298d89aa7cf7523fbf88c75ecd79dcde79557ba1ee412154190c78e6517a0"
+    "height": 377,
+    "sha256": "a51b90f221776d75a89e61e7279c774fb90e9f0a129fddc3693470cf49184238"
   },
   "royal_gramma-fins.webp": {
     "width": 512,
@@ -226,8 +226,8 @@
   },
   "yellow_tang-atlas.webp": {
     "width": 1024,
-    "height": 430,
-    "sha256": "e1a126c392a0440b2f9a9ac40fe3e652a09746854465bc1f26588bf6494c2332"
+    "height": 645,
+    "sha256": "7c9a200e508e550ee6360646961fcfb13b2e804b81d0500742a51a61266a7814"
   },
   "yellow_tang-fins.webp": {
     "width": 512,
