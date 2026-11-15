@@ -51,3 +51,7 @@ Regal blue tang, copperband butterflyfish, Banggai cardinalfish and mandarin dra
 ### Tunnel eel and cellular wave shadow (1.0.11)
 
 The slightly zany honeycomb moray portrait was generated for this project; the unmodified transparent source and generation notes are included. The cave matte and seamless wave-net animation are original procedural derivatives/art. These additions follow the project's CC0 art dedication. Marine motion uses the existing licensed/attributed meshes and textures.
+
+### Procedural moray and reconstructed reef geometry (1.0.12)
+
+The articulated moray geometry, procedural skin, lighting and poses are original project artwork (CC0). The reconstructed coral/rock volumes and hollow tunnel use the project's existing approved reef texture, retaining its provenance and notices. Editable Blender scenes and NPZ geometry are included. The former moray portrait is retained only as historical source art and is no longer a runtime input.

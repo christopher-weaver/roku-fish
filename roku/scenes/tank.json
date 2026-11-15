@@ -26,7 +26,7 @@
     }
   },
   "softCoral": null,
-  "notes": "Connected reference-aligned reef, shared 1025px foundation, slight staggering. Sharp single images; seven-view textured 3D volumes for fan and anemone. Background recreated after final layout.",
+  "notes": "All coral/live-rock groups have actual closed UV-textured meshes; hollow tunnel bore and procedurally modeled articulated moray. Offline rendering preserves native Roku draw performance.",
   "speciesOrder": [
     "ocellaris_clownfish",
     "yellow_tang",
@@ -80,7 +80,7 @@
       "x": 6,
       "y": 137,
       "width": 2038,
-      "height": 824,
+      "height": 825,
       "z": 0.48,
       "halfDepth": 0.025,
       "parallax": 1,
@@ -88,8 +88,33 @@
       "frames": 1,
       "columns": 1,
       "frameWidth": 2038,
-      "frameHeight": 824,
-      "renderedMesh": false
+      "frameHeight": 825,
+      "renderedMesh": true,
+      "meshVertices": 350438,
+      "meshTriangles": 700416,
+      "meshObjects": [
+        "live-rock-foundation-connected-reef",
+        "green-cup-connected-reef",
+        "white-branching-coral-connected-reef",
+        "orange-antler-coral-connected-reef",
+        "pink-bubble-coral-connected-reef",
+        "brain-coral-connected-reef",
+        "central-clam-connected-reef",
+        "right-plating-coral-connected-reef",
+        "right-sponge-garden-connected-reef",
+        "left-plating-garden-connected-reef",
+        "hollow-tunnel"
+      ],
+      "surfaceShadow": {
+        "image": "pkg:/images/shadow-connected-reef.webp",
+        "width": 128,
+        "height": 72,
+        "columns": 8,
+        "scale": 16,
+        "x": 0,
+        "y": 0,
+        "frames": 32
+      }
     },
     {
       "id": "foreground-reef",
@@ -105,7 +130,29 @@
       "columns": 1,
       "frameWidth": 2037,
       "frameHeight": 447,
-      "renderedMesh": false
+      "renderedMesh": true,
+      "meshVertices": 246788,
+      "meshTriangles": 493496,
+      "meshObjects": [
+        "live-rock-foundation-foreground-reef",
+        "green-cup-foreground-reef",
+        "pink-bubble-coral-foreground-reef",
+        "brain-coral-foreground-reef",
+        "central-clam-foreground-reef",
+        "right-plating-coral-foreground-reef",
+        "right-sponge-garden-foreground-reef",
+        "left-plating-garden-foreground-reef"
+      ],
+      "surfaceShadow": {
+        "image": "pkg:/images/shadow-foreground-reef.webp",
+        "width": 128,
+        "height": 72,
+        "columns": 8,
+        "scale": 16,
+        "x": 0,
+        "y": 0,
+        "frames": 32
+      }
     },
     {
       "x": 1322,

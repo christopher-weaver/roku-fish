@@ -48,6 +48,9 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     haze = 1-pose.z
     red = Int(255-haze*65) : green = Int(247-haze*32) : blue = 255
     if s.settings.lighting = "Sunset" then red=255 : green=Int(239-haze*25) : blue=Int(240-haze*10)
+    light=ReefSurfaceShade(pose.x,pose.y+(1-pose.z)*30+36,s.displayTime)
+    light=1#-(1#-light)*(.35+.65*s.lighting[0])
+    red=Int(red*light) : green=Int(green*light) : blue=Int(blue*light)
     angle = pose.pitch*57.29578
     if Cos(pose.heading)<0 then angle=0#-angle
     ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,f.bodyView,scale,angle,red,green,blue)
@@ -152,28 +155,27 @@ sub ReefDrawSandShadows(r as object, s as object, a as object)
 end sub
 
 sub ReefDrawEel(r as object,s as object,a as object)
-    if a.eel=invalid then return
+    if a.eel=invalid and a.eels=invalid then return
     ReefDraw(r,715-s.camera,808-36,1,1,a.cave,&hFFFFFFFF)
     if r.eelPose=invalid then r.eelPose={}
     pose=ReefEelPose(s.displayTime,r.eelPose)
-    ReefDrawFishRegion(r,pose.x-s.camera,pose.y-36,1#,1#,pose.angle,a.eel,&hFFFFFFFF)
+    sprite=a.eel
+    if a.eels<>invalid then sprite=a.eels[ReefEelFrame(s.displayTime)]
+    shade=ReefSurfaceShade(pose.x,840#,s.displayTime)
+    light=Int(255*(1#-(1#-shade)*(.35+.65*s.lighting[0])))
+    ReefDrawFishRegion(r,pose.x-s.camera,pose.y-36,1#,1#,pose.angle,sprite,ReefRGBA(light,light,light,255))
     ' Restore the plate below the tunnel before any fish or coral is painted.
     ReefDraw(r,680-s.camera,907-36,1,1,a.eelErase,&hFFFFFFFF)
 end sub
 
-sub ReefDrawWaveNet(r as object,s as object,a as object)
-    if a.netShadows=invalid then return
-    if a.netShadows.Count()=0 then return
-    wave=ReefSurface(s.displayTime)
+sub ReefDrawSurfaceShadow(r as object,s as object,a as object,index as integer,formation as object)
+    if a.surfaceShadows=invalid then return
+    if a.surfaceShadows[index].Count()=0 then return
+    cfg=formation.surfaceShadow : wave=ReefSurface(s.displayTime)
     for pass=0 to 1
-        weight=1-wave.blend : index=wave.first
-        if pass=1 then weight=wave.blend : index=wave.second
-        tint=ReefRGBA(255,255,255,Int(weight*255*(.35+.65*s.lighting[0])))
-        for row=0 to 2
-            for col=0 to 4
-                ReefDraw(r,col*512-s.camera,row*512-36,4,4,a.netShadows[index],tint)
-            end for
-        end for
+        weight=1-wave.blend : phase=wave.first
+        if pass=1 then weight=wave.blend : phase=wave.second
+        ReefDraw(r,0#-s.camera,0#-36#,cfg.scale,cfg.scale,a.surfaceShadows[index][phase],ReefRGBA(255,255,255,Int(weight*255*.65*(.35+.65*s.lighting[0]))))
     end for
 end sub
 
@@ -217,7 +219,15 @@ sub ReefRender(r as object, s as object, a as object)
         offset = 64 + (s.camera - 64) * formation.parallax
         marineView=0
         if formation.animation<>invalid then marineView=ReefMarineFrame(s.displayTime,formation)
-        ReefDraw(r,formation.x-offset,formation.y-36,formation.width/formation.frameWidth,formation.height/formation.frameHeight,a.formations[formationIndex][marineView],reefTint)
+        light=ReefSurfaceShade(formation.x+formation.width*.5,formation.y+formation.height*.45,s.displayTime)
+        strength=.35
+        if formation.animation<>invalid then strength=1#
+        light=1#-(1#-light)*strength*(.35+.65*s.lighting[0])
+        red=255 : green=255 : blue=255
+        if s.settings.lighting<>"Sunset" then red=221 : green=235
+        tint=ReefRGBA(Int(red*light),Int(green*light),Int(blue*light),255)
+        ReefDraw(r,formation.x-offset,formation.y-36,formation.width/formation.frameWidth,formation.height/formation.frameHeight,a.formations[formationIndex][marineView],tint)
+        ReefDrawSurfaceShadow(r,s,a,formationIndex,formation)
     end for
     ReefDrawCaustics(r, s, a)
     ReefDrawSandShadows(r, s, a)
@@ -229,7 +239,6 @@ sub ReefRender(r as object, s as object, a as object)
         ReefDraw(r, 150 + k * 590 + Sin(s.displayTime * 0.07 + k) * 24 - s.camera * 0.25, -70, 2.0, 1.8, a.ray, ReefRGBA(255, 223, 210, Int((65 + 18 * Sin(s.displayTime * 0.13 + k)) * s.lighting[0])))
     end for
     ReefDrawSurface(r, s, a)
-    ReefDrawWaveNet(r,s,a)
     if s.lighting[2] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(8, 16, 57, Int(s.lighting[2])))
     if s.lighting[3] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(241, 105, 108, Int(s.lighting[3])))
     if r.output<>invalid then ReefPresent(r,s)

@@ -170,3 +170,19 @@ function ReefEelPose(time as double,result=invalid as dynamic) as object
     result.angle=2.0*Sin(time*.55)*peek
     return result
 end function
+
+' Broad, feathered caustic bands projected on a plane tilted away from camera.
+' Matching offline surface masks prevent any application to open-water pixels.
+function ReefSurfaceShade(x as double,y as double,time as double) as double
+    depth=ReefMax(.135,(y+180#)/1332#)
+    u=(x-1024#)/(240#*depth) : v=0#-3.3/depth
+    p=ReefWrap(time,8#)*6.283185307/8#
+    a=Sin(6.283185307*u+.85*Sin(6.283185307*v+p)+p)
+    b=Sin(6.283185307*v+.70*Sin(6.283185307*u-p)-p)
+    alpha=60#*(.60*Exp(0#-a*a/.34)+.40*Exp(0#-b*b/.55))
+    return 1#-alpha/255#
+end function
+
+function ReefEelFrame(time as double) as integer
+    return Int((Sin(time*.75)+1#)*12#+.5)
+end function

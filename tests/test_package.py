@@ -81,9 +81,9 @@ class PackageChecks(unittest.TestCase):
         runtime=(ROOT/'roku/source/renderer.brs').read_text()
         self.assertNotIn('ReefMarineBand',runtime)
         self.assertNotIn('marineBands',runtime)
-        self.assertEqual(Image.open(ROOT/'roku/images/cave-eel.webp').size,(114,140))
-        net=Image.open(ROOT/'roku/images/wave-net.webp').convert('RGBA')
-        self.assertEqual(net.size,(1056,528));self.assertGreater(net.getchannel('A').getextrema()[1],40)
+        eel=json.loads((ROOT/'roku/scenes/eel.json').read_text());self.assertEqual(eel['count'],25)
+        self.assertFalse((ROOT/'roku/images/wave-net.webp').exists())
+        self.assertTrue(all(f['renderedMesh']for f in tank['formations']))
         self.assertEqual(tank['camera']['Slow']['period'],180)
     def test_occlusion_masks_have_alpha(self):
         from PIL import Image
@@ -236,10 +236,10 @@ class PackageChecks(unittest.TestCase):
                 hop=nav['nextHop'][start][goal]
                 self.assertTrue(hop==start==goal or hop in nodes[start]['edges'])
         cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
-        self.assertEqual({f['id']for f in cfg['formations']if f['renderedMesh']},{'sea-fan','sea-anemone'})
+        self.assertTrue(all(f['renderedMesh']for f in cfg['formations']))
         for f in cfg['formations']:
-            self.assertEqual(f['frames'],65 if f['renderedMesh'] else 1)
-            if f['renderedMesh']:
+            self.assertEqual(f['frames'],65 if 'animation'in f else 1)
+            if 'animation'in f:
                 self.assertGreater(f['meshVertices'],10000)
                 mesh_path=ROOT/'assets/source/marine-renders'/(f['id']+'-volume.npz')
                 self.assertTrue(mesh_path.exists())
@@ -257,7 +257,7 @@ class PackageChecks(unittest.TestCase):
             footprint=formation_footprint(f)
             canvas=Image.new('L',(2048,1152));canvas.paste(footprint,(f['x'],f['y']))
             union=np.maximum(union,np.asarray(canvas))
-            if f['renderedMesh']:self.assertLessEqual(abs(f.get('rootY',f['y']+f['height'])-cfg['baseline']),cfg['baselineTolerance'])
+            if 'animation'in f:self.assertLessEqual(abs(f.get('rootY',f['y']+f['height'])-cfg['baseline']),cfg['baselineTolerance'])
             self.assertEqual(f['parallax'],1)
             self.assertEqual(footprint.size,(f['width'],f['height']))
         # Every interior column intersects the touching low rock foundation.

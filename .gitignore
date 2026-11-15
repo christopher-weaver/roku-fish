@@ -11,3 +11,7 @@ work/
 !/dist/
 !/dist/deep-reef-screensaver.zip
 !/dist/build-report.json
+
+# Blender automatic backups are not source assets.
+*.blend1
+*.blend2

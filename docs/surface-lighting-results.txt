@@ -1,0 +1,1 @@
+PASS soft projected object lighting: bounded intensity, continuous time, periodic sampling and depth-scaled cells

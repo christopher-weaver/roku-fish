@@ -10,7 +10,7 @@ function ReefLoadAssets(s as object) as object
     plate = "water-day.webp"
     if warm then plate = "water-sunset.webp"
     water=ReefBitmap("pkg:/images/"+plate)
-    a = { plate: ReefLayer(water), formations: [], netShadows: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
+    a = { plate: ReefLayer(water), formations: [], surfaceShadows: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
     surface = ReefBitmap("pkg:/images/surface-waves.png")
     shadow = ReefBitmap("pkg:/images/sand-wave-shadows.png")
@@ -52,17 +52,20 @@ function ReefLoadAssets(s as object) as object
             end for
         end if
         a.formations.Push(views)
+        shadows=[]
+        if cfg.surfaceShadow<>invalid
+            data=cfg.surfaceShadow : bitmap=ReefBitmap(data.image)
+            for phase=0 to data.frames-1
+                shadows.Push(ReefLayer(bitmap,(phase mod data.columns)*data.width,Int(phase/data.columns)*data.height,data.width,data.height))
+            end for
+        end if
+        a.surfaceShadows.Push(shadows)
     end for
-    eel=ReefBitmap("pkg:/images/cave-eel.webp")
-    if eel<>invalid then a.eel=ReefFishFrames(eel,[{x:0,y:0,w:114,h:140,anchorX:57,anchorY:140}],s.settings.quality)[0]
+    eelCfg=ParseJson(ReadAsciiFile("pkg:/scenes/eel.json"))
+    eel=ReefBitmap(eelCfg.image)
+    if eel<>invalid then a.eels=ReefFishFrames(eel,eelCfg.frames,s.settings.quality)
     a.cave=ReefLayer(ReefBitmap("pkg:/images/cave-interior.png"))
     a.eelErase=ReefLayer(water,680,907,190,245)
-    net=ReefBitmap("pkg:/images/wave-net.webp")
-    if net<>invalid
-        for i=0 to 31
-            a.netShadows.Push(ReefLayer(net,(i mod 8)*132+2,Int(i/8)*132+2,128,128))
-        end for
-    end if
     ' Load only the unique species present at this density.
     for fishIndex=0 to s.fish.Count()-1
         name=s.fish[fishIndex].name

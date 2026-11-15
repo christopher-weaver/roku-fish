@@ -9,7 +9,7 @@ python tools/generate_assets.py
 python tools/build.py
 ```
 
-Activate the venv using the normal command for your shell. The headless mesh renderer uses ModernGL/EGL with Mesa on Linux; `LIBGL_ALWAYS_SOFTWARE=1` is supported. Windows/macOS can use a suitable EGL environment or Linux, and the optional Blender exporter remains available.
+Activate the venv using the normal command for your shell. Full artwork regeneration also requires Blender 4.3+ on PATH. The headless mesh renderer uses ModernGL/EGL with Mesa on Linux; `LIBGL_ALWAYS_SOFTWARE=1` is supported. Windows/macOS can use a suitable EGL environment or Linux, and the optional Blender exporter remains available.
 
 ## Active inputs
 
@@ -76,3 +76,15 @@ Marine bitmaps retain their seven photographic 3D-volume views. Immutable eight-
 `cave_and_net.py` derives a small moray sprite from the checked-in generated source and a recessed matte from the actual enclosed reef tunnel. The eel uses quintic easing and a slow 31-second cycle with pauses; existing rock pixels occlude the head. The plate below the tunnel is restored before fish/coral rendering to hide the neck. A seamless, padded 32-frame cellular wave-net shadow tile casts softly across the whole scene. Its 16 alpha levels are temporally interpolated, and periodic padding prevents tile seams.
 
 The full offline build runs the base art, additional fish directions, coherent marine poses, navigation, waves and cave/net generation before packaging. No runtime network or image generation is required.
+
+## All-reef geometry and receiver lighting (1.0.12)
+
+`reef_geometry.py` partitions the approved reef colour projection into named coral/live-rock groups and builds closed front/back volumes with anatomical curvature: cup concavity/fluting, rounded bubble/brain forms, clam folds, plating relief and branching silhouettes. Shared boundary coordinates preserve the touching composition. Checkerboard corner contacts have separate vertex pairs, and topology checks require exactly two incident triangles at every closed-volume edge. There are eighteen closed static mesh parts across ten anatomical/support groups, plus a separate open-ended hollow bore. The tunnel follows the actual irregular opening, tapers/recedes in depth and maps stone from the surrounding rim onto its inner walls. The existing fan/anemone retain their 3D volumes and coherent animation.
+
+NPZ geometry, UVs and normals are in `assets/source/reef-model/`; `save_reef_blend.py` creates the packed, editable `reef-scene.blend`, including the marine objects and the actual moray positioned in the tunnel. The original frontal reef image supplies UV colour. Current native-resolution renders preserve the approved composition; the Roku runtime composites these pre-rendered mesh views.
+
+`render_eel_3d.py` creates the moray in Blender from closed meshes: swept neck with shape keys, head/snout, jaw hinge, eyeballs, irises, pupils, nostrils and teeth. Skin is a procedural Voronoi/noise material. No portrait image is used. The model, animation and geometry exports are in `assets/source/eel-model/`. `pack_eel_3d.py` packages twenty-five lit poses, while the existing eased emergence controls the character's movement through the tunnel.
+
+`surface_lighting.py` replaces the screen-wide net with broad, smoothly blended wave bands in a projective coordinate system. Cell size increases toward the foreground. Two compact static reef receiver atlases use conservative opaque-coverage masks; their upsampled alpha must be exactly zero outside the receiving geometry. Sand has a separate receiver mask. Thin/animated objects and fish use the same continuous wave field for material lighting. This avoids darkening open water and removes the previous tiling overlay.
+
+The complete generator now runs Blender for the eel/source scene and ModernGL for the volume renders before rebuilding masks, navigation and lighting. Checked-in runtime assets let `tools/build.py` package the screensaver with Python's standard library alone.

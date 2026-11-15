@@ -1,0 +1,102 @@
+{
+  "type": "procedural articulated closed 3D moray",
+  "frames": 25,
+  "meshes": [
+    {
+      "name": "moray neck volume",
+      "vertices": 1600,
+      "triangles": 3196
+    },
+    {
+      "name": "rounded moray cranium",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "long upper snout",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "mouth recess",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "articulated lower jaw",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "protruding eye -1",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "iris -1",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "pupil -1",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "nostril -1",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "upper tooth",
+      "vertices": 24,
+      "triangles": 44
+    },
+    {
+      "name": "upper tooth.001",
+      "vertices": 24,
+      "triangles": 44
+    },
+    {
+      "name": "upper tooth.002",
+      "vertices": 24,
+      "triangles": 44
+    },
+    {
+      "name": "protruding eye 1",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "iris 1",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "pupil 1",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "nostril 1",
+      "vertices": 922,
+      "triangles": 1840
+    },
+    {
+      "name": "upper tooth.003",
+      "vertices": 24,
+      "triangles": 44
+    },
+    {
+      "name": "upper tooth.004",
+      "vertices": 24,
+      "triangles": 44
+    },
+    {
+      "name": "upper tooth.005",
+      "vertices": 24,
+      "triangles": 44
+    }
+  ],
+  "uses_portrait_texture": false
+}

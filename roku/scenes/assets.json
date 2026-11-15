@@ -34,10 +34,10 @@
     "height": 32,
     "sha256": "2f3bc18003784ea41a160890b0fc1cc63cc88d2d6f3230c5390576993e3cc6a0"
   },
-  "cave-eel.webp": {
-    "width": 114,
-    "height": 140,
-    "sha256": "fbeb9eccac70b038a9a7c8bd2d3a8dbf8a46b54aaf52fd003d149ee600e2d622"
+  "cave-eel-3d.webp": {
+    "width": 944,
+    "height": 576,
+    "sha256": "642bf4f36d80c826624f0cdda244a316c1d0d2963029f1fdbee950645e4a2310"
   },
   "cave-interior.png": {
     "width": 116,
@@ -161,13 +161,13 @@
   },
   "reef-connected-reef.webp": {
     "width": 2038,
-    "height": 824,
-    "sha256": "848342dc3636c48e513226a071fd0584b7ce6e91412d5ee9ae5468d6683b18cd"
+    "height": 825,
+    "sha256": "89a6208b62329fdef2d108d09eb52fa8fc45fcd07de8c6ace4da8590131ae581"
   },
   "reef-foreground-reef.webp": {
     "width": 2037,
     "height": 447,
-    "sha256": "226dd78a73ab7597852adf3f431257491d37a8ace2341726275f6ae17515e11b"
+    "sha256": "4133fa4357fc16362da7e3989cb1f7e20d4c9761acfae13a18a084b1b87bbae8"
   },
   "reef-sea-anemone-motion-0.webp": {
     "width": 1844,
@@ -202,7 +202,17 @@
   "sand-wave-shadows.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "124cc81b0ea409095d78e1c5adfb6e87e6e3263331728e432c4db28b6008402b"
+    "sha256": "2d36a4e13abf9b6fb8decf69096c7f6c81e67aa0a71191bb5a214674e8af043f"
+  },
+  "shadow-connected-reef.webp": {
+    "width": 1024,
+    "height": 288,
+    "sha256": "240af3d73b3631bfd106dba59434d762c3fb73f071c9cd4344403a67726b59f3"
+  },
+  "shadow-foreground-reef.webp": {
+    "width": 1024,
+    "height": 288,
+    "sha256": "9bb9b39d8f4d55c34b227cf5f7fe4652cf76f8fbe1c883b12a90260309c66d2c"
   },
   "splash-fhd.jpg": {
     "width": 1920,
@@ -233,11 +243,6 @@
     "width": 2048,
     "height": 1152,
     "sha256": "cf2a89d1a47d02ab39b73b0a1545adcb89e17b1b48882df15d31e57f56aa5ffb"
-  },
-  "wave-net.webp": {
-    "width": 1056,
-    "height": 528,
-    "sha256": "719d22f49bf4dd7a73cb469c55f8e38b0ce5dd937c37daed687046ddf82059ba"
   },
   "yellow_tang-atlas.webp": {
     "width": 1024,

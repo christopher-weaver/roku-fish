@@ -35,6 +35,7 @@ if __name__=='__main__':
         print(brs_run('fish_traffic','docs/fish-traffic-results.txt'))
         print(brs_run('fish_profile','docs/fish-profile-results.txt'))
         print(brs_run('marine_motion','docs/marine-motion-results.txt'))
+        print(brs_run('surface_lighting','docs/surface-lighting-results.txt'))
         print(brs_run('settings_ui','docs/settings-results.txt'))
         if '--quick' not in sys.argv:print(brs_run('reef_collision','docs/collision-results.txt'))
         else:print(brs_run('quick_collision','docs/collision-results.txt'))

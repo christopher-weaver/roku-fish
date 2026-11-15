@@ -12,7 +12,7 @@ sub Main()
     end for
     screen={bad:false,calls:0,DrawTransformedObject:UprightCapture}
     r={screen:screen,scale:1#,canvasOffset:0#,rotation:true,fractionalFish:true,placement:{}}
-    s={camera:64#,settings:{lighting:"Sunset"}}
+    s={camera:64#,displayTime:0#,lighting:[1#,0#,0#,0#],settings:{lighting:"Sunset"}}
     a={fish:{yellow_tang:body},fins:{yellow_tang:fins},tails:{yellow_tang:tails}}
     f={name:"yellow_tang",sp:sp,size:1#}
     for degrees=0 to 360 step 3

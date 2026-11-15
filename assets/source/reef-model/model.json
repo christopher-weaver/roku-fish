@@ -1,0 +1,177 @@
+{
+  "method": "closed shared-surface phototextured volumes with anatomical curvature",
+  "objects": [
+    {
+      "name": "live-rock-foundation-connected-reef",
+      "group": "live-rock-foundation",
+      "layer": "connected-reef",
+      "vertices": 43562,
+      "triangles": 87112,
+      "file": "live-rock-foundation-connected-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "live-rock-foundation-foreground-reef",
+      "group": "live-rock-foundation",
+      "layer": "foreground-reef",
+      "vertices": 13218,
+      "triangles": 26384,
+      "file": "live-rock-foundation-foreground-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "green-cup-connected-reef",
+      "group": "green-cup",
+      "layer": "connected-reef",
+      "vertices": 3230,
+      "triangles": 6440,
+      "file": "green-cup-connected-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "green-cup-foreground-reef",
+      "group": "green-cup",
+      "layer": "foreground-reef",
+      "vertices": 77380,
+      "triangles": 154756,
+      "file": "green-cup-foreground-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "white-branching-coral-connected-reef",
+      "group": "white-branching-coral",
+      "layer": "connected-reef",
+      "vertices": 84700,
+      "triangles": 169396,
+      "file": "white-branching-coral-connected-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "orange-antler-coral-connected-reef",
+      "group": "orange-antler-coral",
+      "layer": "connected-reef",
+      "vertices": 63802,
+      "triangles": 127600,
+      "file": "orange-antler-coral-connected-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "pink-bubble-coral-connected-reef",
+      "group": "pink-bubble-coral",
+      "layer": "connected-reef",
+      "vertices": 37578,
+      "triangles": 75152,
+      "file": "pink-bubble-coral-connected-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "pink-bubble-coral-foreground-reef",
+      "group": "pink-bubble-coral",
+      "layer": "foreground-reef",
+      "vertices": 17872,
+      "triangles": 35740,
+      "file": "pink-bubble-coral-foreground-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "brain-coral-connected-reef",
+      "group": "brain-coral",
+      "layer": "connected-reef",
+      "vertices": 968,
+      "triangles": 1928,
+      "file": "brain-coral-connected-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "brain-coral-foreground-reef",
+      "group": "brain-coral",
+      "layer": "foreground-reef",
+      "vertices": 49122,
+      "triangles": 98240,
+      "file": "brain-coral-foreground-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "central-clam-connected-reef",
+      "group": "central-clam",
+      "layer": "connected-reef",
+      "vertices": 486,
+      "triangles": 956,
+      "file": "central-clam-connected-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "central-clam-foreground-reef",
+      "group": "central-clam",
+      "layer": "foreground-reef",
+      "vertices": 27942,
+      "triangles": 55880,
+      "file": "central-clam-foreground-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "right-plating-coral-connected-reef",
+      "group": "right-plating-coral",
+      "layer": "connected-reef",
+      "vertices": 81104,
+      "triangles": 162208,
+      "file": "right-plating-coral-connected-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "right-plating-coral-foreground-reef",
+      "group": "right-plating-coral",
+      "layer": "foreground-reef",
+      "vertices": 810,
+      "triangles": 1616,
+      "file": "right-plating-coral-foreground-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "right-sponge-garden-connected-reef",
+      "group": "right-sponge-garden",
+      "layer": "connected-reef",
+      "vertices": 3846,
+      "triangles": 7688,
+      "file": "right-sponge-garden-connected-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "right-sponge-garden-foreground-reef",
+      "group": "right-sponge-garden",
+      "layer": "foreground-reef",
+      "vertices": 44008,
+      "triangles": 88012,
+      "file": "right-sponge-garden-foreground-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "left-plating-garden-connected-reef",
+      "group": "left-plating-garden",
+      "layer": "connected-reef",
+      "vertices": 30778,
+      "triangles": 61552,
+      "file": "left-plating-garden-connected-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "left-plating-garden-foreground-reef",
+      "group": "left-plating-garden",
+      "layer": "foreground-reef",
+      "vertices": 16436,
+      "triangles": 32868,
+      "file": "left-plating-garden-foreground-reef.npz",
+      "closed": true
+    },
+    {
+      "name": "hollow-tunnel",
+      "group": "hollow-tunnel",
+      "layer": "connected-reef",
+      "vertices": 384,
+      "triangles": 384,
+      "file": "hollow-tunnel.npz",
+      "closed": false,
+      "type": "open-ended hollow bore"
+    }
+  ]
+}

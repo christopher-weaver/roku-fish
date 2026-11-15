@@ -48,7 +48,7 @@ Exit any running preview on the TV before updating. The helper uses the installe
 
 The ZIP is validated locally, but the installation and registration steps have not been exercised on hardware in this environment.
 
-## Updating to 1.0.11
+## Updating to 1.0.12
 
 Download a fresh copy of the installation ZIP above. Dismiss the active screensaver, open the Roku Developer Application Installer at `http://ROKU_IP`, upload the ZIP without extracting it and select Install. Then return to **Settings → Theme → Screensavers → Deep Reef (or dev)** and preview it again. Saved preferences are retained. Open **Change screensaver settings**: the complete menu should fit the screen, option names and values should appear above the pink highlight, arrows change the selected option, and **Back** or **Done** closes the menu. For the full slow back-and-forth sweep choose **Camera movement → Slow**. Use **Bubble density → Low** or **Medium** to see the larger bubbles; an existing Off setting remains Off. Auto/High now target 60 fps; Auto settles at 30 fps after sustained missed frames, while Performance starts at 30 fps with 720p output.
 
@@ -67,3 +67,5 @@ Version 1.0.9 reduces Fish density to Low 6 / Medium 8 / High 10, with ten speci
 Version 1.0.10 adds finer head-on fish rotations, fish-to-fish avoidance and continuous movement of the anemone tentacles and sea fan branches. No new setting is required. Dismiss the current preview before installing the updated ZIP, then preview Deep Reef again.
 
 Version 1.0.11 replaces marine strip warping with complete animated poses, adds the tunnel eel and moving wave-net shadow, refines turns and reduces prolonged head-on swimming. Slow camera movement now completes a cycle in three minutes. Dismiss the active preview, install the fresh ZIP and preview again. No new settings are required.
+
+Version 1.0.12 adds the articulated 3D moray, reconstructed coral volumes and hollow tunnel. Softer perspective wave shading is restricted to fish, coral and sand. Install the fresh ZIP with the same developer installer and preview Deep Reef again; no new settings are needed. Editable Blender/mesh sources are included in the GitHub repository and complete source archive.
