@@ -74,6 +74,15 @@ def validate():
             for f in sp[frames_key]:
                 if min(f['x'],f['y'])<0 or min(f['w'],f['h'])<1 or f['x']+f['w']>w or f['y']+f['h']>h:errors.append('Out-of-bounds frame '+name)
                 if 'anchorX' not in f or 'anchorY' not in f:errors.append('Missing cropped-frame anchor '+name)
+    tank=json.loads((ROKU/'scenes/tank.json').read_text())
+    for f in tank['formations']:
+        if 'animation'not in f:continue
+        cfg=f['animation']
+        for i in range(f['frames']):
+            page=i//cfg['framesPerPage'];local=i%cfg['framesPerPage']
+            path=ROKU/f['images'][page][5:];w,h=dimensions(path)
+            x=cfg['gutter']+local%f['columns']*cfg['strideX'];y=cfg['gutter']+local//f['columns']*cfg['strideY']
+            if x+f['frameWidth']>w or y+f['frameHeight']>h:errors.append('Marine pose outside atlas '+f['id'])
     for fhd,size in [('icon-fhd.jpg',(540,405)),('icon-hd.jpg',(290,218)),('splash-fhd.jpg',(1920,1080)),('splash-hd.jpg',(1280,720)),('splash-sd.jpg',(720,480))]:
         if dimensions(ROKU/'images'/fhd)!=size:errors.append('Manifest art dimensions '+fhd)
     if errors:raise ValueError('\n'.join(errors))

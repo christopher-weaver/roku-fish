@@ -57,3 +57,9 @@ The reef and rendered-object placement was fixed before creating `background-mat
 ## Adaptive rotation and marine animation (1.0.10)
 
 No new source photographs or generated artwork are introduced. `dense_turns.py` renders additional angles from the existing NPZ body faces, vertex normals and UV textures. Runtime marine bending acts on immutable bands of the existing closed-volume renders; their source geometry, texture provenance and licenses remain unchanged.
+
+## Tunnel moray and complete marine motion (1.0.11)
+
+`cave-eel-original.png` is the unmodified transparent image-tool output `exec-6c17a462-be5b-4dd9-829b-e4ab0239254b`. The prompt requested a single photorealistic olive/gold honeycomb moray head and upper neck, three-quarter view toward the viewer and left, slightly oversized inquisitive eyes, a crooked friendly grin, warm underwater light, and no rocks, water, text or props. Its anatomy is illustrative and its expression deliberately exaggerated. `cave_and_net.py` extracts/resizes the fixed source offline; original art follows the project's CC0 dedication. The tunnel matte is derived from the user's existing approved reef layout.
+
+Marine animation uses the existing NPZ volumes and finished textures, with complete deformed poses rendered offline by `marine_animation.py`. No new coral artwork is generated. The cellular net shadow is original procedural art with periodic sites and coordinate warping. Existing portrait/reef licenses are retained.

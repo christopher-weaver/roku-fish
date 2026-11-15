@@ -48,30 +48,22 @@ def fish(canvas,f,mode):
     im=im.rotate(angle,resample=Image.Resampling.BICUBIC,expand=True)
     paste(canvas,im,f['sx']-im.width/2,f['sy']-im.height/2)
 
-def marine_band(t,formation,y,h):
-    m=formation['motion'];extent=formation['rootY']-formation['y'];top=max(0,min(1,y/extent));bottom=max(0,min(1,(y+h)/extent));v=(top+bottom)/2;w=(1-v)**2
-    phase=t%m['period']*2*math.pi/m['period'];p2=t%(m['period']*1.618)*2*math.pi/(m['period']*1.618)
-    dx=m['amplitude']*w*(.72*math.sin(phase+v*4)+.28*math.sin(p2-v*7));sx=1+m['spread']*w*math.sin(p2+v*5)
-    a=m['lift']*(1-top)**2*math.sin(p2-top*3);b=m['lift']*(1-bottom)**2*math.sin(p2-bottom*3)
-    return dx,a,sx,1+(b-a)/h
-
-def deform_marine(layer,t,formation):
-    # Evaluate the same continuous band field on a fixed pixel grid. Premultiplied
-    # RGBA resampling preserves fine branches against transparent surroundings.
-    import numpy as np
-    from scipy.ndimage import map_coordinates
-    a=np.asarray(layer,dtype=float)/255;alpha=a[:,:,3];rgb=a[:,:,:3]*alpha[:,:,None];h,w=alpha.shape
-    yy,xx=np.mgrid[:h,:w];sx=np.zeros(h);dy=np.zeros(h);dx=np.zeros(h);sy=np.zeros(h)
-    for y in range(h):dx[y],dy[y],sx[y],sy[y]=marine_band(t,formation,y,1)
-    source_x=(xx-w/2-dx[:,None])/sx[:,None]+w/2;source_y=yy-dy[:,None]
-    coords=[source_y,source_x];out_a=map_coordinates(alpha,coords,order=1,mode='constant');out_rgb=np.stack([map_coordinates(rgb[:,:,i],coords,order=1,mode='constant')for i in range(3)],axis=2)
-    rgba=np.dstack((np.divide(out_rgb,np.maximum(out_a[:,:,None],1e-6)),out_a))
-    return Image.fromarray(np.uint8(np.clip(rgba*255,0,255)))
+def eel_pose(t):
+    q=(t+15)%31
+    def ease(v):
+        v=max(0,min(1,v));return v*v*v*(v*(v*6-15)+10)
+    peek=ease((q-7)/7)if 7<=q<14 else 1 if 14<=q<20 else 1-ease((q-20)/8)if 20<=q<28 else 0
+    return 773+math.sin(t*.31)*1.5*peek,1060-112*peek,2*math.sin(t*.55)*peek
 
 def render(frame,mode='Sunset',density='Medium'):
     cam=frame['camera'];t=frame.get('displayTime',frame['time']);warm=mode=='Sunset';suf='-sunset' if warm else ''
     img=Image.new('RGBA',(1920,1080),(24,42,66,255))
     paste(img,asset('water-sunset.webp' if warm else 'water-day.webp'),-cam,-36)
+    paste(img,asset('cave-interior.png'),715-cam,808-36)
+    ex,ey,angle=eel_pose(t);eel=Image.new('RGBA',(200,300));eel.alpha_composite(asset('cave-eel.webp'),(43,10));eel=eel.rotate(angle,resample=Image.Resampling.BICUBIC,center=(100,150))
+    paste(img,eel,ex-cam-100,ey-36-150)
+    plate=asset('water-sunset.webp'if warm else'water-day.webp')
+    paste(img,plate.crop((680,907,870,1152)),680-cam,907-36)
     day={'Moonlight':.12,'Dusk':.52}.get(mode,1);night=(1-day)*150/255
     fs=sorted(frame['fish'],key=lambda f:f['z'])
     if density=='Low':fs=[f for f in fs if f['id']<TANK['populations']['Low']]
@@ -94,10 +86,11 @@ def render(frame,mode='Sunset',density='Medium'):
         depth=formation['z'];effects(previous,depth);previous=depth
         while fish_index<len(fs) and fs[fish_index]['z']<depth:
             fish(img,fs[fish_index],mode);fish_index+=1
-        atlas=asset(formation['image'].split('/')[-1]);fw=formation['frameWidth'];fh=formation['frameHeight']
-        view=int(max(0,min(1,(cam-8)/112))*(formation['frames']-1)+.5);columns=formation.get('columns',1)
-        vx=view%columns*fw;vy=view//columns*fh;layer=atlas.crop((vx,vy,vx+fw,vy+fh))
-        if 'motion'in formation:layer=deform_marine(layer,t,formation)
+        from formation_frames import frame as formation_frame
+        if 'animation'in formation:
+            view=round((math.sin((t%formation['animation']['period'])*2*math.pi/formation['animation']['period'])+1)*.5*(formation['frames']-1))
+        else:view=0
+        layer=formation_frame(formation,view,CACHE).resize((formation['width'],formation['height']),Image.Resampling.LANCZOS)
         offset=64+(cam-64)*formation['parallax']
         if mode!='Sunset':layer=ImageChops.multiply(layer,Image.new('RGBA',layer.size,(221,235,255,255)))
         paste(img,layer,formation['x']-offset,formation['y']-36)
@@ -118,6 +111,11 @@ def render(frame,mode='Sunset',density='Medium'):
         index=(first+j)%32
         piece=surface.crop(((index%8)*256,(index//8)*128,(index%8+1)*256,(index//8+1)*128))
         for tile in range(5):paste(img,piece,-512+tile*512-cam,-8,2,1,opacity=(blend if j else 1-blend)*(160+75*day)/255)
+    net=asset('wave-net.webp')
+    for j in range(2):
+        i=(first+j)%32;piece=net.crop((i%8*132+2,i//8*132+2,i%8*132+130,i//8*132+130))
+        for row in range(3):
+            for col in range(5):paste(img,piece,col*512-cam,row*512-36,4,opacity=(blend if j else 1-blend)*(.35+.65*day))
     if night:paste(img,Image.new('RGBA',img.size,(8,16,57,round(night*255))),0,0)
     warmth={'Sunset':38,'Dusk':20.9}.get(mode,0)
     if warmth:paste(img,Image.new('RGBA',img.size,(241,105,108,round(warmth))),0,0)

@@ -147,20 +147,26 @@ function ReefBodyView(heading as double, species as object, result = invalid as 
     return result
 end function
 
-' Continuous, root-pinned current deformation. Adjacent bands share their Y
-' boundary; no animation frames, whole-object bobbing or pose crossfades.
-function ReefMarineBand(time as double, formation as object, bandY as double, bandHeight as double, result = invalid as dynamic) as object
-    motion=formation.motion
-    extent=formation.rootY-formation.y
-    top=ReefClamp(bandY/extent,0,1) : bottom=ReefClamp((bandY+bandHeight)/extent,0,1)
-    v=(top+bottom)*0.5 : w=(1-v)^2
-    phase=ReefWrap(time,motion.period)*6.283185307/motion.period
-    phase2=ReefWrap(time,motion.period*1.618)*6.283185307/(motion.period*1.618)
+
+' Spatially dense complete mesh poses. No strip transforms or large anchors.
+function ReefMarineFrame(time as double,formation as object) as integer
+    phase=ReefWrap(time,formation.animation.period)*6.283185307/formation.animation.period
+    return Int((Sin(phase)+1#)*.5*(formation.animation.count-1)+.5)
+end function
+
+function ReefSmoother(v as double) as double
+    v=ReefClamp(v,0#,1#)
+    return v*v*v*(v*(v*6#-15#)+10#)
+end function
+
+function ReefEelPose(time as double,result=invalid as dynamic) as object
+    t=ReefWrap(time+15#,31#) : peek=0#
+    if t>=7# and t<14# then peek=ReefSmoother((t-7#)/7#)
+    if t>=14# and t<20# then peek=1#
+    if t>=20# and t<28# then peek=1#-ReefSmoother((t-20#)/8#)
     if result=invalid then result={}
-    result.dx=motion.amplitude*w*(0.72*Sin(phase+v*4)+0.28*Sin(phase2-v*7))
-    result.sx=1+motion.spread*w*Sin(phase2+v*5)
-    dyTop=motion.lift*(1-top)^2*Sin(phase2-top*3)
-    dyBottom=motion.lift*(1-bottom)^2*Sin(phase2-bottom*3)
-    result.dy=dyTop : result.sy=1+(dyBottom-dyTop)/bandHeight
+    result.peek=peek : result.x=773#+Sin(time*.31)*1.5*peek
+    result.y=1060#-112#*peek
+    result.angle=2.0*Sin(time*.55)*peek
     return result
 end function

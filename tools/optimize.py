@@ -12,7 +12,7 @@ def optimize(atlases_only=False,effects_only=False):
         if p.name in ['surface-waves.png','sand-caustics.png','sand-wave-shadows.png']:colors=96;dither=0
         elif 'reef-' in p.name:colors=256;dither=.75
         elif 'atlas' in p.name or '-fins' in p.name or '-tails' in p.name:
-            colors=80 if '-fins' in p.name else 112 if '-tails' in p.name else 144
+            colors=64 if '-fins' in p.name else 80 if '-tails' in p.name else 96
             dither=0
         else:colors=160;dither=.4
         im=imagequant.quantize_pil_image(im,max_colors=colors,dithering_level=dither,max_quality=95)
@@ -26,7 +26,7 @@ def optimize(atlases_only=False,effects_only=False):
     for p in sorted((ROOT/'roku/images').glob('*.jpg')):
         im=Image.open(p).convert('RGB')
         if p.name.startswith('splash'):
-            original=im.size;im.thumbnail((960,540));im=im.resize(original,Image.Resampling.LANCZOS);quality=66
+            original=im.size;im.thumbnail((960,540));im=im.resize(original,Image.Resampling.LANCZOS);quality=60
         else:quality=78
         im.save(p,quality=quality,optimize=True,subsampling=2)
 if __name__=='__main__':optimize()

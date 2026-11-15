@@ -1,31 +1,32 @@
-# Deep Reef 1.0.10 — targeted verification
+# Deep Reef 1.0.11 — targeted verification
 
-Fish bodies use 104 adaptive heading slots from 53 true upright mesh renders. Angular spacing improves from 5.625° to 1.40625° near head-on views and 0.703125° immediately around the forward/rear axis. Continuous silhouette widths and one body/tail/pectoral image per fish remain; no anatomy crossfades or runtime reflections are introduced.
+Fish bodies now have 112 adaptive heading slots from 57 upright mesh views. The finest 0.703125° spacing covers more of the direct front/rear transition. Fish begin side-facing, choose predominantly lateral goals near their established depth and keep side-facing hover poses. Occasional depth excursions and natural turns remain.
 
-Fish separation now predicts encounters using body/tail/fin envelopes, maximum pitch, actual species sizes and depth. Stable passing lanes and gradual braking avoid symmetric head-on traps. Safe spawning and continuous swept-cylinder guards prevent contact between physics samples. All poses are saved before stepping any fish, so collision tests and displayed interpolation share one time interval.
+The marine strip renderer is removed. Each fan/anemone draws once using one of 65 complete, root-pinned mesh-deformation poses. Fixed quad placement and scale eliminate moving strip boundaries, oversized-anchor jitter and camera-view switching. Pose spacing bounds geometric tip displacement to about 0.24 design pixels per state. Fish collision avoidance remains active.
 
-The existing 3D marine renders bend with a continuous, two-frequency current field. Thin immutable bands retain texture detail; branch/tentacle motion increases away from the pinned roots. Shared vertical boundaries remain within 0.0001px in host tests. Performance mode uses coarser bands. Occupancy reserves the entire tip excursion.
+A generated, deliberately slightly goofy moray peeks through the actual enclosed lower reef tunnel. Quintic easing gives a slow rise and retreat with pauses. Existing reef pixels hide the head/neck at the tunnel edges. Slow panning now takes three minutes, with the same sweep width. A periodic cellular wave-net shadow covers water, fish, reef and sand, with wrapped padding and display-clock interpolation.
 
 | Check | Result |
 |---|---|
-| Native/settings compiler | PASS, BrighterScript 0.73.8 |
-| Package/artwork/tracking | PASS, 33 Python tests |
-| Adaptive head-on angles | PASS, real mesh renders, bounds and continuous widths at every nonuniform boundary |
-| Head-on raster comparison | PASS, peak frame changes 35–57% lower than the 64-angle subset, using single-pose draws in both cases |
-| Fish spawning | PASS, 10 differently sized fish across four seeds, no overlapping envelopes |
-| Fish traffic | PASS, head-on/depth/overtaking/crossing encounters; 360 ticks each, five displayed samples per tick, no contact or deadlock |
-| Tunneling prevention | PASS, continuous swept collision detects passage through another body |
-| Marine motion | PASS, roots fixed; maximum tested 60Hz displacement under 0.06px per frame |
-| Native draw ordering | PASS, animated marine bands interleave with fish; one opaque body/tail/pectoral part each |
-| Upright turning | PASS, full-circle pitched draws retain positive scales |
-| Every-fish animation | PASS at Low/Medium/High with native shared-cursor semantics |
-| Coral clearance | PASS, 60 targeted physics ticks with physical/interpolated footprints clear |
-| Settings/waves/pacing | PASS, readable settings and Back/Done, synchronized waves and simulated frame pacing |
-| Pan geometry | PASS, maximum centroid error 0.001959px in the tested segment |
-| Browser inspection | PASS, lighting/play/pause/seek and all 48 runtime images, no page errors |
+| Native compiler | PASS, BrighterScript 0.73.8 |
+| Package/artwork/tracking | PASS, 34 Python tests |
+| Adaptive rotations | PASS, bounds, positive scales, continuous widths and host raster change reduction |
+| Fish behavior | PASS, side-facing starts, mostly lateral/home-depth goals and side-facing hovering |
+| Fish traffic | PASS, four spawning seeds and head-on/depth/overtaking/crossing encounters; swept/interpolated envelopes clear |
+| Coherent marine animation | PASS, full-object states stay in range and do not skip geometry states at the tested 60Hz clock |
+| Native marine drawing | PASS, exactly one draw per marine object, no runtime strip transforms |
+| Tunnel eel | PASS, eased movement, visible and hidden pauses, bounded angles and correct draw order behind reef |
+| Global shadow | PASS, padded cellular atlas, bounded alpha, scene-wide draw coverage |
+| Faster pan | PASS, 180-second Slow cycle and unchanged amplitude |
+| Coral clearance | PASS, targeted physical/interpolated footprint checks with all marine states reserved |
+| Settings/waves/pacing | PASS, labels, Back/Done, wave phase and simulated display scheduling |
+| Pan placement | PASS, existing adjacent-pixel presentation and centroid precision |
+| Browser inspection | PASS, all 51 runtime images, lighting/play/pause/seek, no page errors |
 | Extended soaks | Not run; short validation requested |
 | Actual Roku GPU/FPS | Not measured |
 
-The refreshed navigation graph has 251 nodes and 544 bidirectional edges. Estimated active Sunset image textures occupy 66.19 MiB at the default density and 73.61 MiB at High. Marine bands share existing bitmaps and add no image textures. Add 8.44 MiB for the scene canvas and 15.82 MiB for FHD double buffers (6.25 MiB at HD), before driver/interpreter overhead. These are dimension-based estimates.
+The navigation graph has 251 connected nodes and 544 bidirectional edges. Estimated active Sunset image textures occupy 83.57 MiB at the default density and 91.00 MiB at High. Add 8.44 MiB for the scene canvas and 15.82 MiB for FHD double buffers (6.25 MiB at HD), before driver/interpreter overhead. These are dimension estimates. Marine drawing drops from roughly sixty moving strip draws to two coherent object draws; the new scene-wide shadow adds thirty small tile draws.
 
-The tracked ZIP remains below 4,000,000 bytes. Exact package bytes and SHA-256 are in dist/build-report.json. Current evidence includes compiler, movement, fish-traffic, marine-motion, collision, settings, waves, render-depth, upright, turns, raster, pan and browser logs. Earlier extended-soak reports are historical.
+The tracked ZIP remains below 4,000,000 bytes. Exact bytes and SHA-256 are in dist/build-report.json. Source RGBA artwork and mesh files retain their detail; palettes, complete-pose texture sizes and startup splash compression keep the self-contained package within budget. No extra spatial filtering is applied to the fixed reef/background plates.
+
+Current logs include compiler, fish profile/traffic, marine motion, collision, settings, waves, render depth, upright turns, adaptive raster, pan precision and browser results. Earlier extended-soak reports are historical. Inspect sustained motion and FPS on an actual Roku.

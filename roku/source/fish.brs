@@ -59,6 +59,10 @@ sub ReefFishStep(s as object, f as object, dt as double)
         end if
     end if
     desired = ReefAngle(dx, dz)
+    if f.state="Hovering"
+        desired=Sin(f.wander)*.08
+        if Cos(f.heading)<0 then desired=desired+3.141592654#
+    end if
     turn = ReefAngleDelta(f.heading, desired)
     ' Damped steering with bounded angular acceleration and jerk.
     ' An opposite goal cannot instantly reverse the turn direction.
@@ -135,13 +139,16 @@ sub ReefPlanRoute(s as object, f as object)
         end if
     end for
     if start < 0 then return
-    wantRear = ReefRandom(s) < 0.32
-    if f.name = "royal_gramma" then wantRear = ReefRandom(s) < 0.65
-    if f.name = "ocellaris_clownfish" then wantRear = ReefRandom(s) < 0.12
-    wantedZ = 0.94
-    if wantRear then wantedZ = 0.12
-    wantedX = ReefRange(s, 220, 1810) : wantedY = ReefRange(s, 280, 780)
-    if f.name = "ocellaris_clownfish" then wantedX = ReefRange(s, 900, 1350) : wantedY = ReefRange(s, 650, 800)
+    home=f.z
+    if f.homeZ<>invalid then home=f.homeZ
+    wantedZ=ReefClamp(home+ReefRange(s,-.04,.04),.12,.94)
+    ' Cross the reef mostly laterally; depth excursions remain occasional.
+    if ReefRandom(s)<.08 then wantedZ=1#-home
+    wantRear=wantedZ<.3
+    wantedX=ReefRange(s,1400,1820)
+    if f.x>1024 then wantedX=ReefRange(s,220,600)
+    wantedY=ReefClamp(f.y+ReefRange(s,-180,180),180,790)
+    if f.name="ocellaris_clownfish" then wantedY=ReefRange(s,650,800)
     goal = start : best = 1e12
     for index = 0 to nodes.Count() - 1
         node = nodes[index]

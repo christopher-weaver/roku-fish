@@ -18,11 +18,11 @@
     "center": 64,
     "Subtle": {
       "amplitude": 40,
-      "period": 180
+      "period": 140
     },
     "Slow": {
       "amplitude": 56,
-      "period": 240
+      "period": 180
     }
   },
   "softCoral": null,
@@ -46,39 +46,33 @@
   },
   "formations": [
     {
-      "x": 82,
-      "y": 430,
-      "width": 524,
-      "height": 258,
-      "frameWidth": 524,
-      "frameHeight": 258,
-      "frames": 7,
-      "columns": 3,
-      "angles": [
-        -8.0,
-        -5.3333,
-        -2.6667,
-        0.0,
-        2.6667,
-        5.3333,
-        8.0
-      ],
+      "x": 74,
+      "y": 422,
+      "width": 540,
+      "height": 274,
+      "frameWidth": 270,
+      "frameHeight": 137,
+      "frames": 65,
+      "columns": 7,
       "meshVertices": 40892,
       "meshTriangles": 88034,
       "rootY": 995,
-      "image": "pkg:/images/reef-sea-fan.webp",
+      "image": "pkg:/images/reef-sea-fan-motion-0.webp",
       "id": "sea-fan",
       "z": 0.26,
       "halfDepth": 0.018,
       "parallax": 1,
       "renderedMesh": true,
-      "motion": {
-        "amplitude": 5.0,
-        "period": 11.0,
-        "spread": 0.006,
-        "lift": 0.8,
-        "bandHeight": 8,
-        "clearance": 9
+      "images": [
+        "pkg:/images/reef-sea-fan-motion-0.webp"
+      ],
+      "animation": {
+        "period": 9.0,
+        "count": 65,
+        "framesPerPage": 98,
+        "strideX": 274,
+        "strideY": 141,
+        "gutter": 2
       }
     },
     {
@@ -114,42 +108,47 @@
       "renderedMesh": false
     },
     {
-      "x": 1330,
-      "y": 815,
-      "width": 286,
-      "height": 215,
-      "frameWidth": 286,
-      "frameHeight": 215,
-      "frames": 7,
-      "columns": 3,
-      "angles": [
-        -8.0,
-        -5.3333,
-        -2.6667,
-        0.0,
-        2.6667,
-        5.3333,
-        8.0
-      ],
+      "x": 1322,
+      "y": 807,
+      "width": 302,
+      "height": 231,
+      "frameWidth": 226,
+      "frameHeight": 173,
+      "frames": 65,
+      "columns": 8,
       "meshVertices": 46668,
       "meshTriangles": 95212,
       "rootY": 1030,
-      "image": "pkg:/images/reef-sea-anemone.webp",
+      "image": "pkg:/images/reef-sea-anemone-motion-0.webp",
       "id": "sea-anemone",
       "z": 0.75,
       "halfDepth": 0.025,
       "parallax": 1,
       "renderedMesh": true,
-      "motion": {
-        "amplitude": 3.5,
-        "period": 8.5,
-        "spread": 0.012,
-        "lift": 1.2,
-        "bandHeight": 8,
-        "clearance": 7
+      "images": [
+        "pkg:/images/reef-sea-anemone-motion-0.webp"
+      ],
+      "animation": {
+        "period": 7.5,
+        "count": 65,
+        "framesPerPage": 88,
+        "strideX": 230,
+        "strideY": 177,
+        "gutter": 2
       }
     }
   ],
   "baseline": 1025,
-  "baselineTolerance": 30
+  "baselineTolerance": 30,
+  "eel": {
+    "x": 773,
+    "tunnel": [
+      715,
+      808,
+      116,
+      99
+    ],
+    "period": 31,
+    "z": 0.46
+  }
 }

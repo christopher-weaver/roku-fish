@@ -7,7 +7,7 @@ sub Main()
         s.fish.Pop()
     end while
     depths=[0.16,0.55,0.94]
-    a={plate:{normal:"water"},fish:{},fins:{},tails:{},formations:[],marineBands:[],marineBandHeights:[],surface:[],caustics:[],ray:{normal:"ray"}}
+    a={plate:{normal:"water"},fish:{},fins:{},tails:{},formations:[],netShadows:[],eel:{normal:"eel"},cave:{normal:"cave"},eelErase:{normal:"erase"},surface:[],caustics:[],ray:{normal:"ray"}}
     for i=0 to 2
         f=s.fish[i] : f.z=depths[i] : f.x=900# : f.y=400# : f.heading=3.14 : f.phase=0# : f.finPhase=0.3
         ReefSavePose(f)
@@ -30,17 +30,9 @@ sub Main()
             views.Push({normal:"reef:"+s.cfg.formations[i].id})
         end for
         a.formations.Push(views)
-        formation=s.cfg.formations[i] : byView=[]
-        if formation.motion<>invalid
-            for view=0 to formation.frames-1
-                bands=[]
-                for y=0 to formation.frameHeight-1 step 8
-                    bands.Push({normal:"reef:"+formation.id})
-                end for
-                byView.Push(bands)
-            end for
-        end if
-        a.marineBands.Push(byView) : a.marineBandHeights.Push(8)
+    end for
+    for index=0 to 31
+        a.netShadows.Push({normal:"net"})
     end for
     screen={calls:[],SetAlphaEnable:RenderAlpha,Clear:RenderClear,DrawScaledObject:RenderScaled,DrawObject:RenderObject}
     r={screen:screen,scale:1#,rotation:false,fractionalPan:false,fractionalFish:false,placement:{}}
@@ -62,7 +54,9 @@ sub Main()
         name=s.fish[i].name
         if count["body:"+name]<>1 or count["fin:"+name]<>1 or count["tail:"+name]<>1 then print "FAIL body or fin view blend" : return
     end for
-    if count["reef:sea-fan"]<20 or count["reef:sea-anemone"]<20 then print "FAIL marine band rendering not exercised" : return
+    if count["reef:sea-fan"]<>1 or count["reef:sea-anemone"]<>1 then print "FAIL marine object fragmented" : return
+    if count["net"]<>30 then print "FAIL scene-wide shadow drawing" : return
+    if order["eel"]>=order["reef:connected-reef"] then print "FAIL eel tunnel occlusion" : return
     if blends<>0 or reflected<>0 then print "FAIL blend alpha or reflection ";blends;reflected : return
     print "PASS production renderer interleaves rear, middle and front fish with connected reef layers and rendered marine life; exactly one opaque body, one separate tail and one fin per fish, positive scales only"
 end sub

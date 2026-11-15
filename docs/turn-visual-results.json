@@ -1,16 +1,16 @@
 {
   "float32_max_center_error_px": 0.0005859374999772626,
   "head_on_peak_frame_change_ratio_vs_64_angles": {
-    "ocellaris_clownfish": 0.433,
+    "ocellaris_clownfish": 0.431,
     "yellow_tang": 0.543,
-    "royal_gramma": 0.476,
-    "emperor_angelfish": 0.651,
-    "moorish_idol": 0.477,
-    "green_chromis": 0.468,
-    "blue_tang": 0.548,
-    "copperband_butterflyfish": 0.465,
-    "banggai_cardinalfish": 0.644,
-    "mandarin_dragonet": 0.602
+    "royal_gramma": 0.479,
+    "emperor_angelfish": 0.655,
+    "moorish_idol": 0.475,
+    "green_chromis": 0.464,
+    "blue_tang": 0.545,
+    "copperband_butterflyfish": 0.454,
+    "banggai_cardinalfish": 0.637,
+    "mandarin_dragonet": 0.597
   },
   "scope": "Host geometry and raster checks, no pose crossfades; actual Roku GPU/FPS require device validation."
 }

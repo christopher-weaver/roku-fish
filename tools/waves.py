@@ -14,13 +14,8 @@ def sand_mask(size=(2048,1152)):
     if tank.exists():
         occupied=np.zeros((1152,2048),dtype=float)
         for formation in json.loads(tank.read_text()).get('formations',[]):
-            sprite=Image.open(ROOT/'roku'/formation['image'][5:]).convert('RGBA')
-            fw=formation['frameWidth'];fh=formation['frameHeight'];columns=formation['columns']
-            footprint=Image.new('L',(fw,fh))
-            for view in range(formation['frames']):
-                vx=view%columns*fw;vy=view//columns*fh
-                alpha=sprite.crop((vx,vy,vx+fw,vy+fh)).getchannel('A')
-                footprint=Image.fromarray(np.maximum(np.asarray(footprint),np.asarray(alpha)))
+            from formation_frames import footprint as formation_footprint
+            footprint=formation_footprint(formation)
             matte=Image.new('L',(2048,1152));matte.paste(footprint,(formation['x'],formation['y']))
             occupied=np.maximum(occupied,np.asarray(matte,dtype=float)/255)
         im=Image.fromarray(np.uint8(np.asarray(im)*(1-occupied)))

@@ -11,7 +11,7 @@ def angles():
     for i in range(12,20):values.add((i+.5)*5.625)
     for i in range(14,18):
         values.update([(i+.25)*5.625,(i+.75)*5.625])
-    values.update([87.890625,89.296875,90.703125,92.109375])
+    values.update([85.078125,86.484375,87.890625,89.296875,90.703125,92.109375,93.515625,94.921875])
     return sorted(values)
 def build():
     path=ROOT/'roku/scenes/species.json';data=json.loads(path.read_text())
@@ -34,7 +34,7 @@ def build():
         sp.update(frames=frames,width=atlas.width,height=atlas.height,bodyYawCount=len(frames),bodyAngles=[math.radians(a)for a in all_angles],bodyViewWidths=[max(1,f['w']-4)for f in frames])
         raw=ROOT/'work/fish-raw';raw.mkdir(parents=True,exist_ok=True);atlas.save(raw/(name+'-atlas.png'))
         (ROOT/'roku/images'/(name+'-atlas.png')).unlink(missing_ok=True)
-        compact=imagequant.quantize_pil_image(atlas,max_colors=144,dithering_level=0,max_quality=95)
+        compact=imagequant.quantize_pil_image(atlas,max_colors=80 if name in ['green_chromis','royal_gramma']else 96,dithering_level=0,max_quality=95)
         compact.convert('RGBA').save(ROOT/'roku'/sp['image'][5:],lossless=True,method=6,exact=True)
         for o in [vao,vb,ib,tex,fbo]:o.release()
         print(name,len(frames),'body slots /',len(unique),'unique head-on-refined views',flush=True)

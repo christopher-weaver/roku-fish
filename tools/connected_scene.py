@@ -85,6 +85,6 @@ def build(splash):
     for name,z,half,x,y,im,rendered in make_layers():preview.alpha_composite(im,(x,y))
     for name,size in [('icon-fhd',(540,405)),('icon-hd',(290,218)),('icon-sd',(214,144)),('splash-fhd',(1920,1080)),('splash-hd',(1280,720)),('splash-sd',(720,480))]:
         picture=preview.convert('RGB').resize(size,Image.Resampling.LANCZOS)if name.startswith('icon')else splash(size)
-        picture.save(OUT/(name+'.jpg'),quality=78 if name.startswith('icon')else 66,optimize=True)
+        picture.save(OUT/(name+'.jpg'),quality=78 if name.startswith('icon')else 60,optimize=True)
     print('Connected reef, true 3D fan/anemone and layout-matched backgrounds built',flush=True)
 if __name__=='__main__':guide()

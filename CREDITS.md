@@ -47,3 +47,7 @@ Version 1.0.8 uses a newly generated connected reef and matched empty background
 ### Four additional fish (1.0.9)
 
 Regal blue tang, copperband butterflyfish, Banggai cardinalfish and mandarin dragonet portraits were generated for this project, using the existing photographic sheet as a style reference. Original sheet, extracted PNGs, extraction script and full provenance are included. The new original art follows the project's CC0 dedication. The original six fish portraits retain their existing MIT attribution.
+
+### Tunnel eel and cellular wave shadow (1.0.11)
+
+The slightly zany honeycomb moray portrait was generated for this project; the unmodified transparent source and generation notes are included. The cave matte and seamless wave-net animation are original procedural derivatives/art. These additions follow the project's CC0 art dedication. Marine motion uses the existing licensed/attributed meshes and textures.

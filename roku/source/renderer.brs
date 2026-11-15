@@ -151,6 +151,32 @@ sub ReefDrawSandShadows(r as object, s as object, a as object)
     end for
 end sub
 
+sub ReefDrawEel(r as object,s as object,a as object)
+    if a.eel=invalid then return
+    ReefDraw(r,715-s.camera,808-36,1,1,a.cave,&hFFFFFFFF)
+    if r.eelPose=invalid then r.eelPose={}
+    pose=ReefEelPose(s.displayTime,r.eelPose)
+    ReefDrawFishRegion(r,pose.x-s.camera,pose.y-36,1#,1#,pose.angle,a.eel,&hFFFFFFFF)
+    ' Restore the plate below the tunnel before any fish or coral is painted.
+    ReefDraw(r,680-s.camera,907-36,1,1,a.eelErase,&hFFFFFFFF)
+end sub
+
+sub ReefDrawWaveNet(r as object,s as object,a as object)
+    if a.netShadows=invalid then return
+    if a.netShadows.Count()=0 then return
+    wave=ReefSurface(s.displayTime)
+    for pass=0 to 1
+        weight=1-wave.blend : index=wave.first
+        if pass=1 then weight=wave.blend : index=wave.second
+        tint=ReefRGBA(255,255,255,Int(weight*255*(.35+.65*s.lighting[0])))
+        for row=0 to 2
+            for col=0 to 4
+                ReefDraw(r,col*512-s.camera,row*512-36,4,4,a.netShadows[index],tint)
+            end for
+        end for
+    end for
+end sub
+
 sub ReefRender(r as object, s as object, a as object)
     screen = r.screen
     r.canvasOffset = 0#
@@ -159,6 +185,7 @@ sub ReefRender(r as object, s as object, a as object)
     screen.Clear(&h182A42FF)
     ReefDraw(r, -s.camera, -36, 1, 1, a.plate, &hFFFFFFFF)
     screen.SetAlphaEnable(true)
+    ReefDrawEel(r,s,a)
     ' Stable insertion sort of references, not copied fish. Persistent list has bounded length.
     if s.sorted = invalid then s.sorted = []
     s.sorted.Clear()
@@ -188,20 +215,9 @@ sub ReefRender(r as object, s as object, a as object)
             ReefDrawFish(r, s, a, s.sorted[i]) : i = i + 1
         end while
         offset = 64 + (s.camera - 64) * formation.parallax
-        marineView=Int(ReefClamp((s.camera-8)/112#,0#,1#)*(formation.frames-1)+0.5)
-        if formation.motion<>invalid and a.marineBands<>invalid
-            bands=a.marineBands[formationIndex][marineView]
-            bandHeight=a.marineBandHeights[formationIndex]
-            if r.marineWarp=invalid then r.marineWarp={}
-            for bandIndex=0 to bands.Count()-1
-                bandY=bandIndex*bandHeight
-                height=ReefMin(bandHeight,formation.frameHeight-bandY)
-                warp=ReefMarineBand(s.displayTime,formation,bandY,height,r.marineWarp)
-                ReefDrawFishRegion(r,formation.x-offset+formation.frameWidth/2#+warp.dx,formation.y-36+bandY+warp.dy,warp.sx,warp.sy,0#,bands[bandIndex],reefTint)
-            end for
-        else
-            ReefDraw(r,formation.x-offset,formation.y-36,1,1,a.formations[formationIndex][marineView],reefTint)
-        end if
+        marineView=0
+        if formation.animation<>invalid then marineView=ReefMarineFrame(s.displayTime,formation)
+        ReefDraw(r,formation.x-offset,formation.y-36,formation.width/formation.frameWidth,formation.height/formation.frameHeight,a.formations[formationIndex][marineView],reefTint)
     end for
     ReefDrawCaustics(r, s, a)
     ReefDrawSandShadows(r, s, a)
@@ -213,6 +229,7 @@ sub ReefRender(r as object, s as object, a as object)
         ReefDraw(r, 150 + k * 590 + Sin(s.displayTime * 0.07 + k) * 24 - s.camera * 0.25, -70, 2.0, 1.8, a.ray, ReefRGBA(255, 223, 210, Int((65 + 18 * Sin(s.displayTime * 0.13 + k)) * s.lighting[0])))
     end for
     ReefDrawSurface(r, s, a)
+    ReefDrawWaveNet(r,s,a)
     if s.lighting[2] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(8, 16, 57, Int(s.lighting[2])))
     if s.lighting[3] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(241, 105, 108, Int(s.lighting[3])))
     if r.output<>invalid then ReefPresent(r,s)

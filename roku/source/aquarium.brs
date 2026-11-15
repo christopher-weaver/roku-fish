@@ -43,6 +43,9 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
             f.finRate = ReefRange(s, 0.85, 1.15)
             ReefSafeSpawn(s, f)
             if ReefFishSafeSpawn(s, f)
+                f.homeZ=f.z
+                f.heading=ReefRange(s,-.16,.16)
+                if f.x>1024 then f.heading=f.heading+3.141592654#
                 ReefChooseTarget(s, f)
                 ReefSavePose(f)
                 s.fish.Push(f)

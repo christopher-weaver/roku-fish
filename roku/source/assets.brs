@@ -9,7 +9,8 @@ function ReefLoadAssets(s as object) as object
     warm = s.settings.lighting = "Sunset"
     plate = "water-day.webp"
     if warm then plate = "water-sunset.webp"
-    a = { plate: ReefLayer(ReefBitmap("pkg:/images/" + plate)), formations: [], marineBands: [], marineBandHeights: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
+    water=ReefBitmap("pkg:/images/"+plate)
+    a = { plate: ReefLayer(water), formations: [], netShadows: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
     surface = ReefBitmap("pkg:/images/surface-waves.png")
     shadow = ReefBitmap("pkg:/images/sand-wave-shadows.png")
@@ -32,27 +33,36 @@ function ReefLoadAssets(s as object) as object
     end if
     for index = 0 to s.cfg.formations.Count() - 1
         cfg = s.cfg.formations[index]
-        bitmap=ReefBitmap(cfg.image) : views=[]
-        for view=0 to cfg.frames-1
-            views.Push(ReefLayer(bitmap,(view mod cfg.columns)*cfg.frameWidth,Int(view/cfg.columns)*cfg.frameHeight,cfg.frameWidth,cfg.frameHeight))
-        end for
-        a.formations.Push(views)
-        bands=[] : bandHeight=8
-        if cfg.motion<>invalid
-            bandHeight=cfg.motion.bandHeight
-            if s.settings.quality="Performance" then bandHeight=bandHeight*2
+        views=[] : pages=[]
+        if cfg.animation<>invalid
+            for pageIndex=0 to cfg.images.Count()-1
+                pages.Push(ReefBitmap(cfg.images[pageIndex]))
+            end for
+            for pose=0 to cfg.frames-1
+                pageIndex=Int(pose/cfg.animation.framesPerPage)
+                local=pose mod cfg.animation.framesPerPage
+                x=cfg.animation.gutter+(local mod cfg.columns)*cfg.animation.strideX
+                y=cfg.animation.gutter+Int(local/cfg.columns)*cfg.animation.strideY
+                views.Push(ReefLayer(pages[pageIndex],x,y,cfg.frameWidth,cfg.frameHeight))
+            end for
+        else
+            bitmap=ReefBitmap(cfg.image)
             for view=0 to cfg.frames-1
-                metadata=[] : bandY=0
-                while bandY<cfg.frameHeight
-                    height=Int(ReefMin(bandHeight,cfg.frameHeight-bandY))
-                    metadata.Push({x:(view mod cfg.columns)*cfg.frameWidth,y:Int(view/cfg.columns)*cfg.frameHeight+bandY,w:cfg.frameWidth,h:height,anchorX:cfg.frameWidth/2#,anchorY:0#})
-                    bandY=bandY+height
-                end while
-                bands.Push(ReefFishFrames(bitmap,metadata,s.settings.quality))
+                views.Push(ReefLayer(bitmap,(view mod cfg.columns)*cfg.frameWidth,Int(view/cfg.columns)*cfg.frameHeight,cfg.frameWidth,cfg.frameHeight))
             end for
         end if
-        a.marineBands.Push(bands) : a.marineBandHeights.Push(bandHeight)
+        a.formations.Push(views)
     end for
+    eel=ReefBitmap("pkg:/images/cave-eel.webp")
+    if eel<>invalid then a.eel=ReefFishFrames(eel,[{x:0,y:0,w:114,h:140,anchorX:57,anchorY:140}],s.settings.quality)[0]
+    a.cave=ReefLayer(ReefBitmap("pkg:/images/cave-interior.png"))
+    a.eelErase=ReefLayer(water,680,907,190,245)
+    net=ReefBitmap("pkg:/images/wave-net.webp")
+    if net<>invalid
+        for i=0 to 31
+            a.netShadows.Push(ReefLayer(net,(i mod 8)*132+2,Int(i/8)*132+2,128,128))
+        end for
+    end if
     ' Load only the unique species present at this density.
     for fishIndex=0 to s.fish.Count()-1
         name=s.fish[fishIndex].name

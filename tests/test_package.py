@@ -64,12 +64,27 @@ class PackageChecks(unittest.TestCase):
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
         for sp in species.values():
             angles=sp['bodyAngles'];self.assertEqual(angles,sorted(set(angles)))
-            self.assertEqual(sp['bodyYawCount'],104)
+            self.assertEqual(sp['bodyYawCount'],112)
             frontal=[a for a in angles if math.radians(78.75)-1e-7<=a<=math.radians(101.25)+1e-7]
-            self.assertEqual(len(frontal),21)
+            self.assertEqual(len(frontal),25)
             self.assertLessEqual(max(b-a for a,b in zip(frontal,frontal[1:])),math.radians(1.40625)+1e-8)
         tank=json.loads((ROOT/'roku/scenes/tank.json').read_text())
-        self.assertEqual({f['id']for f in tank['formations']if 'motion'in f},{'sea-fan','sea-anemone'})
+        self.assertEqual({f['id']for f in tank['formations']if 'animation'in f},{'sea-fan','sea-anemone'})
+    def test_coherent_marine_frames_and_cave_net(self):
+        from PIL import Image,ImageChops
+        from formation_frames import frame
+        tank=json.loads((ROOT/'roku/scenes/tank.json').read_text())
+        for f in tank['formations']:
+            if 'animation'in f:
+                self.assertEqual(f['animation']['count'],65)
+                self.assertIsNotNone(ImageChops.difference(frame(f,0),frame(f,64)).getbbox())
+        runtime=(ROOT/'roku/source/renderer.brs').read_text()
+        self.assertNotIn('ReefMarineBand',runtime)
+        self.assertNotIn('marineBands',runtime)
+        self.assertEqual(Image.open(ROOT/'roku/images/cave-eel.webp').size,(114,140))
+        net=Image.open(ROOT/'roku/images/wave-net.webp').convert('RGBA')
+        self.assertEqual(net.size,(1056,528));self.assertGreater(net.getchannel('A').getextrema()[1],40)
+        self.assertEqual(tank['camera']['Slow']['period'],180)
     def test_occlusion_masks_have_alpha(self):
         from PIL import Image
         for formation in json.loads((ROOT/'roku/scenes/tank.json').read_text())['formations']:
@@ -163,7 +178,8 @@ class PackageChecks(unittest.TestCase):
         self.assertGreater(statistics.mean(center.getdata()),100,'Reference reef must fill its connected middle')
         cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
         for layer in cfg['formations']:
-            self.assertEqual(Image.open(ROOT/'roku'/layer['image'][5:]).size,(layer['frameWidth']*layer['columns'],layer['frameHeight']*((layer['frames']+layer['columns']-1)//layer['columns'])))
+            from formation_frames import frame
+            for i in range(layer['frames']):self.assertEqual(frame(layer,i).size,(layer['frameWidth'],layer['frameHeight']))
             self.assertLessEqual(layer['x']+layer['width'],2048)
             self.assertLessEqual(layer['y']+layer['height'],1152)
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
@@ -208,7 +224,7 @@ class PackageChecks(unittest.TestCase):
             self.assertEqual(sp['yawCount'],64)
             self.assertEqual(len(sp['viewWidths']),64)
             self.assertFalse(any(f['flipX']for f in sp['frames']))
-            self.assertEqual(len({(f['x'],f['y'])for f in sp['frames']}),53)
+            self.assertEqual(len({(f['x'],f['y'])for f in sp['frames']}),57)
             self.assertEqual(sp['poseCount'],1)
             self.assertEqual(sp['tailPoseCount'],4)
             self.assertEqual(sp['finPoseCount'],5)
@@ -222,7 +238,7 @@ class PackageChecks(unittest.TestCase):
         cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
         self.assertEqual({f['id']for f in cfg['formations']if f['renderedMesh']},{'sea-fan','sea-anemone'})
         for f in cfg['formations']:
-            self.assertEqual(f['frames'],7 if f['renderedMesh'] else 1)
+            self.assertEqual(f['frames'],65 if f['renderedMesh'] else 1)
             if f['renderedMesh']:
                 self.assertGreater(f['meshVertices'],10000)
                 mesh_path=ROOT/'assets/source/marine-renders'/(f['id']+'-volume.npz')
@@ -237,17 +253,13 @@ class PackageChecks(unittest.TestCase):
         cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
         union=np.zeros((1152,2048),dtype=np.uint8)
         for f in cfg['formations']:
-            image=Image.open(ROOT/'roku'/f['image'][5:]).convert('RGBA')
-            footprint=Image.new('L',(f['frameWidth'],f['frameHeight']))
-            for view in range(f['frames']):
-                vx=view%f['columns']*f['frameWidth'];vy=view//f['columns']*f['frameHeight']
-                part=image.crop((vx,vy,vx+f['frameWidth'],vy+f['frameHeight'])).getchannel('A')
-                footprint=Image.fromarray(np.maximum(np.asarray(footprint),np.asarray(part)))
+            from formation_frames import footprint as formation_footprint
+            footprint=formation_footprint(f)
             canvas=Image.new('L',(2048,1152));canvas.paste(footprint,(f['x'],f['y']))
             union=np.maximum(union,np.asarray(canvas))
             if f['renderedMesh']:self.assertLessEqual(abs(f.get('rootY',f['y']+f['height'])-cfg['baseline']),cfg['baselineTolerance'])
             self.assertEqual(f['parallax'],1)
-            self.assertEqual((f['width'],f['height']),(f['frameWidth'],f['frameHeight']))
+            self.assertEqual(footprint.size,(f['width'],f['height']))
         # Every interior column intersects the touching low rock foundation.
         self.assertTrue((union[995:1056,32:2000]>32).any(axis=0).all())
         from scipy.ndimage import label
