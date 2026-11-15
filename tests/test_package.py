@@ -81,7 +81,7 @@ class PackageChecks(unittest.TestCase):
         runtime=(ROOT/'roku/source/renderer.brs').read_text()
         self.assertNotIn('ReefMarineBand',runtime)
         self.assertNotIn('marineBands',runtime)
-        eel=json.loads((ROOT/'roku/scenes/eel.json').read_text());self.assertEqual(eel['count'],25)
+        eel=json.loads((ROOT/'roku/scenes/eel.json').read_text());self.assertEqual(eel['count'],65)
         self.assertFalse((ROOT/'roku/images/wave-net.webp').exists())
         self.assertTrue(all(f['renderedMesh']for f in tank['formations']))
         self.assertEqual(tank['camera']['Slow']['period'],180)

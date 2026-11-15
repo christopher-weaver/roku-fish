@@ -14,7 +14,7 @@ FS='''#version 330
 uniform sampler2D photo;uniform float wall;in vec2 texuv;in vec3 n;in vec3 world;out vec4 color;
 void main(){vec4 c=texture(photo,texuv);if(wall<.5&&c.a<.025)discard;
 float light=.82+.18*max(0.0,dot(normalize(n),normalize(vec3(-.35,-.65,1))));
-if(wall>.5){float grain=sin(world.x*.23+sin(world.y*.31))*sin(world.y*.17);c=vec4(c.rgb*.82+grain*.015,1);light=.42+.28*max(0.0,dot(normalize(n),normalize(vec3(-.35,-.65,1))));}
+if(wall>.5){float grain=sin(world.x*.23+sin(world.y*.31))*sin(world.y*.17);c=vec4(c.rgb*.82+grain*.015,1);light=(.42+.28*max(0.0,dot(normalize(n),normalize(vec3(-.35,-.65,1)))))*clamp((world.z+215.0)/305.0,.12,1.0);}
 color=vec4(c.rgb*light,c.a);}'''
 
 def volume(mask,depth):
@@ -59,18 +59,9 @@ def tunnel():
    x=int(round(cx+r*dx));y=int(round(cy+r*dy))
    if alpha[y,x]>245:sample=r;break
   sample_uv.append(((cx+sample*dx)/W,1-(cy+sample*dy)/H))
- for ring in range(2):
-  for i,radius in enumerate(radii):
-   angle=i*2*math.pi/n;scale=1 if ring==0 else .67
-   vertices.append((cx+ring*5+radius*scale*math.cos(angle),cy-ring*6+radius*scale*math.sin(angle),90-ring*82))
- for i in range(n):j=(i+1)%n;faces.extend([(i,j,n+j),(i,n+j,n+i)])
- v=np.array(vertices,dtype='f4');f=np.array(faces,dtype='i4');norm=np.zeros_like(v)
- for tri in f:
-  a,b,c=v[tri];q=np.cross(b-a,c-a)
-  for i in tri:norm[i]+=q
- norm/=np.maximum(np.linalg.norm(norm,axis=1)[:,None],1e-6)
- uv=np.array(sample_uv+sample_uv,dtype='f4')
- return v,uv,norm,f
+ front=np.array([(cx+r*math.cos(i*2*math.pi/n),cy+r*math.sin(i*2*math.pi/n),90)for i,r in enumerate(radii)],dtype='f4')
+ from cave_geometry import chamber
+ return chamber(front,np.array(sample_uv,dtype='f4'))
 
 def build():
  from connected_scene import source_reef,marine
@@ -102,7 +93,7 @@ def build():
    if not occupied.any():continue
    v,uv,n,f=volume(occupied,depth);key=name+'-'+layer;np.savez_compressed(folder/(key+'.npz'),vertices=v,uv=uv,normals=n,faces=f)
    meshes.append((key,layer,v,uv,n,f,False));record['objects'].append({'name':key,'group':name,'layer':layer,'vertices':len(v),'triangles':len(f),'file':key+'.npz','closed':True})
- v,uv,n,f=tunnel();np.savez_compressed(folder/'hollow-tunnel.npz',vertices=v,uv=uv,normals=n,faces=f);meshes.append(('hollow-tunnel','connected-reef',v,uv,n,f,True));record['objects'].append({'name':'hollow-tunnel','group':'hollow-tunnel','layer':'connected-reef','vertices':len(v),'triangles':len(f),'file':'hollow-tunnel.npz','closed':False,'type':'open-ended hollow bore'})
+ v,uv,n,f=tunnel();np.savez_compressed(folder/'hollow-tunnel.npz',vertices=v,uv=uv,normals=n,faces=f);meshes.append(('hollow-tunnel','connected-reef',v,uv,n,f,True));record['objects'].append({'name':'hollow-tunnel','group':'hollow-tunnel','layer':'connected-reef','vertices':len(v),'triangles':len(f),'file':'hollow-tunnel.npz','closed':False,'type':'bending blind cave with five depth rings and rear wall'})
  ctx=moderngl.create_standalone_context(backend='egl');p=ctx.program(vertex_shader=VS,fragment_shader=FS);p['canvas'].value=(W,H);ctx.enable(moderngl.DEPTH_TEST)
  tex=ctx.texture(photo.size,4,photo.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());tex.filter=(moderngl.LINEAR,moderngl.LINEAR);tex.use();fbo=ctx.simple_framebuffer((W,H),components=4);fbo.use()
  cfgpath=ROOT/'roku/scenes/tank.json';cfg=json.loads(cfgpath.read_text())
@@ -116,6 +107,6 @@ def build():
    if formation['id']==layer:
     formation.update(x=box[0],y=box[1],width=part.width,height=part.height,frameWidth=part.width,frameHeight=part.height,renderedMesh=True,meshVertices=sum(len(m[2])for m in members),meshTriangles=sum(len(m[5])for m in members),meshObjects=[m[0]for m in members]);formation.pop('images',None)
   print(layer,len(members),'closed/structural 3D objects',part.size,flush=True)
- cfg['notes']='All coral/live-rock groups have actual closed UV-textured meshes; hollow tunnel bore and procedurally modeled articulated moray. Offline rendering preserves native Roku draw performance.'
+ cfg['notes']='All coral/live-rock groups have actual closed UV-textured meshes; bending blind cave, closed rear wall and pinned articulated moray. Offline rendering preserves native Roku draw performance.'
  cfgpath.write_text(json.dumps(cfg,indent=2)+'\n');(folder/'model.json').write_text(json.dumps(record,indent=2)+'\n')
 if __name__=='__main__':build()

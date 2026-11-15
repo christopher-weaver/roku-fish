@@ -36,18 +36,23 @@ for name,ox,oy,width,height,base_z in [('sea-fan',80,430,600,565,-45),('sea-anem
  layer=mesh.uv_layers.new(name='volume UV')
  for loop in mesh.loops:layer.data[loop.index].uv=uv[loop.vertex_index]
  for polygon in mesh.polygons:polygon.use_smooth=True
-# Append the actual articulated animal and place it inside the modeled bore.
-eel_path=ROOT/'assets/source/eel-model/zany-moray.blend'
-if eel_path.exists():
- with bpy.data.libraries.load(str(eel_path),link=False)as (src,dst):dst.objects=[name for name in src.objects if name not in ['portrait render camera','warm key','cool fill','rim']]
- assembly=bpy.data.objects.new('tunnel moray assembly',None);scene.collection.objects.link(assembly);assembly.rotation_euler.x=-1.57079632679;assembly.scale=(80,80,80)
- for o in dst.objects:
-  if o is not None:
-   scene.collection.objects.link(o)
-   if o.parent is None:o.parent=assembly
- for frame,position in [(1,(773,-886,-30)),(13,(773,-864,55)),(25,(773,-886,-30))]:
-  assembly.location=position;assembly.keyframe_insert('location',frame=frame)
- scene.frame_start=1;scene.frame_end=25;scene.frame_set(13)
+# Use exactly the same pinned animal poses and cave coordinates as the render.
+import sys
+sys.path.insert(0,str(ROOT/'tools'))
+from cave_geometry import animal,COUNT
+v,n,faces,kind=animal(0)
+v[:,1]*=-1
+mesh=bpy.data.meshes.new('moray shared cave geometry');mesh.from_pydata(v.tolist(),[],faces[:,::-1].tolist());mesh.update()
+o=bpy.data.objects.new('moray anchored inside blind cave',mesh);scene.collection.objects.link(o)
+for name,color in [('gold honeycomb skin',(.39,.30,.10)),('eyeball',(.82,.73,.40)),('iris',(.44,.19,.035)),('pupil and mouth',(.018,.012,.016)),('teeth',(.83,.79,.60))]:
+ m=bpy.data.materials.new(name);m.diffuse_color=(*color,1);m.use_nodes=True;m.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value=(*color,1);o.data.materials.append(m)
+for polygon in mesh.polygons:polygon.use_smooth=True;polygon.material_index=int(kind[polygon.vertices[0]])
+o.shape_key_add(name='Basis')
+for index in range(COUNT):
+ v,_,_,_=animal(index/(COUNT-1));v[:,1]*=-1;key=o.shape_key_add(name='cave emergence %02d'%index)
+ key.data.foreach_set('co',v.ravel());key.value=0;key.keyframe_insert('value',frame=max(0,index));key.value=1;key.keyframe_insert('value',frame=index+1);key.value=0;key.keyframe_insert('value',frame=index+2)
+o['pinned_rear_attachment']=[824,-850,-158];o['shared_cave_depth_test']=True
+scene.frame_start=1;scene.frame_end=COUNT;scene.frame_set(49)
 bpy.ops.object.camera_add(location=(1024,-576,3000));camera=bpy.context.object;camera.rotation_euler=(0,0,0);camera.data.type='ORTHO';camera.data.ortho_scale=2048;scene.camera=camera
 bpy.ops.object.light_add(type='AREA',location=(200,200,1800));light=bpy.context.object;light.data.energy=1200000;light.data.size=1800;light.rotation_euler=(Vector((1024,-576,0))-light.location).to_track_quat('-Z','Y').to_euler()
 scene.world.color=(.25,.25,.25);bpy.ops.wm.save_as_mainfile(filepath=str(folder/'reef-scene.blend'),compress=True)

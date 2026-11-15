@@ -167,11 +167,11 @@
       "name": "hollow-tunnel",
       "group": "hollow-tunnel",
       "layer": "connected-reef",
-      "vertices": 384,
-      "triangles": 384,
+      "vertices": 961,
+      "triangles": 1728,
       "file": "hollow-tunnel.npz",
       "closed": false,
-      "type": "open-ended hollow bore"
+      "type": "bending blind cave with five depth rings and rear wall"
     }
   ]
 }

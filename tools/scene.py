@@ -105,6 +105,19 @@ def build_navigation(occ):
     def blocked(a,b):
         for sp in species.values():
             radius=sp['bodyThickness']*sp['length']*1.12/1728+.012
+            scale=(.70+.30*max(a[2],b[2]))*sp['length']/sp['renderLength']*1.12
+            for volume in occ.get('volumes',[]):
+                extent=[volume['halfWidth']+(sp['collisionHalfWidth']+sp['collisionHalfHeight']*.22)*scale+30,
+                        volume['halfHeight']+(sp['collisionHalfHeight']+sp['collisionHalfWidth']*.22)*scale+16,
+                        volume['halfDepth']+radius]
+                enter,leave=0.,1.
+                for axis,key in enumerate(['x','y','z']):
+                    delta=b[axis]-a[axis];lo=volume[key]-extent[axis];hi=volume[key]+extent[axis]
+                    if abs(delta)<1e-9:
+                        if not lo<=a[axis]<=hi:enter=2
+                    else:
+                        t0,t1=sorted([(lo-a[axis])/delta,(hi-a[axis])/delta]);enter=max(enter,t0);leave=min(leave,t1)
+                if enter<=leave:return True
             for plane,mask in zip(occ['planes'],masks):
                 if max(a[2],b[2])+radius<plane['z']-plane['halfDepth'] or min(a[2],b[2])-radius>plane['z']+plane['halfDepth']:continue
                 scale=(.70+.30*max(a[2],b[2]))*sp['length']/sp['renderLength']*1.12

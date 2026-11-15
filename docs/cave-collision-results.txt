@@ -1,0 +1,1 @@
+PASS cave interior, forward/reverse swept entry, depth entry and safe spawn blocked for  10  fish; clear front/rear lanes preserved

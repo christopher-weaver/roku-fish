@@ -29,5 +29,6 @@ def reserve_navigation():
   grid=(alpha.reshape(144,8,256,8)>31).any(axis=(1,3))
   if 'animation'in f:grid=maximum_filter(grid,size=3)
   union|=grid;planes.append(dict(id=f['id'],z=f['z'],halfDepth=f['halfDepth'],parallax=f['parallax'],rows=[''.join('#'if v else'.'for v in row)for row in grid]))
- occ={'cell':8,'rows':[''.join('#'if v else'.'for v in row)for row in union],'planes':planes};p.write_text(json.dumps(occ,separators=(',',':')));scene.build_navigation(occ)
+ from cave_geometry import EXCLUSION
+ occ={'volumes':[EXCLUSION],'cell':8,'rows':[''.join('#'if v else'.'for v in row)for row in union],'planes':planes};p.write_text(json.dumps(occ,separators=(',',':')));scene.build_navigation(occ)
 if __name__=='__main__':reserve_navigation()

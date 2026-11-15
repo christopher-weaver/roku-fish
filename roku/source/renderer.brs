@@ -49,7 +49,7 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     red = Int(255-haze*65) : green = Int(247-haze*32) : blue = 255
     if s.settings.lighting = "Sunset" then red=255 : green=Int(239-haze*25) : blue=Int(240-haze*10)
     light=ReefSurfaceShade(pose.x,pose.y+(1-pose.z)*30+36,s.displayTime)
-    light=1#-(1#-light)*(.35+.65*s.lighting[0])
+    light=1#-(1#-light)*.30*(.35+.65*s.lighting[0])
     red=Int(red*light) : green=Int(green*light) : blue=Int(blue*light)
     angle = pose.pitch*57.29578
     if Cos(pose.heading)<0 then angle=0#-angle
@@ -155,17 +155,12 @@ sub ReefDrawSandShadows(r as object, s as object, a as object)
 end sub
 
 sub ReefDrawEel(r as object,s as object,a as object)
-    if a.eel=invalid and a.eels=invalid then return
-    ReefDraw(r,715-s.camera,808-36,1,1,a.cave,&hFFFFFFFF)
-    if r.eelPose=invalid then r.eelPose={}
-    pose=ReefEelPose(s.displayTime,r.eelPose)
-    sprite=a.eel
-    if a.eels<>invalid then sprite=a.eels[ReefEelFrame(s.displayTime)]
-    shade=ReefSurfaceShade(pose.x,840#,s.displayTime)
-    light=Int(255*(1#-(1#-shade)*(.35+.65*s.lighting[0])))
-    ReefDrawFishRegion(r,pose.x-s.camera,pose.y-36,1#,1#,pose.angle,sprite,ReefRGBA(light,light,light,255))
-    ' Restore the plate below the tunnel before any fish or coral is painted.
-    ReefDraw(r,680-s.camera,907-36,1,1,a.eelErase,&hFFFFFFFF)
+    if a.eels=invalid then return
+    cfg=a.eelConfig
+    shade=ReefSurfaceShade(773#,858#,s.displayTime)
+    light=Int(255*(1#-(1#-shade)*.30*(.35+.65*s.lighting[0])))
+    ' Cave walls, closed rear chamber, and the animal were depth-tested together.
+    ReefDrawFishRegion(r,cfg.x-s.camera,cfg.y-36,1#,1#,0#,a.eels[ReefEelFrame(s.displayTime)],ReefRGBA(light,light,light,255))
 end sub
 
 sub ReefDrawSurfaceShadow(r as object,s as object,a as object,index as integer,formation as object)
@@ -187,7 +182,6 @@ sub ReefRender(r as object, s as object, a as object)
     screen.Clear(&h182A42FF)
     ReefDraw(r, -s.camera, -36, 1, 1, a.plate, &hFFFFFFFF)
     screen.SetAlphaEnable(true)
-    ReefDrawEel(r,s,a)
     ' Stable insertion sort of references, not copied fish. Persistent list has bounded length.
     if s.sorted = invalid then s.sorted = []
     s.sorted.Clear()
@@ -228,6 +222,7 @@ sub ReefRender(r as object, s as object, a as object)
         tint=ReefRGBA(Int(red*light),Int(green*light),Int(blue*light),255)
         ReefDraw(r,formation.x-offset,formation.y-36,formation.width/formation.frameWidth,formation.height/formation.frameHeight,a.formations[formationIndex][marineView],tint)
         ReefDrawSurfaceShadow(r,s,a,formationIndex,formation)
+        if formation.id="connected-reef" then ReefDrawEel(r,s,a)
     end for
     ReefDrawCaustics(r, s, a)
     ReefDrawSandShadows(r, s, a)

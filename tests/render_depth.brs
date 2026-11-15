@@ -7,7 +7,10 @@ sub Main()
         s.fish.Pop()
     end while
     depths=[0.16,0.55,0.94]
-    a={plate:{normal:"water"},fish:{},fins:{},tails:{},formations:[],surfaceShadows:[],eel:{normal:"eel"},cave:{normal:"cave"},eelErase:{normal:"erase"},surface:[],caustics:[],ray:{normal:"ray"}}
+    a={plate:{normal:"water"},fish:{},fins:{},tails:{},formations:[],surfaceShadows:[],eels:[],eelConfig:{x:686,y:766},surface:[],caustics:[],ray:{normal:"ray"}}
+    for poseIndex=0 to 64
+        a.eels.Push({normal:"eel"})
+    end for
     for i=0 to 2
         f=s.fish[i] : f.z=depths[i] : f.x=900# : f.y=400# : f.heading=3.14 : f.phase=0# : f.finPhase=0.3
         ReefSavePose(f)
@@ -63,7 +66,7 @@ sub Main()
     if count.DoesExist("net") then print "FAIL water darkening overlay" : return
     if count["shadow:connected-reef"]<>2 or count["shadow:foreground-reef"]<>2 then print "FAIL surface shadow drawing" : return
     if order["shadow:connected-reef"]>=order["body:"+s.fish[1].name] then print "FAIL surface/actor shadow order" : return
-    if order["eel"]>=order["reef:connected-reef"] then print "FAIL eel tunnel occlusion" : return
+    if order["eel"]<=order["shadow:connected-reef"] or order["eel"]>=order["body:"+s.fish[1].name] then print "FAIL joint cave actor depth order" : return
     if blends<>0 or reflected<>0 then print "FAIL blend alpha or reflection ";blends;reflected : return
     print "PASS production renderer interleaves rear, middle and front fish with connected reef layers and rendered marine life; exactly one opaque body, one separate tail and one fin per fish, positive scales only"
 end sub

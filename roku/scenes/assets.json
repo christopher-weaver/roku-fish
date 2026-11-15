@@ -35,14 +35,9 @@
     "sha256": "2f3bc18003784ea41a160890b0fc1cc63cc88d2d6f3230c5390576993e3cc6a0"
   },
   "cave-eel-3d.webp": {
-    "width": 944,
-    "height": 576,
-    "sha256": "642bf4f36d80c826624f0cdda244a316c1d0d2963029f1fdbee950645e4a2310"
-  },
-  "cave-interior.png": {
-    "width": 116,
-    "height": 99,
-    "sha256": "f8945179d7d8e359b2cbf3e566f5b7021da72fa0b3d9e014ba863acacb5d2b1c"
+    "width": 1056,
+    "height": 990,
+    "sha256": "327896f111c50023de93f3519c32273c994b8283f78f352646423011aad1701f"
   },
   "copperband_butterflyfish-atlas.webp": {
     "width": 1024,
@@ -162,7 +157,7 @@
   "reef-connected-reef.webp": {
     "width": 2038,
     "height": 825,
-    "sha256": "89a6208b62329fdef2d108d09eb52fa8fc45fcd07de8c6ace4da8590131ae581"
+    "sha256": "5c258d8c3df6dd92b3dbe029b4c69fdff1cbb13b4a9abaf79595d21a9906343d"
   },
   "reef-foreground-reef.webp": {
     "width": 2037,
@@ -202,17 +197,17 @@
   "sand-wave-shadows.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "2d36a4e13abf9b6fb8decf69096c7f6c81e67aa0a71191bb5a214674e8af043f"
+    "sha256": "d752c2f4492f455ac80ee5a9c1a250a0c83458a15d7942b307b65fb2399ce325"
   },
   "shadow-connected-reef.webp": {
     "width": 1024,
     "height": 288,
-    "sha256": "240af3d73b3631bfd106dba59434d762c3fb73f071c9cd4344403a67726b59f3"
+    "sha256": "76d60d3a6e5abf4d3d232472f6a692e5248ab0c92aa98327b0def5fdd09669a7"
   },
   "shadow-foreground-reef.webp": {
     "width": 1024,
     "height": 288,
-    "sha256": "9bb9b39d8f4d55c34b227cf5f7fe4652cf76f8fbe1c883b12a90260309c66d2c"
+    "sha256": "c3542ce68d1b9174ab718abc564531192b7260d49d348a3767c06d1710bba23f"
   },
   "splash-fhd.jpg": {
     "width": 1920,

@@ -26,7 +26,7 @@
     }
   },
   "softCoral": null,
-  "notes": "All coral/live-rock groups have actual closed UV-textured meshes; hollow tunnel bore and procedurally modeled articulated moray. Offline rendering preserves native Roku draw performance.",
+  "notes": "All coral/live-rock groups have actual closed UV-textured meshes; bending blind cave, closed rear wall and pinned articulated moray. Offline rendering preserves native Roku draw performance.",
   "speciesOrder": [
     "ocellaris_clownfish",
     "yellow_tang",
@@ -90,8 +90,8 @@
       "frameWidth": 2038,
       "frameHeight": 825,
       "renderedMesh": true,
-      "meshVertices": 350438,
-      "meshTriangles": 700416,
+      "meshVertices": 351015,
+      "meshTriangles": 701760,
       "meshObjects": [
         "live-rock-foundation-connected-reef",
         "green-cup-connected-reef",

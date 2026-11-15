@@ -165,9 +165,9 @@ function ReefEelPose(time as double,result=invalid as dynamic) as object
     if t>=14# and t<20# then peek=1#
     if t>=20# and t<28# then peek=1#-ReefSmoother((t-20#)/8#)
     if result=invalid then result={}
-    result.peek=peek : result.x=773#+Sin(time*.31)*1.5*peek
-    result.y=1060#-112#*peek
-    result.angle=2.0*Sin(time*.55)*peek
+    result.peek=peek : result.x=823#-48#*peek
+    result.y=858#-6#*peek : result.z=0#-124#+244#*peek
+    result.angle=0#
     return result
 end function
 
@@ -179,10 +179,11 @@ function ReefSurfaceShade(x as double,y as double,time as double) as double
     p=ReefWrap(time,8#)*6.283185307/8#
     a=Sin(6.283185307*u+.85*Sin(6.283185307*v+p)+p)
     b=Sin(6.283185307*v+.70*Sin(6.283185307*u-p)-p)
-    alpha=60#*(.60*Exp(0#-a*a/.34)+.40*Exp(0#-b*b/.55))
+    alpha=72#*(.60*Exp(0#-a*a/.34)+.40*Exp(0#-b*b/.55))
     return 1#-alpha/255#
 end function
 
 function ReefEelFrame(time as double) as integer
-    return Int((Sin(time*.75)+1#)*12#+.5)
+    pose=ReefEelPose(time)
+    return Int(pose.peek*64#+.5)
 end function

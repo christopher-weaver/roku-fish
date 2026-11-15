@@ -46,6 +46,7 @@ end function
 ' Test the swept rectangle, not just the center at a depth-plane crossing.
 function ReefCoralBlocked(s as object, f as object, fromPose as object, toPose as object) as boolean
     if s.occupancy = invalid then return false
+    if ReefCaveBlocked(s,f,fromPose,toPose) then return true
     planes = s.occupancy.planes
     if planes = invalid then return false
     radius = f.sp.bodyThickness * f.sp.length * f.size / 1728# + 0.012
@@ -102,3 +103,36 @@ sub ReefSafeSpawn(s as object, f as object)
     end for
     f.z = chosen
 end sub
+
+' A swept body against the cave's solid reserved volume. The resident moray is
+' not in s.fish; spawning, planning and final free-swimmer guards all use this.
+function ReefCaveBlocked(s as object,f as object,a as object,b as object) as boolean
+    if s.occupancy.volumes=invalid then return false
+    scale=(.70+.30*ReefMax(a.z,b.z))*f.sp.length/f.sp.renderLength*f.size
+    hw=(f.sp.collisionHalfWidth+f.sp.collisionHalfHeight*.22)*scale+26#
+    hh=(f.sp.collisionHalfHeight+f.sp.collisionHalfWidth*.22)*scale+12#
+    depth=f.sp.bodyThickness*f.sp.length*f.size/1728#+.012
+    for volumeIndex=0 to s.occupancy.volumes.Count()-1
+        v=s.occupancy.volumes[volumeIndex]
+        possible=ReefMax(a.z,b.z)+depth>=v.z-v.halfDepth and ReefMin(a.z,b.z)-depth<=v.z+v.halfDepth
+        possible=possible and ReefMax(a.x,b.x)+hw>=v.x-v.halfWidth and ReefMin(a.x,b.x)-hw<=v.x+v.halfWidth
+        possible=possible and ReefMax(a.y,b.y)+hh>=v.y-v.halfHeight and ReefMin(a.y,b.y)-hh<=v.y+v.halfHeight
+        if possible
+            enter=0# : leave=1# : hit=true
+            for axis=0 to 2
+                start=a.x : delta=b.x-a.x : low=v.x-v.halfWidth-hw : high=v.x+v.halfWidth+hw
+                if axis=1 then start=a.y : delta=b.y-a.y : low=v.y-v.halfHeight-hh : high=v.y+v.halfHeight+hh
+                if axis=2 then start=a.z : delta=b.z-a.z : low=v.z-v.halfDepth-depth : high=v.z+v.halfDepth+depth
+                if Abs(delta)<.0000001
+                    if start<low or start>high then hit=false
+                else
+                    t0=(low-start)/delta : t1=(high-start)/delta
+                    enter=ReefMax(enter,ReefMin(t0,t1))
+                    leave=ReefMin(leave,ReefMax(t0,t1))
+                end if
+            end for
+            if hit and enter<=leave then return true
+        end if
+    end for
+    return false
+end function

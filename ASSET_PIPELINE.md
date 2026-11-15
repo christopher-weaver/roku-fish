@@ -88,3 +88,13 @@ NPZ geometry, UVs and normals are in `assets/source/reef-model/`; `save_reef_ble
 `surface_lighting.py` replaces the screen-wide net with broad, smoothly blended wave bands in a projective coordinate system. Cell size increases toward the foreground. Two compact static reef receiver atlases use conservative opaque-coverage masks; their upsampled alpha must be exactly zero outside the receiving geometry. Sand has a separate receiver mask. Thin/animated objects and fish use the same continuous wave field for material lighting. This avoids darkening open water and removes the previous tiling overlay.
 
 The complete generator now runs Blender for the eel/source scene and ModernGL for the volume renders before rebuilding masks, navigation and lighting. Checked-in runtime assets let `tools/build.py` package the screensaver with Python's standard library alone.
+
+## Shared cave scene and fish exclusion (1.0.13)
+
+`cave_geometry.py` defines the common photo-world coordinates for the five-ring bending chamber, closed rear wall, pinned moray body, moving head/jaw and reserved fish volume. The mouth is the only open mesh boundary. The rear body ring remains fixed while the head travels from Z=-124 to Z=120, through the front lip at Z=90. Original rounded head, eyes, jaw and teeth remain volumetric geometry.
+
+`cave_stage.py` renders 65 emergence states with a shared depth buffer. Surrounding reef meshes are depth holdouts: recessed body parts disappear behind the lip, while emerged parts can pass in front. The cave is rendered at the connected-reef depth, before foreground swimmers and coral. It uses neither a translated portrait nor a background repair patch. Tight shared cropping keeps the atlas within device texture limits. `pack_eel_3d.py` now invokes this joint renderer. The complete Blender reef scene contains the identical pinned body poses as editable shape keys.
+
+`formation_frames.reserve_navigation()` records the cave volume in occupancy. Runtime `ReefCaveBlocked` tests continuous swept fish envelopes against it before the coral-plane checks, including maximum pitch, fins and camera margins. The offline navigation graph reserves a slightly larger envelope. Spawns, destinations, routes and final movement guards therefore agree. The resident eel is separate from the free-swimming roster.
+
+Wave field alpha increases from 60 to 72 on ground/reef receivers; fish use 0.30 of the new field, making their modulation 0.36 of the previous release. The background-exclusion masks and soft perspective projection are preserved. This section supersedes the earlier portrait/matte and open-ended-bore workflows.

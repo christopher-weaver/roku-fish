@@ -64,8 +64,7 @@ function ReefLoadAssets(s as object) as object
     eelCfg=ParseJson(ReadAsciiFile("pkg:/scenes/eel.json"))
     eel=ReefBitmap(eelCfg.image)
     if eel<>invalid then a.eels=ReefFishFrames(eel,eelCfg.frames,s.settings.quality)
-    a.cave=ReefLayer(ReefBitmap("pkg:/images/cave-interior.png"))
-    a.eelErase=ReefLayer(water,680,907,190,245)
+    a.eelConfig=eelCfg
     ' Load only the unique species present at this density.
     for fishIndex=0 to s.fish.Count()-1
         name=s.fish[fishIndex].name

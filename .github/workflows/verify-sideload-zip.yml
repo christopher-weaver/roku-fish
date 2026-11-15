@@ -103,3 +103,10 @@ jobs:
 
       - name: Check projected surface lighting
         run: node tests/roku_runner.cjs --root roku roku/source/math.brs tests/surface_lighting.brs
+
+      - name: Check cave reservation and swept fish entry
+        run: >-
+          node tests/roku_runner.cjs --root roku
+          roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs
+          roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs
+          roku/source/effects.brs tests/cave_collision.brs

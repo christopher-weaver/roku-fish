@@ -9,7 +9,7 @@ sub Main()
             previous=a
             for tick=1 to 120
                 value=ReefSurfaceShade(x,y,.123+tick/60#)
-                if value<.76 or value>1.0001 then print "FAIL shadow strength" : return
+                if value<.717 or value>1.0001 then print "FAIL shadow strength" : return
                 if Abs(value-previous)>.02 then print "FAIL shadow time jump" : return
                 previous=value
             end for

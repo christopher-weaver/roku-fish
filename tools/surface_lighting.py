@@ -14,7 +14,7 @@ def field(x,y,time):
     u=(x-1024)/(240*depth);v=-3.3/depth;p=time*2*np.pi/8
     a=np.sin(2*np.pi*u+.85*np.sin(2*np.pi*v+p)+p)
     b=np.sin(2*np.pi*v+.70*np.sin(2*np.pi*u-p)-p)
-    return 60*(.60*np.exp(-a*a/.34)+.40*np.exp(-b*b/.55))
+    return 72*(.60*np.exp(-a*a/.34)+.40*np.exp(-b*b/.55))
 
 def conservative_mask(alpha):
     solid=(alpha>250).reshape(72,16,128,16).all(axis=(1,3))

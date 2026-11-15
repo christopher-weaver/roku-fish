@@ -45,7 +45,7 @@ def fish(canvas,f,mode,t=0):
         im.alpha_composite(layer,(round((im.width-layer.width)/2),0))
     haze=1-f['z'];tint=(255,int(239-haze*25),int(240-haze*10))if mode=='Sunset'else(int(255-haze*65),int(247-haze*32),255)
     day={'Moonlight':.12,'Dusk':.52}.get(mode,1)
-    shade=1-float(field(f['x'],f['sy']+36,t))/255*(.35+.65*day)
+    shade=1-float(field(f['x'],f['sy']+36,t))/255*.30*(.35+.65*day)
     tint=tuple(int(c*shade)for c in tint)
     im=ImageChops.multiply(im,Image.new('RGBA',im.size,(*tint,255)))
     sc=f['scale']*sp['length']/sp['renderLength']*f['size'];im=im.resize((max(1,round(im.width*sc)),max(1,round(im.height*sc))),Image.Resampling.LANCZOS)
@@ -58,17 +58,12 @@ def eel_pose(t):
     def ease(v):
         v=max(0,min(1,v));return v*v*v*(v*(v*6-15)+10)
     peek=ease((q-7)/7)if 7<=q<14 else 1 if 14<=q<20 else 1-ease((q-20)/8)if 20<=q<28 else 0
-    return 773+math.sin(t*.31)*1.5*peek,1060-112*peek,2*math.sin(t*.55)*peek
+    return round(peek*64)
 
 def render(frame,mode='Sunset',density='Medium'):
     cam=frame['camera'];t=frame.get('displayTime',frame['time']);warm=mode=='Sunset';suf='-sunset' if warm else ''
     img=Image.new('RGBA',(1920,1080),(24,42,66,255))
     paste(img,asset('water-sunset.webp' if warm else 'water-day.webp'),-cam,-36)
-    paste(img,asset('cave-interior.png'),715-cam,808-36)
-    ex,ey,angle=eel_pose(t);eel=Image.new('RGBA',(200,300));fr=EEL['frames'][round((math.sin(t*.75)+1)*12)];source=asset(EEL['image'].split('/')[-1]);head=source.crop((fr['x'],fr['y'],fr['x']+114,fr['y']+140));day={'Moonlight':.12,'Dusk':.52}.get(mode,1);light=int(255*(1-float(field(ex,840,t))/255*(.35+.65*day)));head=ImageChops.multiply(head,Image.new('RGBA',head.size,(light,light,light,255)));eel.alpha_composite(head,(43,10));eel=eel.rotate(angle,resample=Image.Resampling.BICUBIC,center=(100,150))
-    paste(img,eel,ex-cam-100,ey-36-150)
-    plate=asset('water-sunset.webp'if warm else'water-day.webp')
-    paste(img,plate.crop((680,907,870,1152)),680-cam,907-36)
     day={'Moonlight':.12,'Dusk':.52}.get(mode,1);night=(1-day)*150/255
     fs=sorted(frame['fish'],key=lambda f:f['z'])
     if density=='Low':fs=[f for f in fs if f['id']<TANK['populations']['Low']]
@@ -107,6 +102,11 @@ def render(frame,mode='Sunset',density='Medium'):
             for j in range(2):
                 i=(first+j)%32;x=i%c['columns']*c['width'];y=i//c['columns']*c['height'];part=atlas.crop((x,y,x+c['width'],y+c['height']))
                 paste(img,part,-cam,-36,c['scale'],opacity=(blend if j else 1-blend)*.65*(.35+.65*day))
+        if formation['id']=='connected-reef':
+            fr=EEL['frames'][eel_pose(t)];atlas=asset(EEL['image'].split('/')[-1]);actor=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
+            light=int(255*(1-float(field(773,858,t))/255*.30*(.35+.65*day)))
+            actor=ImageChops.multiply(actor,Image.new('RGBA',actor.size,(light,light,light,255)))
+            paste(img,actor,EEL['x']-cam,EEL['y']-36)
     phase=t%WAVES['period']*WAVES['frames']/WAVES['period'];first=int(phase);blend=phase-first
     for key,name in [('sand','sand-caustics.png'),('shadow','sand-wave-shadows.png')]:
         cfg=WAVES[key];sand=asset(name)
