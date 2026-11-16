@@ -14,7 +14,7 @@ FS='''#version 330
 uniform sampler2D photo;uniform float wall;in vec2 texuv;in vec3 n;in vec3 world;out vec4 color;
 void main(){vec4 c=texture(photo,texuv);if(wall<.5&&c.a<.025)discard;
 float light=.82+.18*max(0.0,dot(normalize(n),normalize(vec3(-.35,-.65,1))));
-if(wall>.5){float grain=sin(world.x*.23+sin(world.y*.31))*sin(world.y*.17);c=vec4(c.rgb*.82+grain*.015,1);light=(.42+.28*max(0.0,dot(normalize(n),normalize(vec3(-.35,-.65,1)))))*clamp((world.z+215.0)/305.0,.12,1.0);}
+if(wall>.5){float grain=sin(world.x*.23+sin(world.y*.31))*sin(world.y*.17);c=vec4(min(c.rgb*.65,vec3(.16,.13,.14)),1);light=(.42+.28*max(0.0,dot(normalize(n),normalize(vec3(-.35,-.65,1)))))*clamp((world.z+215.0)/305.0,.12,1.0);}
 color=vec4(c.rgb*light,c.a);}'''
 
 def volume(mask,depth):
@@ -94,14 +94,26 @@ def build():
    v,uv,n,f=volume(occupied,depth);key=name+'-'+layer;np.savez_compressed(folder/(key+'.npz'),vertices=v,uv=uv,normals=n,faces=f)
    meshes.append((key,layer,v,uv,n,f,False));record['objects'].append({'name':key,'group':name,'layer':layer,'vertices':len(v),'triangles':len(f),'file':key+'.npz','closed':True})
  v,uv,n,f=tunnel();np.savez_compressed(folder/'hollow-tunnel.npz',vertices=v,uv=uv,normals=n,faces=f);meshes.append(('hollow-tunnel','connected-reef',v,uv,n,f,True));record['objects'].append({'name':'hollow-tunnel','group':'hollow-tunnel','layer':'connected-reef','vertices':len(v),'triangles':len(f),'file':'hollow-tunnel.npz','closed':False,'type':'bending blind cave with five depth rings and rear wall'})
+ from living_reef import corals,save,photo_material,VS as SCULPT_VS,FS as SCULPT_FS
+ for name,(layer,model)in corals().items():
+  v,n,f,rgb,flow=save(name,model,folder);photo_material(name,folder);uv=np.column_stack([v[:,0]/W,1-v[:,1]/H]).astype('f4')
+  meshes.append((name,layer,v,uv,n,f,2));record['objects'].append({'name':name,'group':name,'layer':layer,'vertices':len(v),'triangles':len(f),'file':name+'.npz','closed':True,'sculpted':True})
  ctx=moderngl.create_standalone_context(backend='egl');p=ctx.program(vertex_shader=VS,fragment_shader=FS);p['canvas'].value=(W,H);ctx.enable(moderngl.DEPTH_TEST)
+ sculpt=ctx.program(vertex_shader=SCULPT_VS,fragment_shader=SCULPT_FS);sculpt['stage'].value=(0,0,W,H);sculpt['strength'].value=0
  tex=ctx.texture(photo.size,4,photo.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());tex.filter=(moderngl.LINEAR,moderngl.LINEAR);tex.use();fbo=ctx.simple_framebuffer((W,H),components=4);fbo.use()
  cfgpath=ROOT/'roku/scenes/tank.json';cfg=json.loads(cfgpath.read_text())
  for layer in ['connected-reef','foreground-reef']:
   fbo.clear(0,0,0,0,depth=1)
   members=[m for m in meshes if m[1]==layer]
   for key,_,v,uv,n,f,wall in members:
-   vb=ctx.buffer(np.hstack([v,uv,n]).astype('f4').tobytes());ib=ctx.buffer(f.tobytes());vao=ctx.vertex_array(p,[(vb,'3f 2f 3f','position','uv','normal')],ib);p['wall'].value=float(wall);vao.render();vao.release();vb.release();ib.release()
+   ib=ctx.buffer(f.tobytes())
+   if wall==2:
+    image=Image.open(folder/(key+'-colour.png'));sculptTexture=ctx.texture(image.size,3,image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());sculptTexture.filter=(moderngl.LINEAR,moderngl.LINEAR);sculptTexture.use();sculpt['usePhoto'].value=1
+    data=np.load(folder/(key+'.npz'));vb=ctx.buffer(np.column_stack([v,n,data['rgb'],data['flow']]).astype('f4').tobytes());vao=ctx.vertex_array(sculpt,[(vb,'3f 3f 3f 3f','position','normal','rgb','flow')],ib)
+   else:
+    tex.use();vb=ctx.buffer(np.hstack([v,uv,n]).astype('f4').tobytes());vao=ctx.vertex_array(p,[(vb,'3f 2f 3f','position','uv','normal')],ib);p['wall'].value=float(wall)
+   vao.render();vao.release();vb.release();ib.release()
+   if wall==2:sculptTexture.release()
   shot=Image.frombytes('RGBA',(W,H),fbo.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM);alpha=shot.getchannel('A');box=alpha.getbbox();part=shot.crop(box);filename='reef-'+layer+'.webp';part.save(ROOT/'roku/images'/filename,quality=87,method=6,exact=True)
   for formation in cfg['formations']:
    if formation['id']==layer:

@@ -30,5 +30,22 @@ def reserve_navigation():
   if 'animation'in f:grid=maximum_filter(grid,size=3)
   union|=grid;planes.append(dict(id=f['id'],z=f['z'],halfDepth=f['halfDepth'],parallax=f['parallax'],rows=[''.join('#'if v else'.'for v in row)for row in grid]))
  from cave_geometry import EXCLUSION
- occ={'volumes':[EXCLUSION],'cell':8,'rows':[''.join('#'if v else'.'for v in row)for row in union],'planes':planes};p.write_text(json.dumps(occ,separators=(',',':')));scene.build_navigation(occ)
+ # Solid rock footings extend from the lower reef silhouette into the floor.
+ # These are depth volumes, so a rear fish cannot travel under a thin reef card.
+ base=np.zeros_like(union)
+ for f in tank['formations']:
+  if f.get('animation'):continue
+  canvas=Image.new('L',(2048,1152));canvas.paste(footprint(f),(f['x'],f['y']));alpha=np.asarray(canvas)
+  grid=(alpha.reshape(144,8,256,8)>31).any(axis=(1,3))
+  for col in range(256):
+   occupied=np.flatnonzero(grid[100:,col])
+   if len(occupied):base[100+occupied[0]:,col]=True
+ # A closed structural footing also lives in the editable 3D source scene.
+ from reef_geometry import volume
+ foot=base.copy();foot[:112]=False
+ v,uv,norm,faces=volume(foot,np.full(foot.shape,306.,dtype='f4'))
+ v[:,:2]*=4;uv=np.column_stack([v[:,0]/2048,1-v[:,1]/1152]).astype('f4')
+ np.savez_compressed(ROOT/'assets/source/reef-model/grounded-footings.npz',vertices=v,uv=uv,normals=norm,faces=faces)
+ planes.append(dict(id='grounded-rock-base',z=.58,halfDepth=.26,parallax=1,rows=[''.join('#'if v else'.'for v in row)for row in base]))
+ occ={'floor':tank.get('floor'),'volumes':[EXCLUSION],'cell':8,'rows':[''.join('#'if v else'.'for v in row)for row in union],'planes':planes};p.write_text(json.dumps(occ,separators=(',',':')));scene.build_navigation(occ)
 if __name__=='__main__':reserve_navigation()

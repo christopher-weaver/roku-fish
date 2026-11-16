@@ -66,8 +66,65 @@ def prepare_texture(name):
     shift=max(2,round(im.height*.14));sample=im.copy()
     sample.paste(im.crop((0,0,im.width,im.height-shift)),(0,shift))
     body=Image.composite(sample,im,mask);body.putalpha(im.getchannel('A'))
+    body=wrap_texture(body,opaque=True)
+    fin=wrap_texture(fin,opaque=False)
     body.save(SRC/(name+'-texture.png'));fin.save(SRC/(name+'-pectoral.png'))
     return im,body,fin,mask,hinge
+
+def wrap_texture(image,opaque):
+    """Bleed interior RGB through the outline; geometry owns body coverage.
+
+    Photograph cutouts contain dark/transparent fringe pixels. Sampling those
+    on a sidewall draws a black belt at head-on angles even on a closed mesh.
+    """
+    rgba=np.array(image);alpha=rgba[:,:,3];distance=distance_transform_edt(alpha>230)
+    width=max(2,image.width*.007)
+    safe=distance>=width
+    if not safe.any():safe=alpha>200
+    _,nearest=distance_transform_edt(~safe,return_indices=True)
+    donor=rgba[nearest[0],nearest[1],:3].astype(float)
+    blend=np.clip(distance/width,0,1)[:,:,None]
+    rgba[:,:,:3]=np.uint8(rgba[:,:,:3]*blend+donor*(1-blend))
+    if opaque:rgba[:,:,3]=255
+    return Image.fromarray(rgba)
+
+def closed_shell(mask,depth):
+    """Two sampled surfaces joined by one smooth, manifold rounded perimeter."""
+    h,w=mask.shape;cells=mask[:-1,:-1]&mask[:-1,1:]&mask[1:,:-1]&mask[1:,1:]
+    corners=np.zeros((h,w),bool)
+    for dy,dx in [(0,0),(0,1),(1,0),(1,1)]:corners[dy:dy+h-1,dx:dx+w-1]|=cells
+    yy,xx=np.nonzero(corners);ids=np.full((h,w),-1,dtype='i4');ids[yy,xx]=np.arange(len(xx))
+    padded=np.pad(cells,1);tl=padded[:h,:w];tr=padded[:h,1:w+1];bl=padded[1:h+1,:w];br=padded[1:h+1,1:w+1]
+    ay,ax=np.nonzero((tl&br&~tr&~bl)|(tr&bl&~tl&~br));lower=ids.copy();lower[ay,ax]=len(xx)+np.arange(len(ax))
+    xx=np.concatenate([xx,ax]);yy=np.concatenate([yy,ay]);count=len(xx)
+    front=np.column_stack([2*xx/(w-1)-1,(1-2*yy/(h-1))*h/w*.92,depth[yy,xx]]).astype('f4')
+    coords=np.column_stack([xx/(w-1),1-yy/(h-1)]).astype('f4')
+    y,x=np.nonzero(cells);a=lower[y,x];b=lower[y,x+1];c=ids[y+1,x];d=ids[y+1,x+1]
+    top=np.vstack([np.column_stack([a,c,b]),np.column_stack([b,c,d])]).astype('i4')
+    edges=np.concatenate([top[:,[0,1]],top[:,[1,2]],top[:,[2,0]]]);ordered=np.sort(edges,axis=1)
+    _,inverse,counts=np.unique(ordered,axis=0,return_inverse=True,return_counts=True)
+    boundary=edges[counts[inverse]==1];rim=np.unique(boundary)
+    tangent=front[boundary[:,1],:2]-front[boundary[:,0],:2]
+    outward=np.column_stack([tangent[:,1],-tangent[:,0]]);outward/=np.maximum(np.linalg.norm(outward,axis=1)[:,None],1e-8)
+    direction=np.zeros((count,2),dtype='f4')
+    for i in range(2):np.add.at(direction,boundary[:,i],outward)
+    direction/=np.maximum(np.linalg.norm(direction,axis=1)[:,None],1e-8)
+    back=front.copy();back[:,2]*=-1
+    vertices=[front,back];uvs=[coords,coords];faces=[top,top[:,::-1]+count]
+    previous=np.arange(count);offset=count*2
+    # Five intermediate rings remove the flat dark join between the two halves.
+    for theta in np.linspace(0,np.pi,7)[1:]:
+        if theta==np.pi:current=np.arange(count)+count
+        else:
+            ring=front[rim].copy();ring[:,:2]+=direction[rim]*np.minimum(front[rim,2:3],.010)*np.sin(theta);ring[:,2]*=np.cos(theta)
+            vertices.append(ring);uvs.append(coords[rim]);current=np.full(count,-1,dtype='i4');current[rim]=offset+np.arange(len(rim));offset+=len(rim)
+        a=previous[boundary[:,0]];b=previous[boundary[:,1]];c=current[boundary[:,0]];d=current[boundary[:,1]]
+        faces.extend([np.column_stack([b,a,c]),np.column_stack([b,c,d])]);previous=current
+    vertices=np.vstack(vertices).astype('f4');uv=np.vstack(uvs).astype('f4');faces=np.vstack(faces).astype('i4')
+    normal=np.zeros_like(vertices);q=np.cross(vertices[faces[:,1]]-vertices[faces[:,0]],vertices[faces[:,2]]-vertices[faces[:,0]])
+    for col in range(3):np.add.at(normal,faces[:,col],q)
+    normal/=np.maximum(np.linalg.norm(normal,axis=1)[:,None],1e-8)
+    return vertices,uv,normal,faces
 
 def make_mesh(name,thick):
     original,body,fin,finmask,hinge=prepare_texture(name)
@@ -82,30 +139,7 @@ def make_mesh(name,thick):
     bulk=(radius/max(radius.max(),1))**.65
     depth=(.006+cross*bulk*thick)*np.clip(dist/2,0,1)
     depth=gaussian_filter(depth,.65)*mask
-    gy,gx=np.gradient(depth,2*.92/w,2/w)
-    normals=[]
-    verts=[];uv=[];faces=[];ids={}
-    for side in [-1,1]:
-        for y in range(h):
-            for x in range(w):
-                if mask[y,x]:
-                    ids[side,y,x]=len(verts)
-                    verts.append([2*x/(w-1)-1,(1-2*y/(h-1))*h/w*.92,side*depth[y,x]])
-                    uv.append([x/(w-1),1-y/(h-1)])
-                    n=np.array([-gx[y,x],gy[y,x],side]);normals.append(n/np.linalg.norm(n))
-    for side in [-1,1]:
-        for y in range(h-1):
-            for x in range(w-1):
-                keys=[(side,y,x),(side,y,x+1),(side,y+1,x),(side,y+1,x+1)]
-                if all(k in ids for k in keys):
-                    i,j,k,l=[ids[q]for q in keys];faces.extend([[i,k,j],[j,k,l]]if side==1 else [[i,j,k],[j,l,k]])
-    for y in range(h-1):
-        for x in range(w-1):
-            for dy,dx in [(0,1),(1,0)]:
-                if (1,y,x)not in ids or (1,y+dy,x+dx)not in ids:continue
-                if dist[y,x]>1.5 and dist[y+dy,x+dx]>1.5:continue
-                i=ids[1,y,x];j=ids[1,y+dy,x+dx];k=ids[-1,y,x];l=ids[-1,y+dy,x+dx];faces.extend([[i,j,k],[j,l,k]])
-    v=np.array(verts,np.float32);uv=np.array(uv,np.float32);faces=np.array(faces,np.int32)
+    v,uv,normals,faces=closed_shell(mask,depth)
     fm=np.asarray(finmask.resize((w,h),Image.Resampling.LANCZOS));fins=[]
     for face in faces:
         points=v[face];ys=np.rint((1-points[:,1]/(.92*h/w))*.5*(h-1)).astype(int);xs=np.rint((points[:,0]+1)*.5*(w-1)).astype(int)
@@ -212,7 +246,7 @@ def build(species_list=None):
         atlas.save(OUT/(name+'-atlas.png'),optimize=True);tailatlas.save(OUT/(name+'-tails.png'),optimize=True);finatlas.save(OUT/(name+'-fins.png'),optimize=True)
         raw=ROOT/'work/fish-raw';raw.mkdir(parents=True,exist_ok=True)
         for suffix in ['-atlas.png','-fins.png','-tails.png']:shutil.copy2(OUT/(name+suffix),raw/(name+suffix))
-        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.webp','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'uniqueYawViews':UNIQUE_VIEWS,'viewWidths':view_widths,'poseCount':1,'tailPoseCount':len(BODY_BENDS),'tailFrames':tailframes,'tailImage':'pkg:/images/'+name+'-tails.webp','meshRevision':2,'meshVertices':len(v),'meshTriangles':len(faces)+len(tails),'length':size*1.6,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finTextureScale':2,'finImage':'pkg:/images/'+name+'-fins.webp','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick,'collisionHalfWidth':max(max(f['anchorX'],f['w']-f['anchorX']) for f in frames+tailframes+[dict(f,anchorX=f['anchorX']*2,anchorY=f['anchorY']*2,w=f['w']*2,h=f['h']*2)for f in finframes]),'collisionHalfHeight':max(max(f['anchorY'],f['h']-f['anchorY']) for f in frames+tailframes+[dict(f,anchorX=f['anchorX']*2,anchorY=f['anchorY']*2,w=f['w']*2,h=f['h']*2)for f in finframes])}
+        atlasdata[name]={'label':label,'image':'pkg:/images/'+name+'-atlas.webp','width':atlas.width,'height':atlas.height,'frameW':fw,'frameH':fh,'yawCount':YAW_COUNT,'uniqueYawViews':UNIQUE_VIEWS,'viewWidths':view_widths,'poseCount':1,'tailPoseCount':len(BODY_BENDS),'tailFrames':tailframes,'tailImage':'pkg:/images/'+name+'-tails.webp','meshRevision':3,'meshVertices':len(v),'meshTriangles':len(faces)+len(tails),'length':size*1.6,'renderLength':fw*.9,'speed':speed,'beat':beat,'school':school,'frames':frames,'finTextureScale':2,'finImage':'pkg:/images/'+name+'-fins.webp','finPoseCount':len(FIN_ANGLES),'finBeat':finbeat,'finFrames':finframes,'bodyHeightFactor':.92,'bodyThickness':thick,'collisionHalfWidth':max(max(f['anchorX'],f['w']-f['anchorX']) for f in frames+tailframes+[dict(f,anchorX=f['anchorX']*2,anchorY=f['anchorY']*2,w=f['w']*2,h=f['h']*2)for f in finframes]),'collisionHalfHeight':max(max(f['anchorY'],f['h']-f['anchorY']) for f in frames+tailframes+[dict(f,anchorX=f['anchorX']*2,anchorY=f['anchorY']*2,w=f['w']*2,h=f['h']*2)for f in finframes])}
         for obj in [vao,tvao,ti,vb,ib,fvao,fb,fi,tex,ftex]:obj.release()
         print(name,len(frames),'body poses,',len(finframes),'independent fin poses; atlas',atlas.size,flush=True)
     (ROOT/'roku/scenes/species.json').write_text(json.dumps(atlasdata,indent=2))

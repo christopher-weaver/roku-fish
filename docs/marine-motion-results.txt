@@ -1,4 +1,4 @@
 PASS coherent  sea-fan  poses, no strip transforms, no skipped geometry states
 PASS coherent  sea-anemone  poses, no strip transforms, no skipped geometry states
-PASS slow eased eel emergence, retreat and hidden pause
+PASS slow eel depth travel, late head lift, retreat and hidden pause
 PASS Slow pan cycle is three minutes with unchanged sweep width

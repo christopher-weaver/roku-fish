@@ -11,6 +11,8 @@ function ReefLoadAssets(s as object) as object
     if warm then plate = "water-sunset.webp"
     water=ReefBitmap("pkg:/images/"+plate)
     a = { plate: ReefLayer(water), formations: [], surfaceShadows: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
+    floorPath="pkg:/images/seafloor-sunset.webp"
+    a.floor=ReefLayer(ReefBitmap(floorPath))
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
     surface = ReefBitmap("pkg:/images/surface-waves.png")
     shadow = ReefBitmap("pkg:/images/sand-wave-shadows.png")

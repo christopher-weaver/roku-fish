@@ -106,6 +106,11 @@ def build_navigation(occ):
         for sp in species.values():
             radius=sp['bodyThickness']*sp['length']*1.12/1728+.012
             scale=(.70+.30*max(a[2],b[2]))*sp['length']/sp['renderLength']*1.12
+            floor=occ.get('floor')
+            if floor:
+                hh=(sp['collisionHalfHeight']+sp['collisionHalfWidth']*.22)*scale+16
+                for point in [a,b]:
+                    if point[1]+hh+floor['ridgeClearance']>floor['baseY']+floor['slope']*(point[2]-radius):return True
             for volume in occ.get('volumes',[]):
                 extent=[volume['halfWidth']+(sp['collisionHalfWidth']+sp['collisionHalfHeight']*.22)*scale+30,
                         volume['halfHeight']+(sp['collisionHalfHeight']+sp['collisionHalfWidth']*.22)*scale+16,

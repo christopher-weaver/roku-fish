@@ -17,7 +17,7 @@ class ThreeDAndSurfaceChecks(unittest.TestCase):
      _,counts=np.unique(keys,return_counts=True);self.assertTrue(np.all(counts==2),item['name'])
     else:
      self.assertEqual(item['name'],'hollow-tunnel');self.assertGreater(np.ptp(v[:,2]),75)
-     self.assertGreater(np.ptp(v[:192,0]),np.ptp(v[-193:-1,0]));self.assertLess(v[:,2].min(),-150)
+     self.assertLess(np.ptp(v[:192,0]),np.ptp(v[-193:-1,0]));self.assertLess(v[:,2].min(),-150)
      edges=np.concatenate([f[:,[0,1]],f[:,[1,2]],f[:,[2,0]]]);edges.sort(axis=1);unique,counts=np.unique(edges,axis=0,return_counts=True)
      boundary=unique[counts==1];self.assertEqual(len(boundary),192);self.assertTrue(np.all(v[boundary,2]==90))
      self.assertTrue(np.all((counts==1)|(counts==2)))

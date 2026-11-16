@@ -172,6 +172,26 @@
       "file": "hollow-tunnel.npz",
       "closed": false,
       "type": "bending blind cave with five depth rings and rear wall"
+    },
+    {
+      "name": "sculpted-bubble-coral",
+      "group": "sculpted-bubble-coral",
+      "layer": "connected-reef",
+      "vertices": 57950,
+      "triangles": 115520,
+      "file": "sculpted-bubble-coral.npz",
+      "closed": true,
+      "sculpted": true
+    },
+    {
+      "name": "sculpted-brain-coral",
+      "group": "sculpted-brain-coral",
+      "layer": "foreground-reef",
+      "vertices": 610,
+      "triangles": 1216,
+      "file": "sculpted-brain-coral.npz",
+      "closed": true,
+      "sculpted": true
     }
   ]
 }

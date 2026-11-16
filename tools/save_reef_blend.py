@@ -13,29 +13,43 @@ record=json.loads((folder/'model.json').read_text())
 for item in record['objects']:
  with np.load(folder/item['file'])as data:
   v=data['vertices'].copy();v[:,1]*=-1;faces=data['faces'][:,::-1];uv=data['uv'];norm=data['normals'].copy();norm[:,1]*=-1
+  rgb=data['rgb'].copy()if 'rgb'in data else None
  mesh=bpy.data.meshes.new(item['name']);mesh.from_pydata(v.tolist(),[],faces.tolist());mesh.update();o=bpy.data.objects.new(item['name'],mesh);scene.collection.objects.link(o);o.data.materials.append(wall if item['name']=='hollow-tunnel'else mat)
  layer=mesh.uv_layers.new(name='reference projection')
  for loop in mesh.loops:layer.data[loop.index].uv=uv[loop.vertex_index]
  for polygon in mesh.polygons:polygon.use_smooth=True
  try:mesh.normals_split_custom_set_from_vertices(norm.tolist())
  except Exception:pass
+ if rgb is not None:
+  colors=mesh.color_attributes.new(name='sculpted colour',type='FLOAT_COLOR',domain='POINT');colors.data.foreach_set('color',np.column_stack([rgb,np.ones(len(rgb))]).ravel());material=bpy.data.materials.new(item['name']+' shaded material');material.use_nodes=True;node=material.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';texture=material.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(folder/(item['name']+'-colour.png')));texture.image.pack();material.node_tree.links.new(texture.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);o.data.materials.clear();o.data.materials.append(material)
  o['anatomical_group']=item['group'];o['closed_volume']=item['closed']
  print('Imported',o.name,len(v),flush=True)
+# The ridged, textured floor and closed rock footings share the reef's axes.
+for name in ['seafloor','grounded-footings']:
+ with np.load(folder/(name+'.npz'))as data:
+  v=data['vertices'].copy();v[:,1]*=-1;faces=data['faces'][:,::-1];uv=data['uv']
+ mesh=bpy.data.meshes.new(name);mesh.from_pydata(v.tolist(),[],faces.tolist());mesh.update();o=bpy.data.objects.new(name,mesh);scene.collection.objects.link(o)
+ if name=='seafloor':
+  m=bpy.data.materials.new('original sand colour on ridged floor');m.use_nodes=True;p=m.node_tree.nodes.get('Principled BSDF');p.inputs['Roughness'].default_value=.92;t=m.node_tree.nodes.new('ShaderNodeTexImage');t.image=bpy.data.images.load(str(folder/'seafloor-sunset-projection.png'));t.image.pack();m.node_tree.links.new(t.outputs['Color'],p.inputs['Base Color']);o.data.materials.append(m)
+ else:o.data.materials.append(mat)
+ layer=mesh.uv_layers.new(name='ground texture UV')
+ for loop in mesh.loops:layer.data[loop.index].uv=uv[loop.vertex_index]
+ for polygon in mesh.polygons:polygon.use_smooth=True
 # Include the existing 3D fan/anemone volumes in the same reviewable scene.
 # Blender's bundled Python may not include Pillow; the fixed texture tiles are
 # authored by connected_scene in the normal Python build before this exporter.
 for name,ox,oy,width,height,base_z in [('sea-fan',80,430,600,565,-45),('sea-anemone',1330,815,285,215,135)]:
- path=ROOT/'assets/source/marine-renders'/(name+'-volume.npz')
- with np.load(path)as data:
-  v=data['vertices'].copy();uv=data['uv'];faces=data['faces'][:,::-1]
- v[:,0]=(v[:,0]+1)*(width+16)/2+ox-8
- v[:,1]=-((1-v[:,1])*(height+16)/2+oy-8)
- v[:,2]=v[:,2]*100+base_z
- mesh=bpy.data.meshes.new(name+' closed volume');mesh.from_pydata(v.tolist(),[],faces.tolist());mesh.update();o=bpy.data.objects.new(name+' modeled volume',mesh);scene.collection.objects.link(o)
- m=bpy.data.materials.new(name+' original finished material');m.use_nodes=True;node=m.node_tree.nodes.new('ShaderNodeTexImage');node.image=bpy.data.images.load(str(folder/(name+'-projection.png')));node.image.pack();principled=m.node_tree.nodes.get('Principled BSDF');m.node_tree.links.new(node.outputs['Color'],principled.inputs['Base Color']);m.node_tree.links.new(node.outputs['Alpha'],principled.inputs['Alpha']);principled.inputs['Roughness'].default_value=.7;o.data.materials.append(m)
- layer=mesh.uv_layers.new(name='volume UV')
- for loop in mesh.loops:layer.data[loop.index].uv=uv[loop.vertex_index]
+ path=ROOT/'assets/source/marine-renders'/(name+'-sculpted.npz')
+ with np.load(path)as data:v=data['vertices'].copy();rgb=data['rgb'];flow=data['flow'].copy();faces=data['faces'][:,::-1]
+ v[:,1]*=-1;flow[:,1]*=-1
+ mesh=bpy.data.meshes.new(name+' sculpted anatomy');mesh.from_pydata(v.tolist(),[],faces.tolist());mesh.update();o=bpy.data.objects.new(name+' individual 3D branches and tentacles',mesh);scene.collection.objects.link(o)
+ colors=mesh.color_attributes.new(name='sculpted colour',type='FLOAT_COLOR',domain='POINT');colors.data.foreach_set('color',np.column_stack([rgb,np.ones(len(rgb))]).ravel())
+ m=bpy.data.materials.new(name+' shaded tissue');m.use_nodes=True;node=m.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';m.node_tree.links.new(node.outputs['Color'],m.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);m.node_tree.nodes.get('Principled BSDF').inputs['Roughness'].default_value=.56;o.data.materials.append(m)
  for polygon in mesh.polygons:polygon.use_smooth=True
+ o.shape_key_add(name='Basis')
+ for index,strength in enumerate([-1.,0.,1.]):
+  key=o.shape_key_add(name='individual tip motion %d'%index);key.data.foreach_set('co',(v+flow*strength).ravel())
+ o['motion']='individually pinned branches/tentacles bending in all three axes'
 # Use exactly the same pinned animal poses and cave coordinates as the render.
 import sys
 sys.path.insert(0,str(ROOT/'tools'))

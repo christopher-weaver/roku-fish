@@ -9,7 +9,7 @@ import numpy as np
 ROOT=Path(__file__).resolve().parents[1]
 STAGE=(686,766,192,196)
 COUNT=65
-EXCLUSION=dict(id='resident-eel-cave',x=779,y=809,z=.48,halfWidth=88,halfHeight=81,halfDepth=.17)
+EXCLUSION=dict(id='resident-eel-cave',x=779,y=809,z=.47,halfWidth=88,halfHeight=81,halfDepth=.36)
 
 def normals(v,f):
     out=np.zeros_like(v)
@@ -20,22 +20,27 @@ def normals(v,f):
 def chamber(front,uv):
     n=len(front);vertices=[];coords=[];faces=[]
     # A curved interior with a blind rear wall, rather than an open flat arch.
-    for depth,shift,scale in [(90,0,1),(35,8,.84),(-35,24,.78),(-105,43,.92),(-180,55,.95)]:
-        ring=front.copy();ring[:,:2]=[773+shift,857.5-8*shift/55]+(front[:,:2]-[773,857.5])*scale;ring[:,2]=depth
+    for depth,shift,scale in [(90,0,1),(35,8,1.05),(-35,24,1.15),(-105,43,1.15),(-180,55,1.12)]:
+        ring=front.copy();ring[:,:2]=[773+shift,857.5+6*shift/55]+(front[:,:2]-[773,857.5])*scale;ring[:,2]=depth
         vertices.extend(ring);coords.extend(uv)
     for row in range(4):
         for i in range(n):
             a=row*n+i;b=row*n+(i+1)%n;faces.extend([(a,b,b+n),(a,b+n,a+n)])
     # The rear wall is actual geometry and closes the cave behind the moray.
-    center=len(vertices);vertices.append((828,849.5,-180));coords.append(uv[0])
+    center=len(vertices);vertices.append((828,863.5,-180));coords.append(uv[0])
     for i in range(n):faces.append((4*n+i,4*n+(i+1)%n,center))
     v=np.array(vertices,dtype='f4');f=np.array(faces,dtype='i4')
     return v,np.array(coords,dtype='f4'),normals(v,f),f
 
+def head_pose(peek):
+    # Stay below the tunnel roof; only lift after the snout clears the mouth.
+    t=np.clip((peek-.62)/.38,0,1);lift=t*t*t*(t*(t*6-15)+10)
+    return np.array([812-39*peek,875-27*lift,-124+354*peek])
+
 def animal(peek):
     source=np.load(ROOT/'assets/source/eel-model/zany-moray.npz');v=source['vertices'].copy();f=source['faces'];record=json.loads((ROOT/'assets/source/eel-model/model.json').read_text())
     # Pose zero is wholly behind the mouth, deep in the right-hand chamber.
-    center=np.array([823-48*peek,858-6*peek,-124+244*peek]);scale=76.
+    center=head_pose(peek);scale=76.
     yaw=math.radians(12-19*peek);c=math.cos(yaw);s=math.sin(yaw)
     palette=[];offset=0
     for part in record['meshes']:

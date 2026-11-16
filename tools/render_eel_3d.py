@@ -1,5 +1,5 @@
 """Blender: an original fully modeled moray, articulated jaw, eyes and neck."""
-import bpy,math,json
+import bpy,math,json,sys
 from pathlib import Path
 from mathutils import Vector
 ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'work/eel-3d';OUT.mkdir(parents=True,exist_ok=True);SRC=ROOT/'assets/source/eel-model';SRC.mkdir(parents=True,exist_ok=True)
@@ -24,10 +24,10 @@ jaw=bpy.data.objects.new('jaw hinge',None);scene.collection.objects.link(jaw);ja
 ellipsoid('articulated lower jaw',(0,-.32,-.018),(.24,.42,.085),skin,jaw)
 # Slightly unequal eye focus, with true spherical eyeballs, irises and pupils.
 for side in [-1,1]:
- x=side*.247
- ellipsoid('protruding eye '+str(side),(x,-.14,.415),(.122,.110,.122),cream)
- ellipsoid('iris '+str(side),(x-side*.012,-.235,.423),(.081,.034,.083),iris)
- ellipsoid('pupil '+str(side),(x-side*.021,-.263,.433+side*.008),(.049,.015,.054),black)
+ x=side*.237
+ ellipsoid('protruding eye '+str(side),(x,-.14,.397),(.084,.080,.084),cream)
+ ellipsoid('iris '+str(side),(x-side*.008,-.210,.401),(.058,.024,.059),iris)
+ ellipsoid('pupil '+str(side),(x-side*.014,-.231,.405+side*.003),(.033,.011,.037),black)
  ellipsoid('nostril '+str(side),(side*.12,-.566,.24),(.024,.019,.019),black)
  # Upper teeth stay small and friendly, never a flat painted mouth.
  for i in range(3):
@@ -64,5 +64,5 @@ for o in scene.objects:
  if o.type!='MESH':continue
  offset=len(allverts);allverts.extend([tuple(o.matrix_world@v.co)for v in o.data.vertices]);o.data.calc_loop_triangles();allfaces.extend([tuple(offset+i for i in t.vertices)for t in o.data.loop_triangles]);record['meshes'].append({'name':o.name,'vertices':len(o.data.vertices),'triangles':len(o.data.loop_triangles)})
 np.savez_compressed(SRC/'zany-moray.npz',vertices=np.array(allverts,dtype='f4'),faces=np.array(allfaces,dtype='i4'));(SRC/'model.json').write_text(json.dumps(record,indent=2)+'\n')
-for frame in range(1,26):
+for frame in ([] if "--model-only" in sys.argv else range(1,26)):
  scene.frame_set(frame);scene.render.filepath=str(OUT/f'pose-{frame-1:02d}.png');bpy.ops.render.render(write_still=True)

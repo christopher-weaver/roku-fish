@@ -64,6 +64,9 @@ def render(frame,mode='Sunset',density='Medium'):
     cam=frame['camera'];t=frame.get('displayTime',frame['time']);warm=mode=='Sunset';suf='-sunset' if warm else ''
     img=Image.new('RGBA',(1920,1080),(24,42,66,255))
     paste(img,asset('water-sunset.webp' if warm else 'water-day.webp'),-cam,-36)
+    floor=asset('seafloor-sunset.webp')
+    if not warm:floor=ImageChops.multiply(floor,Image.new('RGBA',floor.size,(221,235,255,255)))
+    paste(img,floor,-cam,920-36)
     day={'Moonlight':.12,'Dusk':.52}.get(mode,1);night=(1-day)*150/255
     fs=sorted(frame['fish'],key=lambda f:f['z'])
     if density=='Low':fs=[f for f in fs if f['id']<TANK['populations']['Low']]

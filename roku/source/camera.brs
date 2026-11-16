@@ -45,6 +45,7 @@ end function
 ' Fish footprints include every yaw, tail and fin pose plus the maximum pitch.
 ' Test the swept rectangle, not just the center at a depth-plane crossing.
 function ReefCoralBlocked(s as object, f as object, fromPose as object, toPose as object) as boolean
+    if ReefFloorBlocked(s,f,fromPose,toPose) then return true
     if s.occupancy = invalid then return false
     if ReefCaveBlocked(s,f,fromPose,toPose) then return true
     planes = s.occupancy.planes
@@ -135,4 +136,18 @@ function ReefCaveBlocked(s as object,f as object,a as object,b as object) as boo
         end if
     end for
     return false
+end function
+
+' The fish's whole pitched body must remain above the ridged 3D floor.
+' A linear floor plane and a swept maximum body envelope need both endpoints.
+function ReefFloorBlocked(s as object,f as object,a as object,b as object) as boolean
+    if s.cfg=invalid then return false
+    floor=s.cfg.floor
+    if floor=invalid then return false
+    scale=(.70+.30*ReefMax(a.z,b.z))*f.sp.length/f.sp.renderLength*f.size
+    hh=(f.sp.collisionHalfHeight+f.sp.collisionHalfWidth*.22)*scale+12#
+    radius=f.sp.bodyThickness*f.sp.length*f.size/1728#+.012
+    firstCeiling=floor.baseY+floor.slope*(a.z-radius)-floor.ridgeClearance-hh
+    lastCeiling=floor.baseY+floor.slope*(b.z-radius)-floor.ridgeClearance-hh
+    return a.y>firstCeiling or b.y>lastCeiling
 end function

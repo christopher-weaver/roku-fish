@@ -74,7 +74,7 @@ def build():
         frames.append(dict(x=x,y=y,w=width,h=height,anchorX=0,anchorY=0))
     # Lossless spatial storage, one shared colour palette for temporally stable detail.
     compact=imagequant.quantize_pil_image(atlas,max_colors=80,dithering_level=0,max_quality=95).convert('RGBA');compact.save(ROOT/'roku/images/cave-eel-3d.webp',lossless=True,method=6,exact=True)
-    cfg=dict(image='pkg:/images/cave-eel-3d.webp',count=COUNT,frames=frames,x=STAGE[0]+left,y=STAGE[1]+top,model='shared 3D bending blind cave and pinned articulated moray',sharedDepthTest=True,root=[824,850,-158],headDepth=[-124,120])
+    cfg=dict(image='pkg:/images/cave-eel-3d.webp',count=COUNT,frames=frames,x=STAGE[0]+left,y=STAGE[1]+top,model='shared 3D bending blind cave and pinned articulated moray',sharedDepthTest=True,root=[824,850,-158],headDepth=[-124,230])
     (ROOT/'roku/scenes/eel.json').write_text(json.dumps(cfg,indent=2)+'\n');(folder/'cave-stage.json').write_text(json.dumps(cfg,indent=2)+'\n')
     (ROOT/'roku/images/cave-interior.png').unlink(missing_ok=True)
     print('Packed',COUNT,'joint cave/animal states:',(ROOT/'roku/images/cave-eel-3d.webp').stat().st_size,'bytes',flush=True)

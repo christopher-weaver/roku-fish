@@ -43,7 +43,7 @@ class PackageChecks(unittest.TestCase):
                 self.assertGreater(len(tail),100)
                 self.assertGreater(len(mesh['vertices']),20000)
                 self.assertTrue(np.isfinite(mesh['normals']).all())
-                self.assertEqual(sp['meshRevision'],2)
+                self.assertEqual(sp['meshRevision'],3)
                 self.assertGreaterEqual(sp['frameW'],224)
     def test_sparse_roster_and_shadow_mask(self):
         from PIL import Image
@@ -189,7 +189,7 @@ class PackageChecks(unittest.TestCase):
     def test_sand_grain_is_preserved(self):
         from PIL import Image,ImageChops,ImageFilter,ImageStat
         source=Image.open(ROOT/'assets/source/background-matched-sunset.png').convert('RGB').resize((2048,1152),Image.Resampling.LANCZOS)
-        actual=Image.open(ROOT/'roku/images/water-sunset.webp').convert('RGB')
+        actual=Image.new('RGBA',(2048,1152));actual.alpha_composite(Image.open(ROOT/'roku/images/seafloor-sunset.webp').convert('RGBA'),(0,920));actual=actual.convert('RGB')
         box=(256,1040,1792,1110)
         def grain(im):
             crop=im.crop(box).convert('L')
@@ -201,9 +201,9 @@ class PackageChecks(unittest.TestCase):
     def test_fine_per_plane_collision_masks(self):
         occ=json.loads((ROOT/'roku/scenes/occupancy.json').read_text())
         self.assertEqual(occ['cell'],8)
-        self.assertEqual(len(occ['planes']),4)
+        self.assertEqual(len(occ['planes']),5)
         cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
-        self.assertEqual([(p['id'],p['z'],p['parallax'])for p in occ['planes']],[(p['id'],p['z'],p['parallax'])for p in cfg['formations']])
+        self.assertEqual([(p['id'],p['z'],p['parallax'])for p in occ['planes'] if p['id']!='grounded-rock-base'],[(p['id'],p['z'],p['parallax'])for p in cfg['formations']])
         for plane in occ['planes']:
             self.assertEqual(len(plane['rows']),144)
             self.assertTrue(all(len(row)==256 for row in plane['rows']))

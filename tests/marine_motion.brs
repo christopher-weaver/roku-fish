@@ -21,17 +21,17 @@ sub Main()
     previous=ReefEelPose(0#) : hidden=false : visible=false : previousFrame=ReefEelFrame(0#)
     for tick=1 to 1860
         p=ReefEelPose(tick/60#)
-        if Abs(p.y-previous.y)>.51 then print "FAIL eel movement step" : return
+        if Abs(p.y-previous.y)>.9 then print "FAIL eel movement step" : return
         if p.peek=0 then hidden=true
         if p.peek=1 then visible=true
         if Abs(p.angle)>2.001 then print "FAIL eel angle" : return
         poseIndex=ReefEelFrame(tick/60#)
         if poseIndex<0 or poseIndex>64 or Abs(poseIndex-previousFrame)>1 then print "FAIL cave emergence state jump" : return
-        if Abs(p.z-previous.z)>1.1 then print "FAIL cave depth movement step" : return
+        if Abs(p.z-previous.z)>1.7 then print "FAIL cave depth movement step" : return
         previousFrame=poseIndex : previous=p
     end for
     if not hidden or not visible then print "FAIL eel never hides or peeks" : return
-    print "PASS slow eased eel emergence, retreat and hidden pause"
+    print "PASS slow eel depth travel, late head lift, retreat and hidden pause"
     camera=ReefCamera(45#,"Slow",tank.camera)
     if Abs(camera-64#)>.001 then print "FAIL faster pan period" : return
     print "PASS Slow pan cycle is three minutes with unchanged sweep width"

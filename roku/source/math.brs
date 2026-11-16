@@ -165,8 +165,9 @@ function ReefEelPose(time as double,result=invalid as dynamic) as object
     if t>=14# and t<20# then peek=1#
     if t>=20# and t<28# then peek=1#-ReefSmoother((t-20#)/8#)
     if result=invalid then result={}
-    result.peek=peek : result.x=823#-48#*peek
-    result.y=858#-6#*peek : result.z=0#-124#+244#*peek
+    lift=ReefSmoother((peek-.62)/.38)
+    result.peek=peek : result.x=812#-39#*peek
+    result.y=875#-27#*lift : result.z=0#-124#+354#*peek
     result.angle=0#
     return result
 end function

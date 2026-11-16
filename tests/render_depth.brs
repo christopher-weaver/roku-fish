@@ -7,7 +7,7 @@ sub Main()
         s.fish.Pop()
     end while
     depths=[0.16,0.55,0.94]
-    a={plate:{normal:"water"},fish:{},fins:{},tails:{},formations:[],surfaceShadows:[],eels:[],eelConfig:{x:686,y:766},surface:[],caustics:[],ray:{normal:"ray"}}
+    a={floor:{normal:"floor"},plate:{normal:"water"},fish:{},fins:{},tails:{},formations:[],surfaceShadows:[],eels:[],eelConfig:{x:686,y:766},surface:[],caustics:[],ray:{normal:"ray"}}
     for poseIndex=0 to 64
         a.eels.Push({normal:"eel"})
     end for
@@ -55,6 +55,7 @@ sub Main()
             if call.sx<0 then reflected=reflected+1
         end if
     end for
+    if order["floor"]<=order["water"] or order["floor"]>=order["body:"+s.fish[0].name] then print "FAIL textured floor draw order" : return
     if order["body:"+s.fish[0].name]>=order["reef:sea-fan"] then print "FAIL rear fish ordering" : return
     if order["body:"+s.fish[1].name]<=order["reef:connected-reef"] or order["body:"+s.fish[1].name]>=order["reef:foreground-reef"] then print "FAIL mid-ground fish ordering" : return
     if order["body:"+s.fish[2].name]<=order["reef:sea-anemone"] then print "FAIL front fish ordering" : return

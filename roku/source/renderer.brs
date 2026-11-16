@@ -182,6 +182,9 @@ sub ReefRender(r as object, s as object, a as object)
     screen.Clear(&h182A42FF)
     ReefDraw(r, -s.camera, -36, 1, 1, a.plate, &hFFFFFFFF)
     screen.SetAlphaEnable(true)
+    floorTint=&hFFFFFFFF
+    if s.settings.lighting<>"Sunset" then floorTint=&hDDEBFFFF
+    if a.floor<>invalid then ReefDraw(r,0#-s.camera,920#-36#,1#,1#,a.floor,floorTint)
     ' Stable insertion sort of references, not copied fish. Persistent list has bounded length.
     if s.sorted = invalid then s.sorted = []
     s.sorted.Clear()

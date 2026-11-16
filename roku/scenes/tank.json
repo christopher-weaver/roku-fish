@@ -46,16 +46,16 @@
   },
   "formations": [
     {
-      "x": 74,
-      "y": 422,
-      "width": 540,
-      "height": 274,
-      "frameWidth": 270,
-      "frameHeight": 137,
+      "x": 102,
+      "y": 494,
+      "width": 497,
+      "height": 517,
+      "frameWidth": 239,
+      "frameHeight": 248,
       "frames": 65,
-      "columns": 7,
-      "meshVertices": 40892,
-      "meshTriangles": 88034,
+      "columns": 8,
+      "meshVertices": 15962,
+      "meshTriangles": 31416,
       "rootY": 995,
       "image": "pkg:/images/reef-sea-fan-motion-0.webp",
       "id": "sea-fan",
@@ -64,16 +64,18 @@
       "parallax": 1,
       "renderedMesh": true,
       "images": [
-        "pkg:/images/reef-sea-fan-motion-0.webp"
+        "pkg:/images/reef-sea-fan-motion-0.webp",
+        "pkg:/images/reef-sea-fan-motion-1.webp"
       ],
       "animation": {
         "period": 9.0,
         "count": 65,
-        "framesPerPage": 98,
-        "strideX": 274,
-        "strideY": 141,
+        "framesPerPage": 64,
+        "strideX": 243,
+        "strideY": 252,
         "gutter": 2
-      }
+      },
+      "geometryType": "closed sculpted tubes and solid anatomy"
     },
     {
       "id": "connected-reef",
@@ -90,8 +92,8 @@
       "frameWidth": 2038,
       "frameHeight": 825,
       "renderedMesh": true,
-      "meshVertices": 351015,
-      "meshTriangles": 701760,
+      "meshVertices": 408965,
+      "meshTriangles": 817280,
       "meshObjects": [
         "live-rock-foundation-connected-reef",
         "green-cup-connected-reef",
@@ -103,7 +105,8 @@
         "right-plating-coral-connected-reef",
         "right-sponge-garden-connected-reef",
         "left-plating-garden-connected-reef",
-        "hollow-tunnel"
+        "hollow-tunnel",
+        "sculpted-bubble-coral"
       ],
       "surfaceShadow": {
         "image": "pkg:/images/shadow-connected-reef.webp",
@@ -131,8 +134,8 @@
       "frameWidth": 2037,
       "frameHeight": 447,
       "renderedMesh": true,
-      "meshVertices": 246788,
-      "meshTriangles": 493496,
+      "meshVertices": 247398,
+      "meshTriangles": 494712,
       "meshObjects": [
         "live-rock-foundation-foreground-reef",
         "green-cup-foreground-reef",
@@ -141,7 +144,8 @@
         "central-clam-foreground-reef",
         "right-plating-coral-foreground-reef",
         "right-sponge-garden-foreground-reef",
-        "left-plating-garden-foreground-reef"
+        "left-plating-garden-foreground-reef",
+        "sculpted-brain-coral"
       ],
       "surfaceShadow": {
         "image": "pkg:/images/shadow-foreground-reef.webp",
@@ -155,16 +159,16 @@
       }
     },
     {
-      "x": 1322,
-      "y": 807,
-      "width": 302,
-      "height": 231,
-      "frameWidth": 226,
-      "frameHeight": 173,
+      "x": 1352,
+      "y": 851,
+      "width": 244,
+      "height": 187,
+      "frameWidth": 176,
+      "frameHeight": 135,
       "frames": 65,
-      "columns": 8,
-      "meshVertices": 46668,
-      "meshTriangles": 95212,
+      "columns": 11,
+      "meshVertices": 27596,
+      "meshTriangles": 54848,
       "rootY": 1030,
       "image": "pkg:/images/reef-sea-anemone-motion-0.webp",
       "id": "sea-anemone",
@@ -178,11 +182,12 @@
       "animation": {
         "period": 7.5,
         "count": 65,
-        "framesPerPage": 88,
-        "strideX": 230,
-        "strideY": 177,
+        "framesPerPage": 154,
+        "strideX": 180,
+        "strideY": 139,
         "gutter": 2
-      }
+      },
+      "geometryType": "closed sculpted tubes and solid anatomy"
     }
   ],
   "baseline": 1025,
@@ -197,5 +202,21 @@
     ],
     "period": 31,
     "z": 0.46
+  },
+  "floor": {
+    "baseY": 865.0,
+    "slope": 205.0,
+    "ridgeClearance": 4.0,
+    "nearZ": 1.3,
+    "farZ": 0.0,
+    "x": 0,
+    "y": 920,
+    "width": 2048,
+    "height": 232,
+    "images": {
+      "Sunset": "pkg:/images/seafloor-sunset.webp",
+      "Daylight": "pkg:/images/seafloor-sunset.webp"
+    },
+    "mesh": "assets/source/reef-model/seafloor.npz"
   }
 }

@@ -1,30 +1,29 @@
-# Deep Reef 1.0.13 — targeted verification
+# Deep Reef 1.0.14 — targeted verification
 
-Wave shading is 20% stronger on ground/reef receivers. Fish receive 30% of the new field (36% of the previous release). Conservative receiver masks still exclude open water; sand ridges remain visible.
+The eel stays lower within a widened chamber, reaches farther outside, and lifts only late in emergence. Its eyes are 31% smaller and sit closer to the head. The artificial cave-floor highlight is suppressed. Every one of the 65 rendered emergence states is checked vertex-by-vertex against the cave walls; the rear ring remains anchored and the final head is wholly beyond the lip.
 
-The cave now has five bending depth rings and a closed rear wall. Its opening is the only mesh boundary. The eel and chamber share coordinates and depth tests, with surrounding reef geometry used as holdouts. The rear body ring remains anchored inside while the head moves through the entrance. Sixty-five complete rendered states replace the vertical sliding/repair trick. The combined Blender scene contains the same body poses as editable geometry.
+All ten fish shells now have closed, rounded joins and smooth normals. Overlapping/open perimeter faces are removed. Opaque body colour extends through the original photograph fringe, so the two sides meet without a dark alpha belt. Independent tail/fin rigs and adaptive heading spacing remain.
 
-The reserved cave volume is shared by offline route generation and native swept collision checks. Tests cover all ten species at maximum size, initial cave occupancy, forward/reverse crossing, depth crossing and safe spawn correction. Clear front/rear lanes remain available.
+A ridged, textured 3D floor and solid reef footings prevent under-reef and sand entry. Swept native body envelopes include pitch, fins, tail and depth thickness. Routes use conservative clearance. The anemone has 84 modeled tentacles; the fan has rounded branching tubes. Both move real geometry in three axes before offline rendering. Bubble and brain coral have additional sculpted, textured meshes.
 
 | Check | Result |
 |---|---|
-| Native compiler | PASS, BrighterScript 0.73.8 |
-| Package/artwork/tracking | PASS, 38 Python tests |
-| Static reef topology | PASS, all eighteen closed parts have two triangles at every edge |
-| Cave geometry | PASS, rear cap closed; only the 192-edge mouth is open; 270 design-pixel depth |
-| Eel geometry | PASS, pinned rear ring, head moves from inside to beyond lip, 65 bounded atlas states |
-| Cave fish exclusion | PASS, all ten species; spawn, swept horizontal/depth entry and lane clearance |
-| Water exclusion | PASS, all 32 reef-shadow phases have zero alpha outside opaque receiver coverage |
-| Lighting | PASS, bounded soft projective field and continuous cycle |
-| Fish motion/traffic | PASS, all fish advance; swept/interpolated encounter clearance and lateral behavior |
-| Coral collision | PASS, 60 physics ticks with physical/interpolated footprints |
-| Rendering | PASS, joint cave stage between connected reef and foreground fish; one body/tail/fin per fish |
-| Marine/eel timing | PASS, coherent poses and bounded adjacent emergence-state changes |
-| Settings/waves/pan/turns | PASS, readable labels, Back/Done, wave timing, smooth positive-scale transforms |
-| Browser preview | PASS, all runtime assets and four lighting modes load; play/pause/seek; no page errors |
+| Native compiler | PASS |
+| Python package, topology, materials and release checks | PASS, 42 tests |
+| Fish joins | PASS, every edge of every complete fish shell has exactly two incident faces |
+| Cave clipping | PASS, all vertices at all 65 states remain inside the chamber until emergence |
+| Eel motion | PASS, lower entry, late lift, longer depth travel, bounded adjacent states |
+| Ground and reef footings | PASS, all ten species; buried poses/swept entry blocked; clear front lanes retained |
+| Cave exclusion | PASS, all ten species, spawn and swept entry checks |
+| Marine anatomy | PASS, closed tentacles/branches with anchored roots and independent 3D displacement |
+| Fish movement and traffic | PASS, all fish advance; predictive separation and swept/interpolated clearance |
+| Lighting and water exclusion | PASS, conservative receiver masks and continuous wave sampling |
+| Render ordering | PASS, textured ground, reef, joint cave actor and swimmers use correct depth order |
+| Settings, pan, turns and pacing | PASS, targeted native checks |
+| Browser preview | PASS, runtime assets, lighting modes, play/pause/seek and no page errors |
 | Extended soaks | Not run |
 | Actual Roku GPU/FPS | Not measured |
 
-The navigation graph has 246 connected nodes and 528 edges. The 19 static structural pieces total 597,803 vertices and 1,195,256 triangles. The jointly rendered cave/eel uses a tightly cropped atlas. Estimated active Sunset image textures occupy 87.58 MiB at default density and 95.01 MiB at High. Add 8.44 MiB for the canvas and 15.82 MiB for FHD double buffers (6.25 MiB at HD), before driver/interpreter overhead. These are estimates. Mesh rendering occurs offline; Roku uses the cached 2D compositor.
+All rendering of the source meshes occurs offline. The native Roku compositor still uses cached atlases. The updated Blender scene contains the reef sculptures, floor, closed rock footings, marine anatomy and articulated moray. Texture-memory totals include unused species/lighting variants; actual device memory and FPS require hardware measurement.
 
-The tracked install ZIP stays below 4,000,000 bytes. Exact bytes and SHA-256 appear in dist/build-report.json. Logs and short visual fixtures accompany the source; historical extended-soak reports are not fresh evidence for this version.
+The tracked install ZIP stays below 4,000,000 bytes. Exact bytes and SHA-256 are recorded in dist/build-report.json. Geometry, native collision/motion, material, render order, browser and release logs accompany this version. Historical soaks are not fresh evidence for this release.
