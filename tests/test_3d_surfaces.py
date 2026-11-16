@@ -28,7 +28,7 @@ class ThreeDAndSurfaceChecks(unittest.TestCase):
   self.assertTrue(any('pupil'in m['name']for m in model['meshes']))
   with np.load(folder/'zany-moray.npz')as m:self.assertTrue((np.ptp(m['vertices'],axis=0)>.4).all())
   cfg=json.loads((ROOT/'roku/scenes/eel.json').read_text());image=Image.open(ROOT/'roku'/cfg['image'][5:]).convert('RGBA')
-  self.assertEqual(len(cfg['frames']),65);self.assertTrue(cfg['sharedDepthTest'])
+  self.assertEqual(len(cfg['frames']),97);self.assertTrue(cfg['sharedDepthTest'])
   for frame in cfg['frames']:self.assertLessEqual(frame['x']+frame['w'],image.width);self.assertLessEqual(frame['y']+frame['h'],image.height)
   self.assertFalse((ROOT/'roku/images/cave-eel.webp').exists())
   from cave_geometry import animal

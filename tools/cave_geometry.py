@@ -9,7 +9,9 @@ import numpy as np
 ROOT=Path(__file__).resolve().parents[1]
 STAGE=(686,766,192,196)
 COUNT=65
-EXCLUSION=dict(id='resident-eel-cave',x=779,y=809,z=.47,halfWidth=88,halfHeight=81,halfDepth=.36)
+EXPRESSION_STEPS=16
+FRAME_COUNT=97
+EXCLUSION=dict(id='resident-eel-cave',x=779,y=809,z=.505,halfWidth=88,halfHeight=81,halfDepth=.395)
 
 def normals(v,f):
     out=np.zeros_like(v)
@@ -35,9 +37,9 @@ def chamber(front,uv):
 def head_pose(peek):
     # Stay below the tunnel roof; only lift after the snout clears the mouth.
     t=np.clip((peek-.62)/.38,0,1);lift=t*t*t*(t*(t*6-15)+10)
-    return np.array([812-39*peek,875-27*lift,-124+354*peek])
+    return np.array([812-39*peek,875-30*lift,-124+404*peek])
 
-def animal(peek):
+def animal(peek,mouth=0.,funny=0.):
     source=np.load(ROOT/'assets/source/eel-model/zany-moray.npz');v=source['vertices'].copy();f=source['faces'];record=json.loads((ROOT/'assets/source/eel-model/model.json').read_text())
     # Pose zero is wholly behind the mouth, deep in the right-hand chamber.
     center=head_pose(peek);scale=76.
@@ -53,7 +55,16 @@ def animal(peek):
             p=centers+np.column_stack([radius*np.cos(angle),radius*.82*np.sin(angle),np.zeros(len(t))])
         else:
             # The original head/jaw/eyeballs remain real, separately modeled volumes.
-            if 'lower jaw'in name:p[:,2]-=.025*peek
+            if 'lower jaw'in name:
+                p[:,2]-=.025*peek
+                hinge=np.array([0.,.05,.075]);q=p-hinge;angle=np.deg2rad(22*mouth+7*funny);co=np.cos(angle);si=np.sin(angle)
+                p=hinge+np.column_stack([q[:,0]+.025*funny,q[:,1]*co-q[:,2]*si,q[:,1]*si+q[:,2]*co])
+            if 'mouth recess'in name:
+                p[:,2]=(p[:,2]-.075)*(1+1.6*mouth+.4*funny)+.075-.060*mouth
+            if ('eye -1'in name or 'iris -1'in name or 'pupil -1'in name):
+                p[:,2]=.397+(p[:,2]-.397)*(1-.55*funny)
+            if 'pupil'in name:
+                p[:,0]+=(.015 if '-1'in name else -.015)*funny
             local=np.column_stack([p[:,0]*c-p[:,1]*s,-p[:,2],-p[:,0]*s-p[:,1]*c])*scale
             p=local+center
         v[offset:end]=p
@@ -64,3 +75,18 @@ def animal(peek):
         if 'tooth'in name:color=4
         palette.extend([color]*part['vertices']);offset=end
     return v,normals(v,f),f,np.array(palette,dtype='f4')
+
+def expression(time):
+    q=(time+15)%31;cycle=int((time+15)//31)
+    def pulse(start,end):
+        t=(q-start)/(end-start)
+        if not 0<t<1:return 0.
+        x=1-abs(2*t-1)
+        return x*x*x*(x*(x*6-15)+10)
+    return pulse(14.5,16.9),pulse(17.2,19.6)if cycle%2==0 else 0.
+
+def expression_frame(time,peek):
+    if peek<.999999:return int(peek*64+.5)
+    mouth,funny=expression(time);step=int(funny*16+.5)
+    if step:return 80+step
+    return 64+int(mouth*16+.5)

@@ -16,12 +16,27 @@ class VolumeGeometryChecks(unittest.TestCase):
     self.assertTrue(np.all(np.linalg.norm(m['normals'],axis=1)>.99))
    self.assertEqual(Image.open(ROOT/'assets/source'/(name+'-texture.png')).getchannel('A').getextrema(),(255,255))
  def test_tentacles_branches_and_footings_are_closed_geometry(self):
-  for name,folder in [('sea-anemone-sculpted','marine-renders'),('sea-fan-sculpted','marine-renders'),('grounded-footings','reef-model')]:
+  for name,folder in [('sea-anemone-sculpted','marine-renders'),('grounded-footings','reef-model')]:
    with self.subTest(object=name),np.load(ROOT/'assets/source'/folder/(name+'.npz'))as m:
     self.assert_closed(m['vertices'],m['faces']);self.assertGreater(np.ptp(m['vertices'][:,2]),30)
     if 'flow'in m:
      flow=m['flow'];self.assertTrue(np.any(np.linalg.norm(flow,axis=1)<.001));self.assertGreater(np.max(np.linalg.norm(flow,axis=1)),5)
      self.assertGreater(np.ptp(flow[:,2]),3)
+ def test_approved_fan_is_restored_exactly(self):
+  approved=ROOT/'assets/source/marine-renders/approved-fan'
+  self.assertEqual((approved/'atlas.webp').read_bytes(),(ROOT/'roku/images/reef-sea-fan-motion-0.webp').read_bytes())
+  self.assertFalse((ROOT/'roku/images/reef-sea-fan-motion-1.webp').exists())
+  cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text());f=next(f for f in cfg['formations']if f['id']=='sea-fan')
+  self.assertEqual(f,json.loads((approved/'formation.json').read_text()))
+ def test_eel_expressions_are_geometry_and_not_constant(self):
+  from cave_geometry import animal,expression,expression_frame
+  neutral=animal(1)[0];gape=animal(1,mouth=1)[0];funny=animal(1,funny=1)[0]
+  self.assertTrue(np.array_equal(neutral[:1600],gape[:1600]));self.assertGreater(np.linalg.norm(neutral-gape,axis=1).max(),8)
+  self.assertGreater(np.linalg.norm(neutral-funny,axis=1).max(),2)
+  actions=[expression(t/60)for t in range(3720)]
+  self.assertGreater(sum(m>.5 for m,f in actions),20);self.assertGreater(sum(f>.5 for m,f in actions),20)
+  self.assertGreater(sum(m==0 and f==0 for m,f in actions),3000)
+  self.assertEqual(expression_frame(.7,1),80);self.assertEqual(expression_frame(3.4,1),96)
  def test_ground_is_a_textured_ridged_depth_surface(self):
   with np.load(ROOT/'assets/source/reef-model/seafloor.npz')as m:
    v=m['vertices'];self.assertGreater(np.ptp(v[:,2]),700);self.assertGreater(len(m['faces']),30000)

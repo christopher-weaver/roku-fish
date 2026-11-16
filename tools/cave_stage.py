@@ -9,7 +9,7 @@ import json
 import numpy as np
 from PIL import Image
 import moderngl,imagequant
-from cave_geometry import STAGE,COUNT,animal
+from cave_geometry import STAGE,COUNT,FRAME_COUNT,animal
 from reef_geometry import FS
 ROOT=Path(__file__).resolve().parents[1]
 VS='''#version 330
@@ -28,6 +28,7 @@ else base=vec3(.83,.79,.60);
 vec3 normal=normalize(n);float diffuse=.43+.57*max(0.0,dot(normal,normalize(vec3(-.4,-.7,1))));
 float spec=pow(max(0.0,dot(reflect(-normalize(vec3(-.4,-.7,1)),normal),vec3(0,0,1))),26.0)*.16;
 float ambient=clamp((world.z+190.0)/250.0,.13,1.0);
+float exposed=smoothstep(95.0,260.0,world.z);diffuse=mix(diffuse,.65+.35*max(0.0,dot(normal,normalize(vec3(-.4,-.7,1)))),exposed);ambient*=1.0+.32*exposed;
 color=vec4((base*diffuse+spec)*ambient,1);
 }'''
 HOLDOUT='''#version 330
@@ -53,10 +54,11 @@ def build():
     cave=np.load(folder/'hollow-tunnel.npz');wall=shaders[0];wall['wall'].value=1
     fbo=ctx.simple_framebuffer((STAGE[2]*2,STAGE[3]*2),components=4);fbo.use()
     cols=8;poses=[];frames=[];out=ROOT/'work/cave-stage';out.mkdir(exist_ok=True)
-    for i in range(COUNT):
+    states=[(i/64,0.,0.)for i in range(65)]+[(1.,i/16,0.)for i in range(1,17)]+[(1.,0.,i/16)for i in range(1,17)]
+    for i,(peek,mouth,funny)in enumerate(states):
         fbo.clear(0,0,0,0,depth=1)
         draw(0,cave['vertices'],cave['uv'],cave['normals'],cave['faces'])
-        v,n,f,kind=animal(i/(COUNT-1));draw(1,v,np.zeros((len(v),2)),n,f,kind)
+        v,n,f,kind=animal(peek,mouth,funny);draw(1,v,np.zeros((len(v),2)),n,f,kind)
         # Holdouts write transparent pixels AND depth, using actual reef geometry.
         for args in holdouts:draw(2,*args)
         im=Image.frombytes('RGBA',fbo.size,fbo.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).resize(STAGE[2:],Image.Resampling.LANCZOS)
@@ -68,14 +70,14 @@ def build():
     # Transparent margins should not consume scarce device texture memory.
     boxes=[im.getbbox()for im in poses];left=max(0,min(b[0]for b in boxes)-2);top=max(0,min(b[1]for b in boxes)-2)
     right=min(STAGE[2],max(b[2]for b in boxes)+2);bottom=min(STAGE[3],max(b[3]for b in boxes)+2)
-    width,height=right-left,bottom-top;stride=(width+4,height+4);atlas=Image.new('RGBA',(cols*stride[0],9*stride[1]))
+    width,height=right-left,bottom-top;stride=(width+4,height+4);atlas=Image.new('RGBA',(cols*stride[0],13*stride[1]))
     for i,im in enumerate(poses):
         x=i%cols*stride[0]+2;y=i//cols*stride[1]+2;atlas.paste(im.crop((left,top,right,bottom)),(x,y))
         frames.append(dict(x=x,y=y,w=width,h=height,anchorX=0,anchorY=0))
     # Lossless spatial storage, one shared colour palette for temporally stable detail.
     compact=imagequant.quantize_pil_image(atlas,max_colors=80,dithering_level=0,max_quality=95).convert('RGBA');compact.save(ROOT/'roku/images/cave-eel-3d.webp',lossless=True,method=6,exact=True)
-    cfg=dict(image='pkg:/images/cave-eel-3d.webp',count=COUNT,frames=frames,x=STAGE[0]+left,y=STAGE[1]+top,model='shared 3D bending blind cave and pinned articulated moray',sharedDepthTest=True,root=[824,850,-158],headDepth=[-124,230])
+    cfg=dict(image='pkg:/images/cave-eel-3d.webp',count=FRAME_COUNT,emergenceCount=COUNT,expressionSteps=16,frames=frames,x=STAGE[0]+left,y=STAGE[1]+top,model='shared 3D bending blind cave and pinned articulated moray',sharedDepthTest=True,root=[824,850,-158],headDepth=[-124,280])
     (ROOT/'roku/scenes/eel.json').write_text(json.dumps(cfg,indent=2)+'\n');(folder/'cave-stage.json').write_text(json.dumps(cfg,indent=2)+'\n')
     (ROOT/'roku/images/cave-interior.png').unlink(missing_ok=True)
-    print('Packed',COUNT,'joint cave/animal states:',(ROOT/'roku/images/cave-eel-3d.webp').stat().st_size,'bytes',flush=True)
+    print('Packed',FRAME_COUNT,'joint cave/animal/expression states:',(ROOT/'roku/images/cave-eel-3d.webp').stat().st_size,'bytes',flush=True)
 if __name__=='__main__':build()

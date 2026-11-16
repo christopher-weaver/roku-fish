@@ -58,7 +58,8 @@ def eel_pose(t):
     def ease(v):
         v=max(0,min(1,v));return v*v*v*(v*(v*6-15)+10)
     peek=ease((q-7)/7)if 7<=q<14 else 1 if 14<=q<20 else 1-ease((q-20)/8)if 20<=q<28 else 0
-    return round(peek*64)
+    from cave_geometry import expression_frame
+    return expression_frame(t,peek)
 
 def render(frame,mode='Sunset',density='Medium'):
     cam=frame['camera'];t=frame.get('displayTime',frame['time']);warm=mode=='Sunset';suf='-sunset' if warm else ''

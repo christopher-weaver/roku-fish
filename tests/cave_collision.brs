@@ -17,7 +17,7 @@ sub Main()
         if ReefCaveBlocked(s,f,rear,rear) then print "FAIL clear rear lane closed" : return
         f.x=779# : f.y=809# : f.z=.48
         ReefSafeSpawn(s,f)
-        if ReefCaveBlocked(s,f,f,f) then print "FAIL cave safe spawn" : return
+        if ReefCoralBlocked(s,f,f,f) then print "FAIL cave safe spawn" : return
         checks=checks+1
     end for
     print "PASS cave interior, forward/reverse swept entry, depth entry and safe spawn blocked for ";checks;" fish; clear front/rear lanes preserved"

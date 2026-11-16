@@ -39,12 +39,24 @@ for name in ['seafloor','grounded-footings']:
 # Blender's bundled Python may not include Pillow; the fixed texture tiles are
 # authored by connected_scene in the normal Python build before this exporter.
 for name,ox,oy,width,height,base_z in [('sea-fan',80,430,600,565,-45),('sea-anemone',1330,815,285,215,135)]:
+ if name=='sea-fan':
+  with np.load(ROOT/'assets/source/marine-renders/sea-fan-volume.npz')as data:v=data['vertices'].copy();uv=data['uv'];faces=data['faces'][:,::-1]
+  v[:,0]=(v[:,0]+1)*(width+16)/2+ox-8;v[:,1]=-((1-v[:,1])*(height+16)/2+oy-8);v[:,2]=v[:,2]*100+base_z
+  mesh=bpy.data.meshes.new('approved lacy sea fan');mesh.from_pydata(v.tolist(),[],faces.tolist());mesh.update();o=bpy.data.objects.new('restored approved sea fan',mesh);scene.collection.objects.link(o)
+  material=bpy.data.materials.new('approved sea fan colour');material.use_nodes=True;node=material.node_tree.nodes.new('ShaderNodeTexImage');node.image=bpy.data.images.load(str(folder/'sea-fan-projection.png'));node.image.pack();material.node_tree.links.new(node.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);material.node_tree.links.new(node.outputs['Alpha'],material.node_tree.nodes.get('Principled BSDF').inputs['Alpha']);o.data.materials.append(material)
+  layer=mesh.uv_layers.new(name='approved fan UV')
+  for loop in mesh.loops:layer.data[loop.index].uv=uv[loop.vertex_index]
+  for polygon in mesh.polygons:polygon.use_smooth=True
+  continue
  path=ROOT/'assets/source/marine-renders'/(name+'-sculpted.npz')
  with np.load(path)as data:v=data['vertices'].copy();rgb=data['rgb'];flow=data['flow'].copy();faces=data['faces'][:,::-1]
  v[:,1]*=-1;flow[:,1]*=-1
  mesh=bpy.data.meshes.new(name+' sculpted anatomy');mesh.from_pydata(v.tolist(),[],faces.tolist());mesh.update();o=bpy.data.objects.new(name+' individual 3D branches and tentacles',mesh);scene.collection.objects.link(o)
  colors=mesh.color_attributes.new(name='sculpted colour',type='FLOAT_COLOR',domain='POINT');colors.data.foreach_set('color',np.column_stack([rgb,np.ones(len(rgb))]).ravel())
- m=bpy.data.materials.new(name+' shaded tissue');m.use_nodes=True;node=m.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';m.node_tree.links.new(node.outputs['Color'],m.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);m.node_tree.nodes.get('Principled BSDF').inputs['Roughness'].default_value=.56;o.data.materials.append(m)
+ m=bpy.data.materials.new(name+' shaded tissue');m.use_nodes=True;node=m.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';texture=m.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(ROOT/'assets/source/marine-renders/sea-anemone-surface-colour.png'));texture.image.pack();m.node_tree.links.new(texture.outputs['Color'],m.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);m.node_tree.nodes.get('Principled BSDF').inputs['Roughness'].default_value=.56;o.data.materials.append(m)
+ uv=mesh.uv_layers.new(name='reference tissue colour')
+ for loop in mesh.loops:
+  point=v[loop.vertex_index];uv.data[loop.index].uv=(point[0]/2048,1+point[1]/1152)
  for polygon in mesh.polygons:polygon.use_smooth=True
  o.shape_key_add(name='Basis')
  for index,strength in enumerate([-1.,0.,1.]):
@@ -53,7 +65,7 @@ for name,ox,oy,width,height,base_z in [('sea-fan',80,430,600,565,-45),('sea-anem
 # Use exactly the same pinned animal poses and cave coordinates as the render.
 import sys
 sys.path.insert(0,str(ROOT/'tools'))
-from cave_geometry import animal,COUNT
+from cave_geometry import animal,COUNT,FRAME_COUNT
 v,n,faces,kind=animal(0)
 v[:,1]*=-1
 mesh=bpy.data.meshes.new('moray shared cave geometry');mesh.from_pydata(v.tolist(),[],faces[:,::-1].tolist());mesh.update()
@@ -65,6 +77,9 @@ o.shape_key_add(name='Basis')
 for index in range(COUNT):
  v,_,_,_=animal(index/(COUNT-1));v[:,1]*=-1;key=o.shape_key_add(name='cave emergence %02d'%index)
  key.data.foreach_set('co',v.ravel());key.value=0;key.keyframe_insert('value',frame=max(0,index));key.value=1;key.keyframe_insert('value',frame=index+1);key.value=0;key.keyframe_insert('value',frame=index+2)
+for kind in ['mouth','funny']:
+ for step in range(1,17):
+  v,_,_,_=animal(1.,step/16 if kind=='mouth'else 0.,step/16 if kind=='funny'else 0.);v[:,1]*=-1;key=o.shape_key_add(name=kind+' expression %02d'%step);key.data.foreach_set('co',v.ravel())
 o['pinned_rear_attachment']=[824,-850,-158];o['shared_cave_depth_test']=True
 scene.frame_start=1;scene.frame_end=COUNT;scene.frame_set(49)
 bpy.ops.object.camera_add(location=(1024,-576,3000));camera=bpy.context.object;camera.rotation_euler=(0,0,0);camera.data.type='ORTHO';camera.data.ortho_scale=2048;scene.camera=camera

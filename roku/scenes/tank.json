@@ -46,16 +46,16 @@
   },
   "formations": [
     {
-      "x": 102,
-      "y": 494,
-      "width": 497,
-      "height": 517,
-      "frameWidth": 239,
-      "frameHeight": 248,
+      "x": 74,
+      "y": 422,
+      "width": 540,
+      "height": 274,
+      "frameWidth": 270,
+      "frameHeight": 137,
       "frames": 65,
-      "columns": 8,
-      "meshVertices": 15962,
-      "meshTriangles": 31416,
+      "columns": 7,
+      "meshVertices": 40892,
+      "meshTriangles": 88034,
       "rootY": 995,
       "image": "pkg:/images/reef-sea-fan-motion-0.webp",
       "id": "sea-fan",
@@ -64,18 +64,16 @@
       "parallax": 1,
       "renderedMesh": true,
       "images": [
-        "pkg:/images/reef-sea-fan-motion-0.webp",
-        "pkg:/images/reef-sea-fan-motion-1.webp"
+        "pkg:/images/reef-sea-fan-motion-0.webp"
       ],
       "animation": {
         "period": 9.0,
         "count": 65,
-        "framesPerPage": 64,
-        "strideX": 243,
-        "strideY": 252,
+        "framesPerPage": 98,
+        "strideX": 274,
+        "strideY": 141,
         "gutter": 2
-      },
-      "geometryType": "closed sculpted tubes and solid anatomy"
+      }
     },
     {
       "id": "connected-reef",
@@ -159,16 +157,16 @@
       }
     },
     {
-      "x": 1352,
-      "y": 851,
-      "width": 244,
-      "height": 187,
-      "frameWidth": 176,
-      "frameHeight": 135,
+      "x": 1334,
+      "y": 809,
+      "width": 283,
+      "height": 225,
+      "frameWidth": 212,
+      "frameHeight": 169,
       "frames": 65,
-      "columns": 11,
-      "meshVertices": 27596,
-      "meshTriangles": 54848,
+      "columns": 9,
+      "meshVertices": 113360,
+      "meshTriangles": 225916,
       "rootY": 1030,
       "image": "pkg:/images/reef-sea-anemone-motion-0.webp",
       "id": "sea-anemone",
@@ -182,9 +180,9 @@
       "animation": {
         "period": 7.5,
         "count": 65,
-        "framesPerPage": 154,
-        "strideX": 180,
-        "strideY": 139,
+        "framesPerPage": 99,
+        "strideX": 216,
+        "strideY": 173,
         "gutter": 2
       },
       "geometryType": "closed sculpted tubes and solid anatomy"

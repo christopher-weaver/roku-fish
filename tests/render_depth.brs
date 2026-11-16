@@ -8,7 +8,7 @@ sub Main()
     end while
     depths=[0.16,0.55,0.94]
     a={floor:{normal:"floor"},plate:{normal:"water"},fish:{},fins:{},tails:{},formations:[],surfaceShadows:[],eels:[],eelConfig:{x:686,y:766},surface:[],caustics:[],ray:{normal:"ray"}}
-    for poseIndex=0 to 64
+    for poseIndex=0 to 96
         a.eels.Push({normal:"eel"})
     end for
     for i=0 to 2

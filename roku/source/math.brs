@@ -167,7 +167,7 @@ function ReefEelPose(time as double,result=invalid as dynamic) as object
     if result=invalid then result={}
     lift=ReefSmoother((peek-.62)/.38)
     result.peek=peek : result.x=812#-39#*peek
-    result.y=875#-27#*lift : result.z=0#-124#+354#*peek
+    result.y=875#-30#*lift : result.z=0#-124#+404#*peek
     result.angle=0#
     return result
 end function
@@ -186,5 +186,19 @@ end function
 
 function ReefEelFrame(time as double) as integer
     pose=ReefEelPose(time)
-    return Int(pose.peek*64#+.5)
+    if pose.peek<.999999 then return Int(pose.peek*64#+.5)
+    q=ReefWrap(time+15#,31#)
+    cycle=Int((time+15#)/31#)
+    funny=0#
+    if cycle mod 2=0 then funny=ReefEelPulse(q,17.2,19.6)
+    expressionIndex=Int(funny*16#+.5)
+    if expressionIndex>0 then return 80+expressionIndex
+    mouth=ReefEelPulse(q,14.5,16.9)
+    return 64+Int(mouth*16#+.5)
+end function
+
+function ReefEelPulse(q as double,first as double,last as double) as double
+    t=(q-first)/(last-first)
+    if t<=0# or t>=1# then return 0#
+    return ReefSmoother(1#-Abs(2#*t-1#))
 end function

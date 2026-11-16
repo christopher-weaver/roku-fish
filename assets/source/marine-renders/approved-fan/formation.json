@@ -1,0 +1,30 @@
+{
+  "x": 74,
+  "y": 422,
+  "width": 540,
+  "height": 274,
+  "frameWidth": 270,
+  "frameHeight": 137,
+  "frames": 65,
+  "columns": 7,
+  "meshVertices": 40892,
+  "meshTriangles": 88034,
+  "rootY": 995,
+  "image": "pkg:/images/reef-sea-fan-motion-0.webp",
+  "id": "sea-fan",
+  "z": 0.26,
+  "halfDepth": 0.018,
+  "parallax": 1,
+  "renderedMesh": true,
+  "images": [
+    "pkg:/images/reef-sea-fan-motion-0.webp"
+  ],
+  "animation": {
+    "period": 9.0,
+    "count": 65,
+    "framesPerPage": 98,
+    "strideX": 274,
+    "strideY": 141,
+    "gutter": 2
+  }
+}

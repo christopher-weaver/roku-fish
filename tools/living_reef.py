@@ -1,7 +1,7 @@
 """Sculpted marine life: closed tubes, spheres, cups and ridged coral anatomy.
 
-Materials are shaded on actual rounded geometry. No photographs or ripple
-warps supply the shape or colour of these animals and coral sculptures.
+Materials are shaded on actual rounded geometry. Approved images supply
+surface colour; tentacle anatomy and motion come from modeled 3D curves.
 """
 from pathlib import Path
 import json,math
@@ -17,7 +17,7 @@ FS='''#version 330
 uniform sampler2D photo;uniform float usePhoto;in vec3 n;in vec3 color;in vec3 world;in vec2 texuv;out vec4 outcol;
 void main(){vec3 normal=normalize(n);vec3 light=normalize(vec3(-.35,-.7,1));float lambert=max(0.0,dot(normal,light));float shine=pow(max(0.0,dot(normal,normalize(light+vec3(0,0,1)))),30.0)*.07;
 float grain=sin(world.x*2.7+sin(world.y*3.1))*sin(world.z*2.3)*.018;
-vec3 base=usePhoto>.5?texture(photo,texuv).rgb:color;outcol=vec4(base*(.65+.35*lambert+grain)+shine*.3,1);}'''
+vec3 base=usePhoto>.5?texture(photo,texuv).rgb:color;if(usePhoto>.5&&color.r>.90&&color.g<.72)base=mix(base,color,.85);outcol=vec4(base*(.65+.35*lambert+grain)+shine*.3,1);}'''
 class Model:
  def __init__(self):self.v=[];self.f=[];self.rgb=[];self.flow=[]
  def add(self,v,f,color,flow=None):
@@ -71,28 +71,44 @@ class Model:
   self.add(v,np.asarray(f)[:,::-1],np.array(colors))
 
 def anemone():
- m=Model();rng=np.random.default_rng(482);m.sphere((1474,1005,125),(104,25,55),(.25,.35,.27));m.sphere((1475,990,145),(66,15,35),(.43,.40,.33))
- for i in range(84):
-  a=i*2.399963;r=82*np.sqrt((i+.5)/84);root=np.array([1475+r*np.cos(a),998+9*np.sin(a),145+r*.50*np.sin(a)])
-  length=rng.uniform(84,155)*(1-.17*r/82);t=np.linspace(0,1,26)
-  path=root+np.column_stack([np.cos(a)*(r*.18*t+24*np.sin(t*np.pi)), -length*np.sin(t*np.pi/2)+15*t**4, np.sin(a)*28*t+14*np.sin(t*3)])
-  radius=(5.5+1.7*np.sin(i*2.3))*(1-.42*t);radius[-5:]*=[1.08,1.18,1.10,.83,.32]
-  color=(.37+.07*np.sin(i),.44+.04*np.cos(i),.42+.08*np.sin(i*.3));tip=(.78,.67+.08*np.sin(i),.63+.08*np.cos(i))
-  flow=np.column_stack([(5+3*np.sin(i*.7))*t*t,1.8*np.sin(i)*t*t,(3+3*np.cos(i))*t*t])
-  m.tube(path,radius,color,tip,flow)
- return m
-
-def fan():
- m=Model();t=np.linspace(0,1,28);root=np.array([345,1002,-45]);path=root+np.column_stack([8*np.sin(t*3),-435*t,8*np.sin(t*2)]);m.tube(path,6*(1-.8*t),(.40,.22,.17),(.69,.39,.28),np.column_stack([10*t*t,np.zeros(len(t)),4*t*t]))
- rng=np.random.default_rng(236)
- for level in range(9):
-  start=root+np.array([6*np.sin(level*.3),-90-level*35,3]);spread=90+145*np.sin((level+2)/12*np.pi)
-  for side in [-1,1]:
-   q=np.linspace(0,1,23);branch=start+np.column_stack([side*spread*q,-(75+30*level/12)*q-18*np.sin(q*np.pi),18*np.sin(q*3+level)])
-   motion=np.column_stack([((1002-branch[:,1])/435)**2*9,np.zeros(len(q)),q*q*5]);m.tube(branch,3.4*(1-.8*q),(.48,.25,.20),(.70,.42,.32),motion,sides=10)
-   for j in range(3,21,3):
-    base=branch[j];u=np.linspace(0,1,13);length=rng.uniform(28,61);twig=base+np.column_stack([side*length*.32*u,-length*u,5*np.sin(u*2+level)])
-    w=((1002-twig[:,1])/435)**2;m.tube(twig,1.9*(1-.82*u),(.56,.29,.23),(.77,.51,.39),np.column_stack([8*w,np.sin(level)*w,4*w]),sides=8)
+ # Match the approved broad, curled flower form: a visible mouth, a low oral
+ # disc, ivory/green translucent-looking tissue and peach bulb tips.
+ m=Model();rng=np.random.default_rng(482);center=np.array([1474.,949.,210.])
+ u=np.array([1.,0.,0.]);v=np.array([0.,.56,.8285]);axis=np.cross(u,v)
+ sides=160;vertices=[];colors=[];faces=[]
+ profile=[(.015,-13),(.10,-12),(.17,-4),(.22,2),(.40,3),(.65,1),(.90,-2),(1.,-6),(.95,-24),(.60,-58),(.015,-75)]
+ for row,(r,height)in enumerate(profile):
+  for col in range(sides):
+   a=col*2*np.pi/sides;fold=np.cos(a*64)*np.sin(np.pi*r)*1.5
+   vertices.append(center+(np.cos(a)*u+np.sin(a)*v)*r*82+axis*(height+fold))
+   if r<.17:c=np.array([.35,.12,.075])
+   elif r<.4:c=np.array([.76,.43,.34])
+   else:c=np.array([.72,.66,.48])
+   colors.append(c*(.92+.08*np.cos(a*64)))
+ for row in range(len(profile)-1):
+  for i in range(sides):
+   a=row*sides+i;b=row*sides+(i+1)%sides;c=a+sides;d=b+sides;faces.extend([(a,c,b),(b,c,d)])
+ for i in range(1,sides-1):faces.extend([(0,i,i+1),(10*sides,10*sides+i+1,10*sides+i)])
+ m.add(vertices,faces,np.array(colors))
+ for i in range(100):
+  theta=i*2.399963;ring=32+54*np.sqrt((i+.5)/100);radial=np.cos(theta)*u+np.sin(theta)*v
+  root=center+radial*ring-axis*3;front=max(0,np.sin(theta));back=max(0,-np.sin(theta))
+  height=rng.uniform(50,91)+18*back-40*front;reach=rng.uniform(18,43)
+  if front>.65:height=max(8.,(root[1]-rng.uniform(957,969))/.84)
+  height*=.86
+  p0=root;p1=root+np.array([np.cos(theta)*reach*.25,-height*.24,12.])
+  p2=root+np.array([np.cos(theta)*(reach+9),-height*1.16,18.+np.sin(theta)*8])
+  p3=root+np.array([np.cos(theta)*reach+12*np.sin(i*1.7),-height*.84,23.+np.sin(theta)*15])
+  t=np.linspace(0,1,36);path=(1-t[:,None])**3*p0+3*(1-t[:,None])**2*t[:,None]*p1+3*(1-t[:,None])*t[:,None]**2*p2+t[:,None]**3*p3
+  path[:,0]+=rng.uniform(10,23)*np.sin(t*np.pi*1.5+i*.81)*np.sin(t*np.pi)
+  path[:,2]+=12*np.sin(t*np.pi+i*.67)*np.sin(t*np.pi)
+  radius=rng.uniform(2.8,4.1)*(1-.18*t);radius[-4:]*=[1.08,1.2,1.05,.55]
+  color=(.76+.04*np.sin(i*.6),.76+.03*np.cos(i),.56+.04*np.sin(i*.3));tip=(.94,.68,.57)
+  flow=np.column_stack([(2.6+1.4*np.sin(i*.7))*t*t,1.2*np.sin(i)*t*t,(1.5+2*np.cos(i))*t*t])
+  m.tube(path,radius,color,(.86,.83,.65),flow,sides=14)
+  # Rounded peach bulbs, attached to their moving finger rather than a sprite.
+  start=len(m.v);m.sphere(path[-1],(3.1,3.1,3.1),tip)
+  m.flow[start:]=np.tile(flow[-1],(len(m.v)-start,1))
  return m
 
 def corals():
@@ -119,9 +135,20 @@ def photo_material(name,folder):
 def save(name,model,folder):
  v,n,f,rgb,flow=model.arrays();uv=np.column_stack([v[:,0]/2048,1-v[:,1]/1152]).astype('f4');np.savez_compressed(folder/(name+'.npz'),vertices=v,normals=n,faces=f,rgb=rgb,flow=flow,uv=uv);return v,n,f,rgb,flow
 
+def anemone_material():
+ from connected_scene import marine
+ from scipy.ndimage import distance_transform_edt
+ folder=ROOT/'assets/source/marine-renders'
+ image=Image.new('RGBA',(2048,1152));image.alpha_composite(marine('sea-anemone',285,215),(1330,815));rgba=np.array(image)
+ solid=rgba[:,:,3]>230
+ distance,indices=distance_transform_edt(~solid,return_indices=True)
+ rgb=rgba[indices[0],indices[1],:3]
+ image=Image.fromarray(rgb);image.save(folder/'sea-anemone-surface-colour.png');return image
+
 def build_marine():
  folder=ROOT/'assets/source/marine-renders';cfgpath=ROOT/'roku/scenes/tank.json';cfg=json.loads(cfgpath.read_text());ctx=moderngl.create_standalone_context(backend='egl');ctx.enable(moderngl.DEPTH_TEST);p=ctx.program(vertex_shader=VS,fragment_shader=FS)
- for name,model,period,scale in [('sea-anemone',anemone(),7.5,.72),('sea-fan',fan(),9.,.48)]:
+ image=anemone_material();texture=ctx.texture(image.size,3,image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());texture.filter=(moderngl.LINEAR,moderngl.LINEAR);texture.use();p['usePhoto'].value=1
+ for name,model,period,scale in [('sea-anemone',anemone(),7.5,.75)]:
   v,n,f,rgb,flow=save(name+'-sculpted',model,folder)
   # Compatibility geometry export uses normalized coordinates but retains real tubes.
   x0,y0=np.floor(np.min(v[:,:2]-np.abs(flow[:,:2]),axis=0)-8).astype(int);x1,y1=np.ceil(np.max(v[:,:2]+np.abs(flow[:,:2]),axis=0)+8).astype(int);w,h=x1-x0,y1-y0
@@ -135,12 +162,14 @@ def build_marine():
   for first in range(0,65,capacity):
    batch=shots[first:first+capacity];atlas=Image.new('RGBA',(cols*(tw+4)+4,math.ceil(len(batch)/cols)*(th+4)+4))
    for i,im in enumerate(batch):atlas.paste(im,(2+i%cols*(tw+4),2+i//cols*(th+4)))
-   compact=imagequant.quantize_pil_image(atlas,max_colors=16 if name=='sea-fan'else 48,dithering_level=0,max_quality=95).convert('RGBA');filename=f'reef-{name}-motion-{len(pages)}.webp';normalized=np.array(compact);normalized[:,:,3][normalized[:,:,3]>245]=255;normalized[:,:,3][normalized[:,:,3]<6]=0;normalized[normalized[:,:,3]==0,:3]=0;Image.fromarray(normalized).save(ROOT/'roku/images'/filename,lossless=True,method=6,exact=True);pages.append('pkg:/images/'+filename)
+   compact=imagequant.quantize_pil_image(atlas,max_colors=64,dithering_level=0,max_quality=95).convert('RGBA');filename=f'reef-{name}-motion-{len(pages)}.webp';normalized=np.array(compact);normalized[:,:,3][normalized[:,:,3]>245]=255;normalized[:,:,3][normalized[:,:,3]<6]=0;normalized[normalized[:,:,3]==0,:3]=0;Image.fromarray(normalized).save(ROOT/'roku/images'/filename,lossless=True,method=6,exact=True);pages.append('pkg:/images/'+filename)
   Image.fromarray(union).save(folder/(name+'-motion-footprint.png'))
   for formation in cfg['formations']:
    if formation['id']==name:formation.update(x=int(x0),y=int(y0),width=int(w),height=int(h),frameWidth=tw,frameHeight=th,columns=cols,frames=65,image=pages[0],images=pages,meshVertices=len(v),meshTriangles=len(f),geometryType='closed sculpted tubes and solid anatomy',animation=dict(period=period,count=65,framesPerPage=capacity,strideX=tw+4,strideY=th+4,gutter=2))
   for item in [vao,vb,ib,fb]:item.release()
   print('Sculpted',name,len(v),'vertices,',len(f),'triangles,',len(pages),'atlas pages',flush=True)
+ from approved_fan import restore
+ restore(cfg)
  cfgpath.write_text(json.dumps(cfg,indent=2)+'\n')
  used={path.split('/')[-1]for formation in cfg['formations']for path in formation.get('images',[formation['image']])}
  for path in (ROOT/'roku/images').glob('reef-*-motion-*.webp'):

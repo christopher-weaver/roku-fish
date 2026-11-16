@@ -36,8 +36,8 @@
   },
   "cave-eel-3d.webp": {
     "width": 1136,
-    "height": 1062,
-    "sha256": "6ce608314c6c9721566f9d87c83a4ba0c53546281d6193f3d4a9bb122f774af5"
+    "height": 1534,
+    "sha256": "7fd6cd2a47dfed1b0ff8250a65d78bc1587040444f9bdad710d450fdad715601"
   },
   "copperband_butterflyfish-atlas.webp": {
     "width": 1024,
@@ -165,19 +165,14 @@
     "sha256": "66f6ab7912535256a47ad1ad149f4ecef21a4d902b7e7b18bf008d78163ebe67"
   },
   "reef-sea-anemone-motion-0.webp": {
-    "width": 1984,
-    "height": 838,
-    "sha256": "8589e85b6428c0aa6b303897ed88d75bb22369cbfd349c7b18f36af120b0895d"
+    "width": 1948,
+    "height": 1388,
+    "sha256": "2f7c06fa6e965d0c86109b34c8a8de1466bc3475b8d819f0f787550c04395910"
   },
   "reef-sea-fan-motion-0.webp": {
-    "width": 1948,
-    "height": 2020,
-    "sha256": "4c047f1c34a6e94968d5975fbed718d318033f79c36ac00e73003d307c129a99"
-  },
-  "reef-sea-fan-motion-1.webp": {
-    "width": 1948,
-    "height": 256,
-    "sha256": "281e28934656798a0ebf7862e7dcc21bf33725f29d587b9f36d8512ab7aa5853"
+    "width": 1922,
+    "height": 1414,
+    "sha256": "d93d1a48337e3c2f1a8233c933cd267b12e0fd665caad6033f6acf8dda374485"
   },
   "royal_gramma-atlas.webp": {
     "width": 1024,

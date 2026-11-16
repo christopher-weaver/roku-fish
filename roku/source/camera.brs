@@ -102,6 +102,22 @@ sub ReefSafeSpawn(s as object, f as object)
             chosen = lane : best = distance
         end if
     end for
+    ' A deeply emerged eel can occupy both usual depth lanes. Relocate a
+    ' blocked initial spawn to the nearest pre-cleared navigation node.
+    if best=10# and s.navigation<>invalid
+        selected=invalid : nearest=1e20
+        for nodeIndex=0 to s.navigation.nodes.Count()-1
+            node=s.navigation.nodes[nodeIndex]
+            distance=(node.x-f.x)^2+(node.y-f.y)^2+((node.z-f.z)*800#)^2
+            if distance<nearest and not ReefCoralBlocked(s,f,node,node)
+                selected=node : nearest=distance
+            end if
+        end for
+        if selected<>invalid
+            f.x=selected.x : f.y=selected.y : f.z=selected.z
+            return
+        end if
+    end if
     f.z = chosen
 end sub
 
