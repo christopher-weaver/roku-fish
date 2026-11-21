@@ -79,10 +79,10 @@ class Model:
 def anemone():
  # Match the new reference: fewer, fleshy pink/ivory tapered fingers.
  # All finger geometry is closed and has independently pinned motion.
- m=Model();rng=np.random.default_rng(482);center=np.array([1474.,949.,210.])
+ m=Model();rng=np.random.default_rng(482);center=np.array([1474.,958.,210.])
  u=np.array([1.,0.,0.]);v=np.array([0.,.35,.93675]);axis=np.cross(u,v)
  sides=160;vertices=[];colors=[];faces=[]
- profile=[(.015,-13),(.10,-12),(.17,-4),(.22,2),(.40,3),(.65,1),(.90,-2),(1.,-6),(.95,-24),(.60,-58),(.015,-75)]
+ profile=[(.015,-13),(.10,-12),(.17,-4),(.22,2),(.40,3),(.65,1),(.90,-2),(1.,-6),(.95,-14),(.60,-20),(.015,-22)]
  for row,(r,height)in enumerate(profile):
   for col in range(sides):
    a=col*2*np.pi/sides;fold=np.cos(a*64)*np.sin(np.pi*r)*1.5

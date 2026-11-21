@@ -119,7 +119,7 @@ function ReefFishFrames(bitmap as object, metadata as object, quality as string,
             fractional = CreateObject("roRegion",bitmap,frame.x,frame.y,frame.w,frame.h)
             fractional.SetPretranslation(4096-Int(frame.anchorX),4096-Int(frame.anchorY))
             fractional.SetScaleMode(1)
-            cache[key] = {normal:reg,fractional:fractional,offsetX:Int(frame.anchorX)-frame.anchorX,offsetY:Int(frame.anchorY)-frame.anchorY}
+            cache[key] = {width:frame.w,height:frame.h,anchorX:frame.anchorX,anchorY:frame.anchorY,normal:reg,fractional:fractional,offsetX:Int(frame.anchorX)-frame.anchorX,offsetY:Int(frame.anchorY)-frame.anchorY}
             if bands>0
                 strips=[]
                 for band=0 to bands-1

@@ -1,0 +1,1 @@
+PASS  1060  tail/pectoral pose boundaries preserve continuous edges and dimensions using single positive-scale images

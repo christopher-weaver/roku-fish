@@ -164,25 +164,30 @@
     "height": 512,
     "sha256": "3d5f5202a0d7d6d14d72aab7e6a1fa05773ad139cedb68aa70d118c953b1f8a1"
   },
+  "reef-anemone-rim.webp": {
+    "width": 264,
+    "height": 47,
+    "sha256": "eeb397fea8dda54dfc7f3d9ecb97d3945ddb9939af204548efd572e019185c39"
+  },
   "reef-clam-motion-0.webp": {
     "width": 1914,
     "height": 1117,
-    "sha256": "95d5c46171684881f224da3d5558e806e34b8bdf90647baf3d68248f30e6a2a2"
+    "sha256": "6f7665951e6613618f259fe4f610ccbb7fc190edd2ab031f5debe2e844ad59e4"
   },
   "reef-connected-reef.webp": {
     "width": 2038,
     "height": 825,
-    "sha256": "a534fe31d9c0a6363fe248f4b16753f0a83e3053d90e83a84e5c1415be207f3f"
+    "sha256": "a6d4e722eb095a01b1d55ce54a26598075fdbb19ead929105c402a67c8c1d85c"
   },
   "reef-foreground-reef.webp": {
     "width": 2037,
     "height": 447,
-    "sha256": "11f5f2aca440b1ae2d37b0f6df3455abbb0947ee035c255c5ab8e6d731185d1d"
+    "sha256": "b1e3d444e9baf483fd68b921a632a2cdeca218791574a9aa35d032d034869a3a"
   },
   "reef-sea-anemone-motion-0.webp": {
     "width": 1894,
-    "height": 1124,
-    "sha256": "35a9f935c4296867b5e4e0a2cff108a0d96a463631d66de9eeca83f947acea26"
+    "height": 932,
+    "sha256": "50348a085453a4f80c53dbee6c2c6ba9d582803b1999eb5638e7c92e6a797f70"
   },
   "reef-sea-fan-motion-0.webp": {
     "width": 1922,
@@ -207,17 +212,22 @@
   "sand-caustics.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "c9f9c5a74c1c6ed54224ad3658f052fa7d8f8c154e0f8019d4299d3ccc0c2613"
+    "sha256": "8f492e73fd7de1cfdaa78d5d69911c0f1599e75240500d1677e4b3d3e6f3ea09"
   },
   "sand-wave-shadows.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "604e4a9c75402984d323bd3226091094a6b18b2e352dc67380cd0e2b17de2817"
+    "sha256": "c4422cc735278b66ece5a105f53e8e1cbe221e01d1c7e2eee15eefb5354000a1"
   },
   "seafloor-sunset.webp": {
     "width": 2048,
     "height": 232,
     "sha256": "f0a74bd69a61c5fa4559492ecea15610aa788ac7634bcd52fb07c8630b144904"
+  },
+  "shadow-anemone-rim.webp": {
+    "width": 1024,
+    "height": 288,
+    "sha256": "49c30997cf8c41c611547ad75d1777804b9c308607770d0281b4b2a169568283"
   },
   "shadow-connected-reef.webp": {
     "width": 1024,
@@ -247,7 +257,7 @@
   "surface-waves.png": {
     "width": 2048,
     "height": 512,
-    "sha256": "9d62e4ad30523b9b922be672b4d7b0dc0075ca4fb0f04894262c0036a9084f21"
+    "sha256": "57d52db5380157652d005630281fa17013920e0a170bbe169067bd400e8f7667"
   },
   "water-day.webp": {
     "width": 2048,

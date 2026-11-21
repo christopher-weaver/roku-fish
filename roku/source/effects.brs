@@ -124,7 +124,7 @@ sub ReefClamInit(s as object)
     end for
     s.clam={enabled:true,cycle:-1,event:0,released:false,order:order,nextId:s.fish.Count(),births:0,bubbles:[],baby:invalid,escape:0#,lastTime:0#}
     for i=0 to 11
-        s.clam.bubbles.Push({born:0#-1000#,x:1080#,speed:45#+i*2#,phase:i*2.399963#,scale:.25+(i mod 4)*.07})
+        s.clam.bubbles.Push({born:0#-1000#,x:1075#+(i mod 4)*5#,originY:964#+(i mod 3)*4#,speed:45#+i*2#,phase:i*2.399963#,scale:.25+(i mod 4)*.07})
     end for
     s.bioluminescence=[]
     for i=0 to 23
@@ -148,12 +148,17 @@ sub ReefClamStep(s as object)
             c.cycle=cycle : c.event=c.order[cycle mod 3] : c.released=false : c.baby=invalid : c.escape=0#
             if c.event=2 and (s.fish.Count()>=12 or c.births>=4) then c.event=0
             ' The same live animal exists inside the CLOSED shell before opening.
+            if c.event=1
+                for each e in c.bubbles
+                    e.born=1000000#
+                end for
+            end if
             if c.event=2 then c.released=ReefClamBaby(s)
         end if
     end if
     if c.baby<>invalid
         baby=c.baby
-        if baby.emerging=true and q>=13#
+        if baby.emerging=true and q>=11#
             nextEscape=ReefMin(1#,c.escape+dt/4.5)
             pose=ReefClamExitPose(nextEscape)
             if not ReefCoralBlocked(s,baby,baby,pose) and not ReefFishBlocked(s,baby,baby,pose)
@@ -169,10 +174,10 @@ sub ReefClamStep(s as object)
             end if
         end if
     end if
-    if q<16# or q>=22# or c.released then return
+    if q<14# or q>=22# or c.released then return
     if c.event=1
         for i=0 to c.bubbles.Count()-1
-            e=c.bubbles[i] : e.born=s.time+i*.14 : e.x=1105#+ReefRange(s,-12#,12#)
+            e=c.bubbles[i] : e.born=s.time+i*.14
         end for
         c.released=true
     else if c.event=2
@@ -186,8 +191,8 @@ function ReefClamBaby(s as object) as boolean
     if s.fish.Count()=0 then return false
     parent=s.fish[s.clam.births mod s.fish.Count()]
     f={} : f.Append(parent)
-    f.id=s.clam.nextId : f.size=ReefMin(.27,48#/f.sp.length) : f.x=1080# : f.y=965# : f.z=.97
-    f.emerging=true
+    f.id=s.clam.nextId : f.size=ReefMin(.27,48#/f.sp.length) : f.x=1085# : f.y=970# : f.z=.97
+    f.emerging=true : f.maneuverUntil=0# : f.blockedTime=0#
     f.homeZ=.94 : f.heading=.36 : f.pitch=0# : f.yawVelocity=0# : f.yawAcceleration=0#
     f.speed=f.sp.speed*.30 : f.speedAcceleration=0# : f.acceleration=12#
     f.vx=0# : f.vy=0# : f.vz=0# : f.desiredVx=0# : f.desiredVy=0# : f.desiredVz=0#
@@ -206,7 +211,7 @@ end function
 
 function ReefClamExitPose(progress as double) as object
     u=ReefSmoother(progress)
-    return {x:1080#+140#*u,y:965#-90#*u,z:.97,heading:.36*(1#-u),pitch:0#}
+    return {x:1085#+135#*u,y:970#-95#*u,z:.97,heading:.36*(1#-u),pitch:0#}
 end function
 
 function ReefClamDisplayOpening(s as object) as double

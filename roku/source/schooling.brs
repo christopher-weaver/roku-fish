@@ -122,7 +122,8 @@ function ReefNeighbors(s as object, f as object) as object
                     if blockedPreferred or ReefCoralBlocked(s,other,other,lane) then side=0#
                 end if
                 steer.y=steer.y+side*pressure*520#
-                steer.z=steer.z+side*pressure*90#
+                lane.x=f.x : lane.y=f.y : lane.z=ReefClamp(f.z+side*.10,.06,.97)
+                if not ReefCoralBlocked(s,f,f,lane) then steer.z=steer.z+side*pressure*90#
                 horizontal=Sqr(dx*dx+dz*dz)
                 if horizontal>0.001
                     repel=pressure*ReefClamp((radius*1.25-horizontal)/(radius*.35),0,1)*100#

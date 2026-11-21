@@ -1,3 +1,4 @@
+PASS cubic display positions retain velocity endpoints without leaving the swept envelope
 PASS opposite target changes retain bounded turn speed, acceleration and jerk; cubic display headings preserve endpoint velocities
 PASS all ten species retain continuous silhouette widths across every yaw index boundary
 PASS adaptive body angles preserve positive, continuous widths at every head-on boundary

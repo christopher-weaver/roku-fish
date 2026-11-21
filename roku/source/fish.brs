@@ -1,5 +1,5 @@
 sub ReefChooseTarget(s as object, f as object)
-    f.stateTime = 0# : f.recoveryUntil=0#
+    f.stateTime = 0# : f.recoveryUntil=0# : f.maneuverUntil=0#
     f.route = [] : f.routeIndex = 0 : f.routeCheckAt = 0#
     r = ReefRandom(s)
     f.duration = ReefRange(s, 10, 30)
@@ -29,25 +29,33 @@ sub ReefFishStep(s as object, f as object, dt as double)
     f.stateTime = f.stateTime + dt
     ReefFollowRoute(s, f)
     dx = f.tx - f.x : dy = f.ty - f.y : dz = (f.tz - f.z) * 800
+    maneuver=false
+    if f.maneuverUntil<>invalid then maneuver=s.time<f.maneuverUntil
     arrivalDistance=90#
     if f.recoveryUntil<>invalid
         if s.time<f.recoveryUntil then arrivalDistance=45#
     end if
+    if maneuver then arrivalDistance=18#
     if (f.stateTime > f.duration) or (dx * dx + dy * dy + dz * dz < arrivalDistance*arrivalDistance and f.state <> "Hovering" and f.routeIndex >= f.route.Count() - 1)
         ReefChooseTarget(s, f)
+        maneuver=false
         dx = f.tx - f.x : dy = f.ty - f.y : dz = (f.tz - f.z) * 800
     end if
     neighbors = ReefNeighbors(s, f)
-    dx = dx * 0.4 + neighbors.x : dy = dy * 0.4 + neighbors.y : dz = dz * 0.4 + neighbors.z
+    if not maneuver
+        dx = dx * 0.4 + neighbors.x : dy = dy * 0.4 + neighbors.y : dz = dz * 0.4 + neighbors.z
+    end if
     f.wander = ReefWrap(f.wander + dt * 0.17, 6.283185307)
-    dx = dx + Cos(f.wander) * 16
-    dz = dz + Sin(f.wander * 1.31) * 18
+    if not maneuver
+        dx = dx + Cos(f.wander) * 16
+        dz = dz + Sin(f.wander * 1.31) * 18
+    end if
     ' Soft walls begin far enough away to allow a full, speed-limited arc turn.
     wall = false
     if f.x < 240 then dx = dx + (240 - f.x) * 4 : wall = true
     if f.x > 1808 then dx = dx - (f.x - 1808) * 4 : wall = true
-    if f.z < 0.18 then dz = dz + (0.18 - f.z) * 2600 : wall = true
-    if f.z > 0.88 then dz = dz - (f.z - 0.88) * 2600 : wall = true
+    if f.z < 0.08 then dz = dz + (0.08 - f.z) * 2600 : wall = true
+    if f.z > 0.98 then dz = dz - (f.z - 0.98) * 2600 : wall = true
     if f.y < 100 then dy = dy + (100 - f.y) * 5
     if f.y > 820 then dy = dy - (f.y - 820) * 5
     probe=f.probe
@@ -59,7 +67,7 @@ sub ReefFishStep(s as object, f as object, dt as double)
     f.avoidance = f.avoidance + (pressure - f.avoidance) * ReefClamp(dt * 2, 0, 1)
     ' Follow clearance-tested routes around each formation instead of always
     ' repelling from two depth planes and forcing every fish upward.
-    if avoiding
+    if avoiding and not maneuver
         wall = true
         if f.route.Count() > 0
             waypoint = s.navigation.nodes[f.route[f.routeIndex]]
@@ -91,21 +99,41 @@ sub ReefFishStep(s as object, f as object, dt as double)
     desiredSpeed = desiredSpeed * (1 - 0.18 * ReefEase((Abs(turn) - 0.6) / 1.2))
     if neighbors.alarm then desiredSpeed = desiredSpeed * 1.18
     ' Never exceed the configured acceleration, even when night / settings change.
-    if (f.x < 120 and Cos(f.heading) < 0) or (f.x > 1928 and Cos(f.heading) > 0) or (f.z < 0.08 and Sin(f.heading) < 0) or (f.z > 0.94 and Sin(f.heading) > 0) then desiredSpeed = 0
+    motionHeading=f.heading
+    if maneuver and dx*dx+dz*dz>1# then motionHeading=ReefAngle(dx,dz)
+    if (f.x < 120 and Cos(motionHeading) < 0) or (f.x > 1928 and Cos(motionHeading) > 0) or (f.z < 0.04 and Sin(motionHeading) < 0) or (f.z > 0.995 and Sin(motionHeading) > 0) then desiredSpeed = 0
     ' Keep enough propulsion to round a clear route corner. The swept guard
     ' still stops an actual collision; distant coral must not pin speed at zero.
     desiredSpeed = desiredSpeed * (1 - .35*f.avoidance)
     goalDistance=Sqr((f.tx-f.x)^2+(f.ty-f.y)^2+((f.tz-f.z)*800#)^2)
     if f.route.Count()>0 then desiredSpeed=desiredSpeed*ReefClamp(goalDistance/145#,.60,1#)
     desiredSpeed=desiredSpeed*(1-0.55*neighbors.traffic)
+    if maneuver then desiredSpeed=f.sp.speed*.4
     f.targetSpeed = desiredSpeed
     desiredAcceleration = ReefClamp((desiredSpeed - f.speed) * 2, -f.acceleration, f.acceleration)
     f.speedAcceleration = f.speedAcceleration + ReefClamp(desiredAcceleration - f.speedAcceleration, -38 * dt, 38 * dt)
     f.speed = ReefClamp(f.speed + f.speedAcceleration * dt, 0, f.sp.speed * 1.3 * 1.18)
-    f.desiredVx = Cos(f.heading) * f.speed
-    f.desiredVz = Sin(f.heading) * f.speed / 800
+    motionSpeed=f.speed
+    if maneuver then motionSpeed=ReefMin(motionSpeed,f.sp.speed*.4)
+    f.desiredVx = Cos(motionHeading) * motionSpeed
+    f.desiredVz = Sin(motionHeading) * motionSpeed / 800
     f.desiredVy = ReefClamp(dy * 0.15, -f.sp.speed * s.motion * (0.33+0.40*neighbors.traffic), f.sp.speed * s.motion * (0.33+0.40*neighbors.traffic))
-    f.vx = f.desiredVx : f.vz = f.desiredVz
+    if maneuver
+        ' Follow the entire checked 3D segment, slowing before the endpoint.
+        ' A nearly vertical leg must not resume forward thrust beside its goal.
+        legLength=Sqr(dx*dx+dy*dy+dz*dz)
+        legSpeed=ReefMin(motionSpeed,legLength*.6)
+        if legLength>.001
+            f.desiredVx=dx/legLength*legSpeed
+            f.desiredVy=dy/legLength*legSpeed
+            f.desiredVz=dz/legLength*legSpeed/800#
+        end if
+    end if
+    ' Ease the velocity vector itself, including changes between passing lanes.
+    changeX=f.desiredVx-f.vx : changeZ=(f.desiredVz-f.vz)*800#
+    changeLength=Sqr(changeX*changeX+changeZ*changeZ) : mix=1#
+    if changeLength>.00001 then mix=ReefMin(1#,f.acceleration*dt/changeLength)
+    f.vx=f.vx+changeX*mix : f.vz=f.vz+changeZ*mix/800#
     f.vy = f.vy + ReefClamp(f.desiredVy - f.vy, -8 * dt, 8 * dt)
     candidate=f.candidate
     candidate.x=f.x+f.vx*dt : candidate.y=f.y+f.vy*dt : candidate.z=f.z+f.vz*dt
@@ -129,7 +157,17 @@ sub ReefFishStep(s as object, f as object, dt as double)
         if ReefFishBlocked(s,f,f,candidate) or ReefCoralBlocked(s,f,f,candidate) then candidate.y=f.y : f.vy=0#
         wall=true
     end if
+    travelledNow=Sqr((candidate.x-f.x)^2+(candidate.y-f.y)^2+((candidate.z-f.z)*800#)^2)
     f.x = candidate.x : f.y = candidate.y : f.z = candidate.z
+    if f.blockedTime=invalid then f.blockedTime=0#
+    if travelledNow<5#*dt and goalDistance>arrivalDistance and f.state<>"Hovering"
+        f.blockedTime=f.blockedTime+dt
+    else
+        f.blockedTime=ReefMax(0#,f.blockedTime-dt*2#)
+    end if
+    if f.blockedTime>=1.2
+        ReefRecoverRoute(s,f) : f.blockedTime=0# : f.progressTime=0#
+    end if
     ReefCheckProgress(s,f,dt)
     ' Emergency wall brake is continuous (no wrapping / teleporting).
     f.pitch = f.pitch + (ReefClamp(-f.vy / 35, -0.22, 0.22) - f.pitch) * dt * 2
@@ -237,6 +275,7 @@ end sub
 
 sub ReefRecoverRoute(s as object,f as object)
     if s.navigation=invalid then return
+    if ReefLocalManeuver(s,f) then return
     chosen=invalid : best=1e20 : nodes=s.navigation.nodes
     for nodeIndex=0 to nodes.Count()-1
         node=nodes[nodeIndex]
@@ -258,7 +297,7 @@ sub ReefRecoverRoute(s as object,f as object)
     if chosen<>invalid
         f.route=[chosen] : f.routeIndex=0 : f.routeCheckAt=0#
         node=nodes[chosen] : f.tx=node.x : f.ty=node.y : f.tz=node.z
-        f.state="Finding clear water" : f.stateTime=0# : f.duration=12# : f.recoveryUntil=s.time+12#
+        f.state="Finding clear water" : f.stateTime=0# : f.duration=12# : f.recoveryUntil=s.time+12# : f.maneuverUntil=s.time+12#
         f.avoidance=ReefMin(f.avoidance,.35)
         f.recoveryCount=f.recoveryCount+1
     else
@@ -275,7 +314,7 @@ sub ReefRecoverRoute(s as object,f as object)
             escape.z=ReefClamp(f.z+Sin(angle)*110#/800#,.12,.94)
             if not ReefCoralBlocked(s,f,f,escape) and not ReefFishBlocked(s,f,f,escape,false)
                 f.route=[] : f.tx=escape.x : f.ty=escape.y : f.tz=escape.z
-                f.state="Finding clear water" : f.stateTime=0# : f.duration=8# : f.recoveryUntil=s.time+8#
+                f.state="Finding clear water" : f.stateTime=0# : f.duration=8# : f.recoveryUntil=s.time+8# : f.maneuverUntil=s.time+8#
                 f.avoidance=ReefMin(f.avoidance,.35)
                 f.recoveryCount=f.recoveryCount+1
                 return
@@ -284,3 +323,39 @@ sub ReefRecoverRoute(s as object,f as object)
         ReefChooseTarget(s,f)
     end if
 end sub
+
+' A short checked leg lets pectoral fins move the fish clear while its body
+' turns smoothly. Position is integrated normally; no teleport or forced overlap.
+function ReefLocalManeuver(s as object,f as object) as boolean
+    escape=f.candidate
+    for lengthIndex=0 to 2
+        distance=110#
+        if lengthIndex=1 then distance=65#
+        if lengthIndex=2 then distance=40#
+        for turnIndex=0 to 11
+            offset=Int((turnIndex+1)/2)*.5235987756#
+            if turnIndex mod 2=1 then offset=0#-offset
+            bearing=f.heading+offset
+            for vertical=0 to 2
+                lift=0#
+                if vertical=1 then lift=0#-70#
+                if vertical=2 then lift=70#
+                escape.x=ReefClamp(f.x+Cos(bearing)*distance,160#,1880#)
+                escape.y=ReefClamp(f.y+lift,140#,920#)
+                escape.z=ReefClamp(f.z+Sin(bearing)*distance/800#,.06,.97)
+                span=(escape.x-f.x)^2+(escape.y-f.y)^2+((escape.z-f.z)*800#)^2
+                if span>30#^2
+                    if not ReefCoralBlocked(s,f,f,escape) and not ReefFishBlocked(s,f,f,escape)
+                        f.route=[] : f.routeIndex=0 : f.routeCheckAt=0#
+                        f.tx=escape.x : f.ty=escape.y : f.tz=escape.z
+                        f.state="Maneuvering" : f.stateTime=0# : f.duration=12#
+                        f.recoveryUntil=s.time+12# : f.maneuverUntil=s.time+12#
+                        f.recoveryCount=f.recoveryCount+1
+                        return true
+                    end if
+                end if
+            end for
+        end for
+    end for
+    return false
+end function

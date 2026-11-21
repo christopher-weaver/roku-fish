@@ -139,7 +139,7 @@ def build_navigation(occ):
                 top=max(0,int((min(ys)-hh)//cell));bottom=min(143,int((max(ys)+hh)//cell))
                 if mask[top:bottom+1,left:right+1].any():return True
         return False
-    xs=[180,400,650,790,1030,1230,1500,1780,1920];ys=[200,260,440,630,790,910];zs=[.12,.28,.42,.54,.72,.86,.94]
+    xs=[180,400,650,790,1030,1230,1500,1780,1920];ys=[240,320,440,630,790,910];zs=[.12,.28,.42,.54,.72,.86,.94]
     nodes=[];lookup={}
     for xi,x in enumerate(xs):
         for yi,y in enumerate(ys):

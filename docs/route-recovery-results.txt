@@ -1,3 +1,4 @@
-PASS stalled reef route  0  recovers into clear water, progress= 290.1957  without teleport or reef/floor contact
-PASS stalled reef route  1  recovers into clear water, progress= 139.5315  without teleport or reef/floor contact
-PASS stalled reef route  2  recovers into clear water, progress= 263.0447  without teleport or reef/floor contact
+PASS stalled reef route  0  recovers into clear water, progress= 266.3401  without teleport or reef/floor contact
+PASS stalled reef route  1  recovers into clear water, progress= 215.5431  without teleport or reef/floor contact
+PASS stalled reef route  2  recovers into clear water, progress= 292.1474  without teleport or reef/floor contact
+PASS pure vertical recovery retains propulsion and follows its clear segment

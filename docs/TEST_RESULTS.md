@@ -1,26 +1,28 @@
-# Deep Reef 1.0.18 — targeted verification
+# Deep Reef 1.0.19 — movement and scene verification
 
-Anemone and clam surfaces now use photographic maps extracted from the approved artwork, with UV coordinates attached to the actual modeled surfaces. Tentacle material opacity is exactly 0.8; the oral disc remains opaque. The clam is scaled to 70% and turned 55° sideways. Its front-shell mask reuses rectangles from the same color atlas, with drawing limited to the area overlapping a staged baby fish.
+The three-minute baseline runs the production BrightScript for 5,400 ticks at 30 Hz, with the shipped Medium population, seed 47831, collision volumes and clam births. It reproduced 27 six-second low-progress windows and a longest stationary episode of 12.47 seconds. No reef/floor/fish intersections were recorded. Full output is in [three-minute-before.txt](three-minute-before.txt).
 
-The same baby object exists behind the closed shell, follows a continuous eased emergence path behind the lip, then enters normal movement. Its size fits the shell for all ten parent species. Swept checks prevent it from entering the reef/floor or crossing another fish. A blocked exit holds the shell open.
+Two causes were identified: the front depth lane conflicted with the old wall force/brake, and a clearance-tested recovery goal could not be followed while propulsion remained tied to a slowly turning body. Recovery now follows a short clear 3D segment with eased velocity and endpoint slowing. A nearly vertical recovery retains propulsion. Every physical candidate still passes swept reef/floor/fish guards; positions are never teleported. Cubic display positions stay within the physical endpoints, while single-image tail/fin envelopes change continuously across pose boundaries.
 
-Body-only interpolation between width-aligned 3D headings removes view snapping while retaining one tail and one pectoral image. Angular acceleration/jerk are reduced. Long visible crossings, earlier waypoint rounding, less stacked braking and rare brief pauses increase lateral swimming. Surface reflections are stronger and remain above the full fish envelope.
+A one-minute follow-up observed 1,800 production 30 Hz ticks with zero six-second low-progress windows and a longest stationary episode of 1.27 seconds; output is in [movement-followup.txt](movement-followup.txt). Its progress detector also counts nearby goals, a stricter criterion than the baseline. The additional follow-up was stopped after one minute; the requested three-minute baseline completed in full. Swept collision safety is covered separately by the native traffic, reef, floor and cave regressions. These host simulations exercise production logic; their execution speed is not a measurement of Roku frame rate.
+
+The anemone is seated in a depressed 3D foundation with a matching textured rock rim in front of its base. Tentacle opacity remains 0.8 and the approved fan is unchanged. The clam has a pale photographic mantle, with pearl, bubbles and a baby present behind its closed foreground shell. A partial opening reveals contents before the shell is fully open. The same bubble objects rise without a release-position jump, and the same baby object exits into normal swimming. Surface waves are twice their previous width and height, with a protected full-body fish clearance.
 
 | Check | Result |
 |---|---|
 | Compiler | PASS |
-| Python package, geometry, materials and release checks | PASS, 47 tests |
-| Lateral activity | PASS, all eight fish span about 195–754 design pixels over 12 simulated seconds, without reef/floor entry |
-| Turns | PASS, bounded velocity/acceleration/jerk, cubic display heading, continuous projected width and body-only interpolation |
-| Turn raster comparison | PASS, peak image changes are 0.089–0.217 of the original 64-angle nearest-view reference |
-| Shell occlusion | PASS, every parent species fits behind the closed shell; endpoint clears the shell before ordinary swimming |
-| Baby lifecycle | PASS, same object starts inside, moves continuously through the opening, then uses ordinary AI; births remain bounded |
-| Materials | PASS, 80% tentacle opacity and photographic variation; exact approved fan unchanged |
-| Traffic, routes, floor and cave | PASS, predictive and swept encounters, progress recovery and full body clearance |
-| Surface/pan/settings/render | PASS, protected waterline, continuous clocks, correct depth order and existing settings |
-| Browser | PASS, all lighting modes, assets and play/pause/seek, no page errors |
-| Package | PASS, tracked ZIP, fresh source, checksum and 4 MB limit |
-| Extended soaks | Not run |
+| Python package, geometry, materials and release checks | PASS, 48 tests |
+| Native simulation | PASS, 32 checks |
+| Lateral activity | PASS, all eight fish span about 227–562 design pixels over 12 simulated seconds |
+| Turns and position interpolation | PASS, bounded angular motion, velocity endpoints and physical position envelope |
+| Appendage transitions | PASS, 1,060 fin/tail pose boundaries with continuous envelope dimensions and anchors |
+| Clam contents | PASS, full-opacity pearl and prepared bubbles behind the closed shell, continuous release |
+| Shell geometry | PASS, all ten baby species fit inside closed shell; partial opening reveals contents; visible mantle |
+| Reef pocket | PASS, closed rim and depressed 3D foundation; photo colour matches surrounding reef |
+| Traffic, routes, floor, cave and waves | PASS, production regressions |
+| Browser preview | PASS, all lighting modes, assets, play/pause/seek; no page errors |
+| Release package | PASS, tracked fresh ZIP below the 4 MB limit |
+| Ten-minute soak | Not run |
 | Actual Roku GPU/FPS | Not measured |
 
-The browser and host checks do not measure Roku GPU timing. The editable Blender scene includes the new photo UVs, per-vertex tissue opacity, smaller side-facing clam, and articulated opening geometry.
+The editable Blender scene includes the recessed foundation, rock rim, photographic anemone, articulated clam and resident moray. Screenshots of closed, partially open, occupied and emerging clam states are included under `docs/previews/`.

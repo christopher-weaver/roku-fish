@@ -75,3 +75,8 @@ Projected wave shading is original procedural art, applied through conservative 
 ## Photographic marine materials and shell occlusion (1.0.18)
 
 No new external artwork is introduced. `marine_materials.py` extracts tissue/shell maps from `marine-renders/sea-anemone-finished.png` and `coral-islands/central-clam.png`, preserving their existing art provenance and license. The maps are attached to individual tube/valve UVs, and included in the packed Blender source. Original procedural geometry is retained. `clam_occlusion.py` derives foreground masks from the depth-rendered shell and reuses the main atlas pixels. `compact_marine.py` packages photographic poses, preserves 80% tentacle opacity, and creates small original branded menu/splash images to reserve package space for the scene.
+
+
+## Recessed anemone and illuminated clam lining (1.0.19)
+
+No new external artwork is introduced. `anemone_pocket.py` builds an original closed U-shaped rock rim, with photographic colour projected from the existing approved reef and a matching depression in the reef/foundation volumes. The anemone's original photographic tissue maps and 80% tentacle opacity are preserved. The clam lining uses the existing photographic interior material, fitted to a shallower pale mantle. Foreground shell masks exclude the lining, so contents exist at full opacity behind the shell and are progressively uncovered by opening geometry. Source meshes, colour projection and the packed Blender scene are included. Existing artwork licenses remain unchanged.

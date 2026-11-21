@@ -36,4 +36,20 @@ sub Main()
         if f.recoveryCount<1 or progress<80# then print "FAIL stalled route not recovered ";encounter;progress;f.recoveryCount : return
         print "PASS stalled reef route ";encounter;" recovers into clear water, progress=";progress;" without teleport or reef/floor contact"
     end for
+    s=ReefWorld(ReefValidateSettings({density:"Low"}),species,occ,730)
+    s.clam.enabled=false
+    while s.fish.Count()>1
+        s.fish.Pop()
+    end while
+    f=s.fish[0] : f.x=900# : f.y=400# : f.z=.94
+    f.tx=900# : f.ty=330# : f.tz=.94 : f.route=[]
+    f.maneuverUntil=12# : f.recoveryUntil=12# : f.duration=12#
+    f.state="Maneuvering" : f.stateTime=0# : f.speed=f.sp.speed*.4
+    f.vx=0# : f.vy=0# : f.vz=0# : ReefSavePose(f)
+    for tick=1 to 90
+        ReefAdvance(s,1#/30#)
+        if ReefCoralBlocked(s,f,f,f) then print "FAIL vertical recovery crosses reef" : return
+    end for
+    if f.y>380# or Abs(f.x-900#)>1# then print "FAIL vertical recovery loses propulsion";f.x;f.y : return
+    print "PASS pure vertical recovery retains propulsion and follows its clear segment"
 end sub

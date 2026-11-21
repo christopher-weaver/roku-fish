@@ -25,6 +25,15 @@ sub Main()
         finalRate=ReefAngleDelta(last.heading,b.heading)*30/epsilon
         if Abs(initialRate-f.previousYawVelocity)>0.001 or Abs(finalRate-f.yawVelocity)>0.001 then print "FAIL continuous angular velocity" : return
     end for
+    for i=1 to 99
+        u=i/100# : p=ReefSmoothPosition(100#,102#,45#,60#,u)
+        if p<100# or p>102# then print "FAIL cubic motion leaves collision envelope" : return
+    end for
+    epsilon=.00001
+    start=(ReefSmoothPosition(100#,102#,45#,60#,epsilon)-100#)*30#/epsilon
+    finish=(102#-ReefSmoothPosition(100#,102#,45#,60#,1#-epsilon))*30#/epsilon
+    if Abs(start-45#)>.005 or Abs(finish-60#)>.005 then print "FAIL position velocity endpoints" : return
+    print "PASS cubic display positions retain velocity endpoints without leaving the swept envelope"
     print "PASS opposite target changes retain bounded turn speed, acceleration and jerk; cubic display headings preserve endpoint velocities"
     for each name in species
         sp=species[name]

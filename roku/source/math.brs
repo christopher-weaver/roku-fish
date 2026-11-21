@@ -223,3 +223,30 @@ function ReefBodyWaveSlope(u as double,phase as double,amplitude as double) as d
     a=phase-u*6.283185307#
     return amplitude*(2#*u*Sin(a)-6.283185307#*u*u*Cos(a))
 end function
+
+' Interpolate the projected envelope using one appendage image. Its attachment
+' edge stays in place while the tip travels continuously between baked poses.
+function ReefAppendageEnvelope(frames as object,base as integer,position as double,count as integer,nearest as integer,result=invalid as dynamic) as dynamic
+    first=Int(position) : second=Int(ReefMin(first+1,count-1)) : blend=position-first
+    a=frames[base+first] : b=frames[base+second] : current=frames[base+nearest]
+    aw=a.width : bw=b.width : cw=current.width
+    ah=a.height : bh=b.height : ch=current.height
+    if aw=invalid then aw=a.w : bw=b.w : cw=current.w : ah=a.h : bh=b.h : ch=current.h
+    if aw<6 or bw<6 or cw<6 or ah<6 or bh<6 or ch<6 then return invalid
+    width=aw+(bw-aw)*blend : height=ah+(bh-ah)*blend
+    anchorX=a.anchorX+(b.anchorX-a.anchorX)*blend
+    anchorY=a.anchorY+(b.anchorY-a.anchorY)*blend
+    if result=invalid then result={}
+    result.sx=width/cw : result.sy=height/ch
+    result.dx=current.anchorX*result.sx-anchorX
+    result.dy=current.anchorY*result.sy-anchorY
+    return result
+end function
+
+' Velocity-continuous display motion, clamped to the checked physical envelope.
+function ReefSmoothPosition(a as double,b as double,va as double,vb as double,u as double) as double
+    u2=u*u : u3=u2*u
+    value=a*(2#*u3-3#*u2+1#)+b*(3#*u2-2#*u3)
+    value=value+(u3-2#*u2+u)*va/30#+(u3-u2)*vb/30#
+    return ReefClamp(value,ReefMin(a,b),ReefMax(a,b))
+end function

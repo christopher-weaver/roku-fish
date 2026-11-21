@@ -29,7 +29,7 @@ def fish(canvas,f,mode,t=0):
     for part in ['body','tail','fin']:
         count=sp['poseCount']if part=='body'else sp['tailPoseCount']if part=='tail'else sp['finPoseCount']
         phase=f['phase']if part!='fin'else f.get('finPhase',f['phase']*.6)
-        pose=int((math.sin(phase)+1)*.5*(count-1)+.5)
+        pose_value=(math.sin(phase)+1)*.5*(count-1);pose=int(pose_value+.5)
         view=int(position+.5)%sp['yawCount'];part_width=width;source_width=sp['viewWidths'][view]
         if part=='body' and 'bodyAngles'in sp:
             heading=f['heading']%(2*math.pi);lo=bisect.bisect_right(sp['bodyAngles'],heading)-1;hi=(lo+1)%sp['bodyYawCount']
@@ -42,8 +42,15 @@ def fish(canvas,f,mode,t=0):
             fr=sp['frames'if part=='body'else 'tailFrames'if part=='tail'else 'finFrames'][source_view*count+pose]
             layer=Image.new('RGBA',im.size);piece=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
             texture_scale=sp.get('finTextureScale',1)if part=='fin'else 1
+            anchor_x,anchor_y=fr['anchorX'],fr['anchorY']
+            if part!='body':
+                metadata=sp['tailFrames'if part=='tail'else 'finFrames'];first=int(pose_value);second=min(first+1,count-1);blend_pose=pose_value-first;fa,fb=metadata[source_view*count+first],metadata[source_view*count+second]
+                if min(fa['w'],fb['w'],fr['w'],fa['h'],fb['h'],fr['h'])>=6:
+                    tw=fa['w']+(fb['w']-fa['w'])*blend_pose;th=fa['h']+(fb['h']-fa['h'])*blend_pose
+                    piece=piece.resize((max(1,round(tw)),max(1,round(th))),Image.Resampling.LANCZOS)
+                    anchor_x=fa['anchorX']+(fb['anchorX']-fa['anchorX'])*blend_pose;anchor_y=fa['anchorY']+(fb['anchorY']-fa['anchorY'])*blend_pose
             if texture_scale!=1:piece=piece.resize((piece.width*texture_scale,piece.height*texture_scale),Image.Resampling.LANCZOS)
-            layer.alpha_composite(piece,(round(sp['frameW']/2-fr['anchorX']*texture_scale),round(sp['frameH']/2-fr['anchorY']*texture_scale)))
+            layer.alpha_composite(piece,(round(sp['frameW']/2-anchor_x*texture_scale),round(sp['frameH']/2-anchor_y*texture_scale)))
             source_width=sp['bodyViewWidths'][source_view]if part=='body'else sp['viewWidths'][source_view]
             width_scale=part_width/source_width;layer=layer.resize((round(layer.width*width_scale),layer.height),Image.Resampling.LANCZOS)
             if opacity<1:layer.putalpha(layer.getchannel('A').point(lambda v:round(v*opacity)))
@@ -83,7 +90,7 @@ def render(frame,mode='Sunset',density='Medium'):
     for j in range(2):
         index=(first+j)%32
         piece=surface.crop(((index%8)*256,(index//8)*128,(index%8+1)*256,(index//8+1)*128))
-        for tile in range(5):paste(img,piece,-512+tile*512-cam,-8,2,1,opacity=(blend if j else 1-blend)*(205+50*day)/255)
+        for tile in range(4):paste(img,piece,-1024+tile*1024-cam,-8,4,2,opacity=(blend if j else 1-blend)*(205+50*day)/255)
     floor=asset('seafloor-sunset.webp')
     if not warm:floor=ImageChops.multiply(floor,Image.new('RGBA',floor.size,(221,235,255,255)))
     paste(img,floor,-cam,920-36)
@@ -95,10 +102,6 @@ def render(frame,mode='Sunset',density='Medium'):
         high=ROOT/'docs/previews/high-frame.json'
         if high.exists():fs=sorted(json.loads(high.read_text())['fish'],key=lambda f:f['z'])
     def effects(lo,hi):
-        if lo<=.91<hi:
-            for e in frame.get('clam',{}).get('bubbles',[]):
-                age=t-e['born'];y=964-age*e['speed']
-                if age>=0 and y>45:paste(img,asset('bubble.png'),e['x']+math.sin(age*1.3+e['phase'])*6-cam,y,e['scale'],opacity=180/255*min(1,(y-45)/45))
         for e in frame['effects']:
             if not lo<=e['z']<hi:continue
             if e['bubble']:
@@ -125,14 +128,20 @@ def render(frame,mode='Sunset',density='Medium'):
         light=int(255*(1-float(field(formation['x']+formation['width']*.5,formation['y']+formation['height']*.45,t))/255*strength*(.35+.65*day)))
         layer=ImageChops.multiply(layer,Image.new('RGBA',layer.size,(light,light,light,255)))
         paste(img,layer,formation['x']-offset,formation['y']-36)
-        if formation['id']=='clam' and frame.get('clam',{}).get('event',0)==0:
-            paste(img,asset('clam-pearl.png'),1092-cam,950,.50,opacity=max(0,min(1,(clam_opening(t)-.65)/.35)))
-        if formation['id']=='clam' and staged:
+        if formation['id']=='clam':
+            c=frame.get('clam',{});event=c.get('event',0);enabled=c.get('enabled',True)
+            if enabled and event==0:paste(img,asset('clam-pearl.png'),1075-cam,960,.5)
+            if enabled and event==1:
+                for e in c.get('bubbles',[]):
+                    age=max(0,t-e['born'])if c.get('released')else 0
+                    y=e['originY']-age*e['speed'];x=e['x']+(math.sin(age*1.3+e['phase'])-math.sin(e['phase']))*6-cam
+                    if y>45:paste(img,asset('bubble.png'),x,y,e['scale'],opacity=180/255*min(1,(y-45)/45))
             for child in staged:fish(img,child,mode,t)
-            from formation_frames import front_frame
-            lip=front_frame(formation,view,CACHE).resize((formation['width'],formation['height']),Image.Resampling.LANCZOS)
-            if not warm:lip=ImageChops.multiply(lip,Image.new('RGBA',lip.size,(221,235,255,255)))
-            paste(img,lip,formation['x']-offset,formation['y']-36)
+            if enabled and (event in [0,1]or staged):
+                from formation_frames import front_frame
+                lip=front_frame(formation,view,CACHE).resize((formation['width'],formation['height']),Image.Resampling.LANCZOS)
+                if not warm:lip=ImageChops.multiply(lip,Image.new('RGBA',lip.size,(221,235,255,255)))
+                paste(img,lip,formation['x']-offset,formation['y']-36)
         if 'surfaceShadow'in formation:
             c=formation['surfaceShadow'];atlas=asset(c['image'].split('/')[-1]);phase=t%8*4;first=int(phase);blend=phase-first
             for j in range(2):
@@ -178,7 +187,7 @@ def make_previews():
     for mode in ['Sunset','Daylight','Dusk','Moonlight','Night']:render(frame,mode).save(PRE/(mode.lower()+'.png'),optimize=True)
     import copy
     pearl=copy.deepcopy(frame);pearl['displayTime']=9;pearl['clam']['event']=0;pearl['clam']['opening']=1;pearl['fish']=[f for f in pearl['fish']if not f.get('emerging')];render(pearl).save(PRE/'clam-pearl.png',optimize=True)
-    bubble=copy.deepcopy(frame);bubble['displayTime']=12;
+    bubble=copy.deepcopy(frame);bubble['displayTime']=12;bucket=bubble['clam'];bucket.update(event=1,opening=1,released=True);bubble['fish']=[f for f in bubble['fish']if not f.get('emerging')];
     for i,e in enumerate(bubble['clam']['bubbles']):e['born']=7+i*.14
     render(bubble).save(PRE/'clam-bubbles.png',optimize=True)
     render(frame,'Sunset','Low').save(PRE/'low-density.png')

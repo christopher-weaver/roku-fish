@@ -15,7 +15,7 @@ def brs_run(test,log):
     work=ROOT/'work';work.mkdir(exist_ok=True)
     settings=(ROOT/'roku/source/settings-model.brs').read_text().replace('CreateObject("roRegistrySection", "deep-reef-v1")','ReefTestRegistry("deep-reef-v1")')
     (work/'settings-test.brs').write_text(settings)
-    extra=['roku/components/ReefSettings.brs'] if test=='settings_ui' else ['roku/source/renderer.brs'] if test in ['render_depth','upright_present','swim_sway','clam_night_surface'] else []
+    extra=['roku/components/ReefSettings.brs'] if test=='settings_ui' else ['roku/source/renderer.brs'] if test in ['render_depth','upright_present','swim_sway','clam_night_surface','clam_contents'] else []
     args=['node','tests/roku_runner.cjs','--root','roku']+[f'roku/source/{s}.brs'for s in SOURCES]+['work/settings-test.brs','tests/registry-stub.brs',f'tests/{test}.brs']+extra
     result=subprocess.run(args,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=dict(os.environ,BRS_BIN=binary('brs')))
     (ROOT/log).write_text(result.stdout)
@@ -35,7 +35,9 @@ if __name__=='__main__':
         if '--quick' not in sys.argv:print(output)
         print(brs_run('fish_traffic','docs/fish-traffic-results.txt'))
         print(brs_run('route_recovery','docs/route-recovery-results.txt'))
+        print(brs_run('clam_contents','docs/clam-contents-results.txt'))
         print(brs_run('clam_night_surface','docs/clam-night-surface-results.txt'))
+        print(brs_run('appendage_smoothness','docs/appendage-smoothness-results.txt'))
         print(brs_run('swim_sway','docs/swim-sway-results.txt'))
         print(brs_run('fish_profile','docs/fish-profile-results.txt'))
         print(brs_run('floor_collision','docs/floor-collision-results.txt'))
@@ -55,6 +57,7 @@ if __name__=='__main__':
         summary=validate(pan)
         (ROOT/'docs/pan-precision-results.txt').write_text(pan+summary)
         print(summary)
+        if '--three-minute'in sys.argv:print(brs_run('three_minute','docs/three-minute-after.txt'))
         if '--scene-soak'in sys.argv:print(brs_run('scene_soak','docs/scene-soak-results.txt'))
         if '--soak'in sys.argv:
             output=brs_run('soak','docs/soak-results.txt')

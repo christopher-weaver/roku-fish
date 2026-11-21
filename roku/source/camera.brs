@@ -14,6 +14,11 @@ function ReefDisplayPose(f as object, alpha as double, pose = invalid as dynamic
     pose.x=f.previousX+(f.x-f.previousX)*alpha
     pose.y=f.previousY+(f.y-f.previousY)*alpha
     pose.z=f.previousZ+(f.z-f.previousZ)*alpha
+    if f.previousVx<>invalid and f.emerging<>true
+        pose.x=ReefSmoothPosition(f.previousX,f.x,f.previousVx,f.vx,alpha)
+        pose.y=ReefSmoothPosition(f.previousY,f.y,f.previousVy,f.vy,alpha)
+        pose.z=ReefSmoothPosition(f.previousZ,f.z,f.previousVz,f.vz,alpha)
+    end if
     delta = ReefAngleDelta(f.previousHeading, f.heading)
     ' Cubic heading interpolation keeps angular velocity continuous at 30Hz ticks.
     a2 = alpha * alpha : a3 = a2 * alpha
@@ -45,6 +50,8 @@ end function
 ' Fish footprints include every yaw, tail and fin pose plus the maximum pitch.
 ' Test the swept rectangle, not just the center at a depth-plane crossing.
 function ReefCoralBlocked(s as object, f as object, fromPose as object, toPose as object) as boolean
+    if ReefMin(fromPose.z,toPose.z)<.04 or ReefMax(fromPose.z,toPose.z)>.985 then return true
+    if ReefMin(fromPose.x,toPose.x)<85# or ReefMax(fromPose.x,toPose.x)>1963# then return true
     if ReefSurfaceBlocked(s,f,fromPose,toPose) then return true
     if ReefFloorBlocked(s,f,fromPose,toPose) then return true
     if s.occupancy = invalid then return false

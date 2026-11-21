@@ -44,22 +44,34 @@ class VolumeGeometryChecks(unittest.TestCase):
   waves=np.asarray(Image.open(ROOT/'roku/images/surface-waves.png').convert('RGBA'))[:,:,3]
   for row in range(4):self.assertEqual(waves[row*128+57:(row+1)*128].max(),0)
   self.assertGreater(cfg['waterline']['clearanceY'],cfg['waterline']['maxWaveY'])
+  self.assertEqual(cfg['waterline']['maxWaveY'],96)
+  waves_cfg=json.loads((ROOT/'roku/scenes/waves.json').read_text());self.assertEqual(waves_cfg['surface']['scale'],4);self.assertEqual(waves_cfg['surface']['scaleY'],2)
  def test_clam_side_view_texture_and_interior_occlusion(self):
-  from formation_frames import front_frame
+  from formation_frames import front_frame,frame
   cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text());f=next(f for f in cfg['formations']if f['id']=='clam')
   self.assertEqual(f['yawDegrees'],-55);self.assertLess(f['width'],240)
   self.assertEqual(len(f['frontRects']),65)
-  x=int((1080-f['x'])*f['frameWidth']/f['width']);y=int((1002-f['y'])*f['frameHeight']/f['height']);a=np.asarray(front_frame(f,0))[:,:,3]
+  x=int((1085-f['x'])*f['frameWidth']/f['width']);y=int((1007-f['y'])*f['frameHeight']/f['height']);a=np.asarray(front_frame(f,0))[:,:,3]
   self.assertGreater(a[y-8:y+8,x-14:x+14].mean(),245)
+  partial=np.asarray(front_frame(f,24))[:,:,3];self.assertLess(partial[y-8:y+8,x-14:x+14].mean(),100,'Contents must be revealed before full opening')
+  lining=np.asarray(frame(f,64))[:,:,:3];self.assertGreater(lining[y-8:y+8,x-14:x+14].mean(),70,'Interior must have a visible mantle, not a black hole')
   self.assertLess(f['x']+f['width'],1220-20)
   import preview
   closed=Image.new('RGBA',(1920,1080));closed.alpha_composite(front_frame(f,0),(f['x'],f['y']-36));covered=np.asarray(closed)[:,:,3]>220
   for name,sp in preview.SPEC.items():
-   baby=dict(name=name,x=1080,y=965,z=.97,sx=1080,sy=965.9,scale=.991,size=min(.27,48/sp['length']),heading=.36,pitch=0,phase=0,finPhase=.4)
+   baby=dict(name=name,x=1085,y=970,z=.97,sx=1085,sy=970.9,scale=.991,size=min(.27,48/sp['length']),heading=.36,pitch=0,phase=0,finPhase=.4)
    canvas=Image.new('RGBA',(1920,1080));preview.fish(canvas,baby,'Sunset',0);pixels=np.asarray(canvas)[:,:,3]>100
    self.assertFalse(np.any(pixels&~covered),name+' must already fit behind the closed shell')
   for name in ['anemone-material.png','clam-material.png']:
    material=np.asarray(Image.open(ROOT/'assets/source/marine-renders'/name).convert('RGB'));self.assertGreater(material.std(),25)
+ def test_anemone_has_surrounding_closed_rock_rim(self):
+  cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text());plant=next(f for f in cfg['formations']if f['id']=='sea-anemone');rim=next(f for f in cfg['formations']if f['id']=='anemone-rim')
+  self.assertGreater(rim['z'],plant['z']);self.assertLess(rim['x'],1474-100);self.assertGreater(rim['x']+rim['width'],1474+100)
+  with np.load(ROOT/'assets/source/reef-model/anemone-pocket-rim.npz')as m:
+   self.assert_closed(m['vertices'],m['faces']);self.assertGreater(np.ptp(m['vertices'][:,2]),30)
+  self.assertGreater(cfg['anemonePocket']['recessDepth'],40)
+  with np.load(ROOT/'assets/source/reef-model/grounded-footings.npz')as m:
+   v=m['vertices'];inside=(abs(v[:,0]-1474)<12)&(abs(v[:,1]-970)<12)&(v[:,2]>0);self.assertTrue(inside.any());self.assertLess(v[inside,2].max(),120)
  def test_approved_fan_is_restored_exactly(self):
   approved=ROOT/'assets/source/marine-renders/approved-fan'
   self.assertEqual((approved/'atlas.webp').read_bytes(),(ROOT/'roku/images/reef-sea-fan-motion-0.webp').read_bytes())

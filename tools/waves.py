@@ -73,7 +73,7 @@ def build():
     shadows.save(out/'sand-wave-shadows.png',optimize=True)
     surface.save(out/'surface-waves.png',optimize=True)
     caustics.save(out/'sand-caustics.png',optimize=True)
-    (ROOT/'roku/scenes/waves.json').write_text(json.dumps({'frames':FRAMES,'period':PERIOD,'maxWaveY':48,'surface':{'width':256,'height':128,'columns':8,'scale':2},'sand':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960},'shadow':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960}},indent=2)+'\n')
+    (ROOT/'roku/scenes/waves.json').write_text(json.dumps({'frames':FRAMES,'period':PERIOD,'maxWaveY':96,'surface':{'width':256,'height':128,'columns':8,'scale':4,'scaleY':2},'sand':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960},'shadow':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960}},indent=2)+'\n')
     for pattern in ['caustic-*.png','surface-ripples.png','sun-dapple.png']:
         for p in out.glob(pattern):p.unlink()
     (ROOT/'roku/scenes/dapple.json').unlink(missing_ok=True)

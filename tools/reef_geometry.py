@@ -89,7 +89,8 @@ def build():
   elif name=='right-plating-coral' or name=='left-plating-garden':shape=42*envelope+14*np.sin(yy*.055+np.sin(xx*.02))*envelope
   else:shape=65*envelope+8*np.sin(xx*.047)*np.cos(yy*.041)*envelope
   depth+=shape
- depth=gaussian_filter(depth,.7)
+ depth-=55*np.exp(-(((xx-1474)/110)**2+((yy-970)/62)**2)*2)
+ depth=np.maximum(10,gaussian_filter(depth,.7))
  front=(((xx-415)/270)**2+((yy-845)/230)**2<1)|(((xx-1290)/210)**2+((yy-820)/245)**2<1)|(((xx-1080)/190)**2+((yy-960)/150)**2<1)|(yy>960)|((xx>1450)&(yy>850))
  meshes=[];record={'method':'closed shared-surface phototextured volumes with anatomical curvature','objects':[]}
  for label,name in [(0,'live-rock-foundation')]+[(i+1,v[0])for i,v in enumerate(FEATURES)]:

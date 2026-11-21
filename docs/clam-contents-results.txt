@@ -1,0 +1,1 @@
+PASS pearl and the same bubble cluster exist before opening, use shell occlusion instead of fading, and release without position jumps

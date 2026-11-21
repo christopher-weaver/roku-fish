@@ -202,6 +202,16 @@
       "file": "articulated-clam.npz",
       "closed": true,
       "sculpted": true
+    },
+    {
+      "name": "anemone-pocket-rim",
+      "group": "anemone-pocket-rim",
+      "layer": "anemone-rim",
+      "file": "anemone-pocket-rim.npz",
+      "vertices": 3482,
+      "triangles": 6960,
+      "closed": true,
+      "sculpted": true
     }
   ]
 }

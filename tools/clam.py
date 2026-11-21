@@ -49,7 +49,9 @@ def valve(upper,opening):
  return m
 
 def model(opening):
- m=Model();m.sphere(CENTER+UP*2,(130,13,57),(.14,.18,.17),ridges=.025)
+ m=Model();m.sphere(CENTER-UP*12,(124,9,50),(.78,.68,.64),ridges=.025)
+ for i,point in enumerate(m.v):m.uv[i]=[.5+.499*np.clip((point[0]-CENTER[0])/260+.5,0,1),np.clip((point[1]-CENTER[1])/140+.5,0,1)]
+ m.frontStart=len(m.f)
  for upper in [False,True]:
   part=valve(upper,opening);m.add(part.v,part.f,np.array(part.rgb),uv=part.uv)
  # Turn toward the right side and reduce every dimension by 30 percent.
@@ -71,7 +73,7 @@ def build():
    for o in record['objects']:
     if o['group']=='central-clam':o['group']='clam-rock-bed'
    record['objects'].append(dict(name='articulated-clam',group='central-clam',layer='clam',vertices=len(v),triangles=len(f),file='articulated-clam.npz',closed=True,sculpted=True));(dest/'model.json').write_text(json.dumps(record,indent=2)+'\n')
-  vb=ctx.buffer(np.column_stack([v,n,rgb,flow,m.uv,m.opacity]).astype('f4').tobytes());ib=ctx.buffer(f.tobytes());vao=ctx.vertex_array(p,[(vb,'3f 3f 3f 3f 2f 1f','position','normal','rgb','flow','surfaceUV','opacity')],ib);p['clipDepth'].value=-500;fb.clear(0,0,0,0,depth=1);vao.render();im=Image.frombytes('RGBA',fb.size,fb.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).resize((w,h),Image.Resampling.LANCZOS);a=np.array(im.getchannel('A'));a[a<6]=0;im.putalpha(Image.fromarray(a));union=np.maximum(union,a);shots.append(im.resize((tw,th),Image.Resampling.LANCZOS));p['clipDepth'].value=240;fb.clear(0,0,0,0,depth=1);vao.render();front=Image.frombytes('RGBA',fb.size,fb.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).resize((tw,th),Image.Resampling.LANCZOS);frontShots.append(front);vao.release();vb.release();ib.release()
+  vb=ctx.buffer(np.column_stack([v,n,rgb,flow,m.uv,m.opacity]).astype('f4').tobytes());ib=ctx.buffer(f.tobytes());vao=ctx.vertex_array(p,[(vb,'3f 3f 3f 3f 2f 1f','position','normal','rgb','flow','surfaceUV','opacity')],ib);p['clipDepth'].value=-500;fb.clear(0,0,0,0,depth=1);vao.render();im=Image.frombytes('RGBA',fb.size,fb.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).resize((w,h),Image.Resampling.LANCZOS);a=np.array(im.getchannel('A'));a[a<6]=0;im.putalpha(Image.fromarray(a));union=np.maximum(union,a);shots.append(im.resize((tw,th),Image.Resampling.LANCZOS));frontIb=ctx.buffer(f[m.frontStart:].tobytes());frontVao=ctx.vertex_array(p,[(vb,'3f 3f 3f 3f 2f 1f','position','normal','rgb','flow','surfaceUV','opacity')],frontIb);p['clipDepth'].value=275;fb.clear(0,0,0,0,depth=1);frontVao.render();front=Image.frombytes('RGBA',fb.size,fb.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).resize((tw,th),Image.Resampling.LANCZOS);frontShots.append(front);frontVao.release();frontIb.release();vao.release();vb.release();ib.release()
  pages=[];frontPages=[]
  for collection,target,prefix in [(shots,pages,'reef-clam-motion')]:
   for first in range(0,65,capacity):
@@ -81,7 +83,7 @@ def build():
  Image.fromarray(union).save(folder/'clam-motion-footprint.png')
  from clam_occlusion import rectangles
  frontRects=[rectangles(np.asarray(im)[:,:,3])for im in frontShots]
- formation=dict(id='clam',x=int(x0),y=int(y0),width=w,height=h,frameWidth=tw,frameHeight=th,columns=cols,frames=65,image=pages[0],images=pages,frontRects=frontRects,yawDegrees=-55,modelScale=.7,mouth={'x':1080,'y':965,'z':.97,'exitX':1220,'exitY':875},z=.83,halfDepth=.025,parallax=1,rootY=1030,renderedMesh=True,meshVertices=len(v),meshTriangles=len(f),geometryType='closed articulated ridged bivalve shell',animation=dict(period=47,count=65,framesPerPage=capacity,strideX=tw+4,strideY=th+4,gutter=2))
+ formation=dict(id='clam',x=int(x0),y=int(y0),width=w,height=h,frameWidth=tw,frameHeight=th,columns=cols,frames=65,image=pages[0],images=pages,frontRects=frontRects,yawDegrees=-55,modelScale=.7,mouth={'x':1085,'y':970,'z':.97,'exitX':1220,'exitY':875},z=.83,halfDepth=.025,parallax=1,rootY=1030,renderedMesh=True,meshVertices=len(v),meshTriangles=len(f),geometryType='closed articulated ridged bivalve shell',animation=dict(period=47,count=65,framesPerPage=capacity,strideX=tw+4,strideY=th+4,gutter=2))
  cfg['formations']=[f for f in cfg['formations']if f['id']!='clam']+[formation];cfg['formations'].sort(key=lambda f:f['z']);cfg['occlusionDepths']=[f['z']for f in cfg['formations']];cfgpath.write_text(json.dumps(cfg,indent=2)+'\n')
  # Small luminous sprites are loaded once; pearl has modeled spherical shading.
  y,x=np.mgrid[:40,:40];nx=(x-19.5)/17;ny=(y-19.5)/17;r2=nx*nx+ny*ny;nz=np.sqrt(np.clip(1-r2,0,1));light=np.clip(-nx*.35-ny*.5+nz*.8,0,1);spec=np.exp(-((nx+.30)**2+(ny+.40)**2)/.025);rgba=np.zeros((40,40,4),dtype='uint8');rgba[:,:,:3]=np.uint8(np.clip(np.array([180,196,196])[None,None,:]*(.58+.42*light[:,:,None])+spec[:,:,None]*60,0,255));rgba[:,:,3]=np.uint8(np.clip((1-r2)*15,0,1)*255);Image.fromarray(rgba).save(ROOT/'roku/images/clam-pearl.png',optimize=True)

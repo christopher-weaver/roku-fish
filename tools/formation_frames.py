@@ -43,7 +43,9 @@ def reserve_navigation():
  # A closed structural footing also lives in the editable 3D source scene.
  from reef_geometry import volume
  foot=base.copy();foot[:112]=False
- v,uv,norm,faces=volume(foot,np.full(foot.shape,306.,dtype='f4'))
+ yy,xx=np.mgrid[:144,:256];pocket=((xx*8-1474)/110)**2+((yy*8-970)/62)**2
+ footing_depth=(306-250*np.exp(-pocket*2)).astype('f4')
+ v,uv,norm,faces=volume(foot,footing_depth)
  v[:,:2]*=4;uv=np.column_stack([v[:,0]/2048,1-v[:,1]/1152]).astype('f4')
  np.savez_compressed(ROOT/'assets/source/reef-model/grounded-footings.npz',vertices=v,uv=uv,normals=norm,faces=faces)
  planes.append(dict(id='grounded-rock-base',z=.58,halfDepth=.26,parallax=1,rows=[''.join('#'if v else'.'for v in row)for row in base]))

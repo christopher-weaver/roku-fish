@@ -90,7 +90,7 @@ sub Main()
     beforeTime=fixedA.time : ReefAdvance(fixedA,12#)
     Check(fixedA.time-beforeTime<0.101,"fixed simulation catches up with a bounded amount of work")
     interpolated=ReefDisplayPose(fixedA.fish[7],0.5)
-    Check(Abs(interpolated.x-(fixedA.fish[7].previousX+fixedA.fish[7].x)*0.5)<0.00001,"rendering interpolates between fixed simulation poses")
+    Check(interpolated.x>=ReefMin(fixedA.fish[7].previousX,fixedA.fish[7].x) and interpolated.x<=ReefMax(fixedA.fish[7].previousX,fixedA.fish[7].x),"rendering interpolates between fixed simulation poses")
     allFins=true
     for i=0 to fixedA.fish.Count()-1
         if fixedA.fish[i].finPhase=fixedA.fish[i].phase then allFins=false

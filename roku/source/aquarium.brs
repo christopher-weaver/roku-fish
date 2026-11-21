@@ -94,6 +94,7 @@ end sub
 
 sub ReefSavePose(f as object)
     f.previousX = f.x : f.previousY = f.y : f.previousZ = f.z
+    f.previousVx=f.vx : f.previousVy=f.vy : f.previousVz=f.vz
     f.previousHeading = f.heading : f.previousYawVelocity = f.yawVelocity : f.previousPitch = f.pitch
     f.previousPhase = f.phase : f.previousFinPhase = f.finPhase
 end sub

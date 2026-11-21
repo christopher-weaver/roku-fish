@@ -1,12 +1,13 @@
 {
   "frames": 32,
   "period": 8.0,
-  "maxWaveY": 48,
+  "maxWaveY": 96,
   "surface": {
     "width": 256,
     "height": 128,
     "columns": 8,
-    "scale": 2
+    "scale": 4,
+    "scaleY": 2
   },
   "sand": {
     "width": 256,

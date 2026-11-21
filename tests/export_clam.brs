@@ -4,6 +4,7 @@ sub Main()
     s=ReefWorld(ReefValidateSettings(invalid),species,occ,47831)
     s.clam.order=[2,0,1] : s.renderAlpha=1#
     ReefClamStep(s) : ExportClamPose(s)
+    s.time=3# : s.clam.lastTime=3# : ReefClamStep(s) : ExportClamPose(s)
     s.time=6# : s.clam.lastTime=6# : ReefClamStep(s) : ExportClamPose(s)
     for i=1 to 46
         ReefSavePose(s.clam.baby)
@@ -16,11 +17,11 @@ sub ExportClamPose(s as object)
     ExportFrame(s)
 end sub
 sub ExportFrame(s as object)
-    frame={time:s.time-60#,displayTime:s.displayTime,camera:s.camera,fish:[],effects:[],clam:{event:s.clam.event,enabled:s.clam.enabled,escape:s.clam.escape,opening:ReefClamDisplayOpening(s),bubbles:s.clam.bubbles},bioluminescence:s.bioluminescence}
+    frame={time:s.time-60#,displayTime:s.displayTime,camera:s.camera,fish:[],effects:[],clam:{event:s.clam.event,released:s.clam.released,enabled:s.clam.enabled,escape:s.clam.escape,opening:ReefClamDisplayOpening(s),bubbles:s.clam.bubbles},bioluminescence:s.bioluminescence}
     for each f in s.fish
         pose=ReefSwimPose(ReefDisplayPose(f,s.renderAlpha),f.sp,f.speed)
         p=ReefProjection(pose,s.camera)
-        frame.fish.Push({id:f.id,emerging:f.emerging,name:f.name,x:f.x,y:f.y,z:pose.z,sx:p.x,sy:p.y,scale:p.scale,heading:pose.heading,pitch:pose.pitch,phase:pose.phase,finPhase:pose.finPhase,size:f.size,speed:f.speed,state:f.state})
+        frame.fish.Push({id:f.id,emerging:f.emerging,name:f.name,x:f.x,y:f.y,z:pose.z,sx:p.x,sy:p.y,scale:p.scale,heading:pose.heading,pitch:pose.pitch,phase:pose.phase,finPhase:pose.finPhase,size:f.size,speed:f.speed,vx:f.vx,vy:f.vy,vz:f.vz,yawVelocity:f.yawVelocity,state:f.state})
     end for
     for each e in s.effects
         pose=ReefEffectPose(e,s.renderAlpha)
