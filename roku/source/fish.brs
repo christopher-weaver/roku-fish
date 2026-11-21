@@ -8,12 +8,12 @@ sub ReefChooseTarget(s as object, f as object)
     f.tz = ReefRange(s, 0.12, 0.94)
     f.state = "Cruising"
     if r < 0.28 then f.state = "Exploring"
-    if r < 0.13
+    if r < 0.025
         f.state = "Hovering"
         f.tx = f.x + ReefRange(s, -35, 35)
         f.ty = f.y + ReefRange(s, -20, 20)
         f.tz = f.z
-        f.duration = ReefRange(s, 4, 9)
+        f.duration = ReefRange(s, 1.5, 3)
     end if
     if f.schooling then f.state = "Schooling"
     if s.navigation <> invalid and f.state <> "Hovering" then ReefPlanRoute(s, f)
@@ -21,6 +21,11 @@ sub ReefChooseTarget(s as object, f as object)
 end sub
 
 sub ReefFishStep(s as object, f as object, dt as double)
+    if f.emerging=true
+        f.phase=ReefWrap(f.phase+dt*f.sp.beat*6.283185307#*.65,6.283185307#)
+        f.finPhase=ReefWrap(f.finPhase+dt*f.sp.finBeat*6.283185307#,6.283185307#)
+        return
+    end if
     f.stateTime = f.stateTime + dt
     ReefFollowRoute(s, f)
     dx = f.tx - f.x : dy = f.ty - f.y : dz = (f.tz - f.z) * 800
@@ -74,25 +79,25 @@ sub ReefFishStep(s as object, f as object, dt as double)
     turn = ReefAngleDelta(f.heading, desired)
     ' Damped steering with bounded angular acceleration and jerk.
     ' An opposite goal cannot instantly reverse the turn direction.
-    targetYawVelocity = ReefClamp(turn * .95, -f.turnRate, f.turnRate)
-    desiredYawAcceleration = ReefClamp((targetYawVelocity - f.yawVelocity) * 2.6, -0.48, 0.48)
-    f.yawAcceleration = f.yawAcceleration + ReefClamp(desiredYawAcceleration - f.yawAcceleration, -.65 * dt, .65 * dt)
+    targetYawVelocity = ReefClamp(turn * .85, -f.turnRate, f.turnRate)
+    desiredYawAcceleration = ReefClamp((targetYawVelocity - f.yawVelocity) * 2.6, -0.32, 0.32)
+    f.yawAcceleration = f.yawAcceleration + ReefClamp(desiredYawAcceleration - f.yawAcceleration, -.4 * dt, .4 * dt)
     f.yawVelocity = ReefClamp(f.yawVelocity + f.yawAcceleration * dt, -f.turnRate, f.turnRate)
     f.heading = ReefWrap(f.heading + f.yawVelocity * dt, 6.283185307)
     desiredSpeed = f.sp.speed * s.motion
     if f.state = "Hovering" then desiredSpeed = desiredSpeed * 0.12
     horizontalDistance = Sqr(dx * dx + dz * dz)
-    desiredSpeed = desiredSpeed * ReefClamp(horizontalDistance / (Abs(dy) * 1.3 + 40), 0.06, 1)
-    desiredSpeed = desiredSpeed * (1 - 0.45 * ReefEase((Abs(turn) - 0.6) / 1.2))
+    desiredSpeed = desiredSpeed * ReefClamp(horizontalDistance / (Abs(dy) * 1.3 + 40), 0.35, 1)
+    desiredSpeed = desiredSpeed * (1 - 0.18 * ReefEase((Abs(turn) - 0.6) / 1.2))
     if neighbors.alarm then desiredSpeed = desiredSpeed * 1.18
     ' Never exceed the configured acceleration, even when night / settings change.
     if (f.x < 120 and Cos(f.heading) < 0) or (f.x > 1928 and Cos(f.heading) > 0) or (f.z < 0.08 and Sin(f.heading) < 0) or (f.z > 0.94 and Sin(f.heading) > 0) then desiredSpeed = 0
     ' Keep enough propulsion to round a clear route corner. The swept guard
     ' still stops an actual collision; distant coral must not pin speed at zero.
-    desiredSpeed = desiredSpeed * (1 - .80*f.avoidance)
+    desiredSpeed = desiredSpeed * (1 - .35*f.avoidance)
     goalDistance=Sqr((f.tx-f.x)^2+(f.ty-f.y)^2+((f.tz-f.z)*800#)^2)
-    if f.route.Count()>0 then desiredSpeed=desiredSpeed*ReefClamp(goalDistance/145#,.25,1#)
-    desiredSpeed=desiredSpeed*(1-0.78*neighbors.traffic)
+    if f.route.Count()>0 then desiredSpeed=desiredSpeed*ReefClamp(goalDistance/145#,.60,1#)
+    desiredSpeed=desiredSpeed*(1-0.55*neighbors.traffic)
     f.targetSpeed = desiredSpeed
     desiredAcceleration = ReefClamp((desiredSpeed - f.speed) * 2, -f.acceleration, f.acceleration)
     f.speedAcceleration = f.speedAcceleration + ReefClamp(desiredAcceleration - f.speedAcceleration, -38 * dt, 38 * dt)
@@ -162,6 +167,13 @@ sub ReefPlanRoute(s as object, f as object)
     if f.x>1024 then wantedX=ReefRange(s,220,600)
     wantedY=ReefClamp(f.y+ReefRange(s,-180,180),180,790)
     if f.name="ocellaris_clownfish" then wantedY=ReefRange(s,650,800)
+    ' Prefer long visible crossings over a chain of short braking waypoints.
+    direct={x:wantedX,y:f.y,z:f.z}
+    if not ReefCoralBlocked(s,f,f,direct)
+        f.route=[] : f.tx=direct.x : f.ty=direct.y : f.tz=direct.z
+        f.state="Crossing reef" : f.duration=90#
+        return
+    end if
     goal = start : best = 1e12
     for index = 0 to nodes.Count() - 1
         node = nodes[index]
@@ -184,17 +196,17 @@ end sub
 sub ReefFollowRoute(s as object, f as object)
     if f.route.Count() = 0 then return
     if f.stateTime<f.routeCheckAt then return
-    f.routeCheckAt=f.stateTime+0.2
+    f.routeCheckAt=f.stateTime+0.1
     nodes = s.navigation.nodes
     node = nodes[f.route[f.routeIndex]]
     distance = (node.x-f.x)^2 + (node.y-f.y)^2 + ((node.z-f.z)*800)^2
-    if distance < 75^2 and f.routeIndex < f.route.Count()-1
+    if distance < 155^2 and f.routeIndex < f.route.Count()-1
         nextNode = nodes[f.route[f.routeIndex+1]]
         if not ReefCoralBlocked(s, f, f, nextNode) then f.routeIndex = f.routeIndex + 1
     end if
     ' String-pull visible waypoints. This rounds open-water corners without
     ' cutting through branches at an occlusion transition.
-    if distance < 120^2
+    if distance < 260^2
         for index = f.route.Count()-1 to f.routeIndex+1 step -1
             if not ReefCoralBlocked(s, f, f, nodes[f.route[index]])
                 f.routeIndex = index

@@ -46,7 +46,7 @@ def build():
         reflection=np.clip(.56+dz*.28+dx*.12,0,1)
         glint=np.exp(-((dz+.35+dx*.18)/.18)**2)
         fade=np.clip((48-sy)/28,0,1)**1.7
-        alpha=np.clip((22+reflection*52+glint*85)*fade,0,145)
+        alpha=np.clip((30+reflection*70+glint*100)*fade,0,190)
         rgba=np.zeros((128,256,4),dtype=np.uint8)
         dark=np.array([58,74,91]);light=np.array([244,239,232])
         rgba[:,:,:3]=np.uint8(dark+(light-dark)*np.clip(reflection*.75+glint*.35,0,1)[:,:,None])

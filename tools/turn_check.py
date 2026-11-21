@@ -34,7 +34,14 @@ def check_adaptive_turns():
      def render(a,indices):
       vals=[angles[i]for i in indices];lo=bisect.bisect_right(vals,a)-1;hi=(lo+1)%len(vals);upper=vals[hi]if hi else 2*math.pi;t=(a-vals[lo])/(upper-vals[lo]);i=indices[lo if t<.5 else hi]
       width=sp['bodyViewWidths'][indices[lo]]*(1-t)+sp['bodyViewWidths'][indices[hi]]*t;sx=width/sp['bodyViewWidths'][i];w,h=cache[i].size
-      layer=cache[i].transform((w,h),Image.Transform.AFFINE,(1/sx,0,w/2-w/(2*sx),0,1,0),Image.Resampling.BICUBIC);bg=Image.new('RGBA',(w,h),(60,50,80,255));bg.alpha_composite(layer);return np.asarray(bg,dtype=float)[:,:,:3]
+      def warped(index):
+       scale=width/sp['bodyViewWidths'][index]
+       return cache[index].transform((w,h),Image.Transform.AFFINE,(1/scale,0,w/2-w/(2*scale),0,1,0),Image.Resampling.BICUBIC)
+      bg=Image.new('RGBA',(w,h),(60,50,80,255))
+      if len(indices)>len(coarse):
+       bg.alpha_composite(warped(indices[lo]));layer=warped(indices[hi]);layer.putalpha(layer.getchannel('A').point(lambda v:round(v*t)));bg.alpha_composite(layer)
+      else:bg.alpha_composite(warped(i))
+      return np.asarray(bg,dtype=float)[:,:,:3]
      peaks=[]
      for indices in [coarse,list(range(len(angles)))]:
       last=None;diff=[]
@@ -48,6 +55,6 @@ def check_adaptive_turns():
     return out
 
 if __name__=='__main__':
-    report={'float32_max_center_error_px':check_geometry(),'head_on_peak_frame_change_ratio_vs_64_angles':check_adaptive_turns(),'scope':'Host geometry and raster checks, no pose crossfades; actual Roku GPU/FPS require device validation.'}
+    report={'float32_max_center_error_px':check_geometry(),'head_on_peak_frame_change_ratio_vs_64_angles':check_adaptive_turns(),'scope':'Host geometry and body-view interpolation checks; actual Roku GPU/FPS require device validation.'}
     (ROOT/'docs/turn-visual-results.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))

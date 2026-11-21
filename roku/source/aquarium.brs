@@ -18,15 +18,15 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
     if settings.quality = "Performance"
         s.quality = 0.5 : s.renderFps = 30#
     end if
-    s.motion = 1#
-    if settings.movement = "Calm" then s.motion = 0.65
-    if settings.movement = "Active" then s.motion = 1.3
+    s.motion = 1.25
+    if settings.movement = "Calm" then s.motion = .85
+    if settings.movement = "Active" then s.motion = 1.5
     for i = 0 to count - 1
         index = i mod names.Count()
         name = names[index]
         sp = species[name]
         if sp <> invalid
-            f = { id: i, name: name, sp: sp, x: ReefRange(s, 150, 1900), y: ReefRange(s, 180, 780), z: ReefRange(s, 0.16, 0.95), tx: 1024#, ty: 460#, tz: 0.5, vx: 0#, vy: 0#, vz: 0#, desiredVx: 0#, desiredVy: 0#, desiredVz: 0#, heading: ReefRange(s, -3.14, 3.14), pitch: 0#, speed: 0#, phase: ReefRange(s, 0, 6.283), size: ReefRange(s, 0.86, 1.12), state: "Cruising", stateTime: 0#, duration: ReefRange(s, 8, 22), turnRate: ReefRange(s, 0.32, 0.55), acceleration: 19#, targetSpeed: sp.speed, wander: ReefRange(s, 0, 6.283), schooling: sp.school }
+            f = { emerging:false, id: i, name: name, sp: sp, x: ReefRange(s, 150, 1900), y: ReefRange(s, 180, 780), z: ReefRange(s, 0.16, 0.95), tx: 1024#, ty: 460#, tz: 0.5, vx: 0#, vy: 0#, vz: 0#, desiredVx: 0#, desiredVy: 0#, desiredVz: 0#, heading: ReefRange(s, -3.14, 3.14), pitch: 0#, speed: 0#, phase: ReefRange(s, 0, 6.283), size: ReefRange(s, 0.86, 1.12), state: "Cruising", stateTime: 0#, duration: ReefRange(s, 8, 22), turnRate: ReefRange(s, 0.26, 0.4), acceleration: 19#, targetSpeed: sp.speed, wander: ReefRange(s, 0, 6.283), schooling: sp.school }
             if name = "ocellaris_clownfish" then f.x = 1000 + i * 9 : f.y = 800 : f.z = 0.94
             f.speed = sp.speed * 0.6
             f.yawVelocity = 0#

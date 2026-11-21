@@ -97,17 +97,17 @@
   "icon-fhd.jpg": {
     "width": 540,
     "height": 405,
-    "sha256": "f4427c3d5bc4a6fdba90057b1149b064a561213f34d89845de96f6a71373d559"
+    "sha256": "cfc044ce13143309469cb715c19a14e68cde482315c6e777688f972b9f51036c"
   },
   "icon-hd.jpg": {
     "width": 290,
     "height": 218,
-    "sha256": "e0d9dfbd653b556278c9a85eb72641dcf6155ef5b86d0a834d793bce8900d5c9"
+    "sha256": "9186f6af808a0540cd132d6c8061747460bef590bcef8623de046bd6b69cdf2c"
   },
   "icon-sd.jpg": {
     "width": 214,
     "height": 144,
-    "sha256": "1a6f067e540cf370c6a31f92f02daf10af3f51d43d648f805f2fbf32cd7b8a69"
+    "sha256": "cba412e233cf68537427d8d2397ba081e069b0848f3ca73babb53ea8a79d09c3"
   },
   "mandarin_dragonet-atlas.webp": {
     "width": 1024,
@@ -165,9 +165,9 @@
     "sha256": "3d5f5202a0d7d6d14d72aab7e6a1fa05773ad139cedb68aa70d118c953b1f8a1"
   },
   "reef-clam-motion-0.webp": {
-    "width": 2020,
-    "height": 908,
-    "sha256": "c451d9e211e9dcb1be6744dd999b21596f5061df09a41c2ae46b452dbac14aa9"
+    "width": 1914,
+    "height": 1117,
+    "sha256": "95d5c46171684881f224da3d5558e806e34b8bdf90647baf3d68248f30e6a2a2"
   },
   "reef-connected-reef.webp": {
     "width": 2038,
@@ -182,7 +182,7 @@
   "reef-sea-anemone-motion-0.webp": {
     "width": 1894,
     "height": 1124,
-    "sha256": "593b4ed948c2dba537f43d92a8f699fdcff07b66c82b2344a6b53ab809ad8aa8"
+    "sha256": "35a9f935c4296867b5e4e0a2cff108a0d96a463631d66de9eeca83f947acea26"
   },
   "reef-sea-fan-motion-0.webp": {
     "width": 1922,
@@ -207,12 +207,12 @@
   "sand-caustics.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "2ee37fee8ede40a1b55ad7cf550660203ea4df03fe668d4ccc4230d2a991e639"
+    "sha256": "c9f9c5a74c1c6ed54224ad3658f052fa7d8f8c154e0f8019d4299d3ccc0c2613"
   },
   "sand-wave-shadows.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "2440319c6b2a7ff1a44e753f56c1ed5e4160bbc7adfec52aa72900457994c83f"
+    "sha256": "604e4a9c75402984d323bd3226091094a6b18b2e352dc67380cd0e2b17de2817"
   },
   "seafloor-sunset.webp": {
     "width": 2048,
@@ -232,22 +232,22 @@
   "splash-fhd.jpg": {
     "width": 1920,
     "height": 1080,
-    "sha256": "271c2f8c6a3667cd63b8225b97793e8e413d88b46328cc76927564e93ca13aee"
+    "sha256": "9311e5cce0a63be81c0f0bcd592e593f4d46f2b62f292b8fa9aab930103d21f4"
   },
   "splash-hd.jpg": {
     "width": 1280,
     "height": 720,
-    "sha256": "aa5c6500b87356e57a753f462a6000d11c891b95e32c93bb8115cb90c6309ce0"
+    "sha256": "58f74594fe4a4cb44dd7e40e08932248c57fb69dcedd933d6ec3637c686061e6"
   },
   "splash-sd.jpg": {
     "width": 720,
     "height": 480,
-    "sha256": "59e8f475c42b7176a6afffa5a606779e14964b325a2910870743fd7152d41444"
+    "sha256": "1c674072a467dc772491afd4bf00577b6886b2fb195f13472c45bee35c6dfa7e"
   },
   "surface-waves.png": {
     "width": 2048,
     "height": 512,
-    "sha256": "a1a66014b435055e191c06433d619ce4b7772030ce5b8acbbaf3854a6120090e"
+    "sha256": "9d62e4ad30523b9b922be672b4d7b0dc0075ca4fb0f04894262c0036a9084f21"
   },
   "water-day.webp": {
     "width": 2048,

@@ -38,10 +38,28 @@ class VolumeGeometryChecks(unittest.TestCase):
  def test_anemone_is_slightly_translucent_and_surface_stays_above_fish(self):
   cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text());f=next(f for f in cfg['formations']if f['id']=='sea-anemone')
   alpha=np.asarray(Image.open(ROOT/'roku'/f['image'][5:]).convert('RGBA'))[:,:,3]
-  tissue=alpha[alpha>220];self.assertGreater(len(tissue),1000);self.assertLess(np.median(tissue),250)
+  tissue=alpha[(alpha>=198)&(alpha<=210)];self.assertGreater(len(tissue),1000);self.assertAlmostEqual(float(np.median(tissue)),204,delta=2)
+  with np.load(ROOT/'assets/source/marine-renders/sea-anemone-sculpted.npz')as mesh:
+   self.assertGreater(np.mean(np.isclose(mesh['opacity'],.8)),.9)
   waves=np.asarray(Image.open(ROOT/'roku/images/surface-waves.png').convert('RGBA'))[:,:,3]
   for row in range(4):self.assertEqual(waves[row*128+57:(row+1)*128].max(),0)
   self.assertGreater(cfg['waterline']['clearanceY'],cfg['waterline']['maxWaveY'])
+ def test_clam_side_view_texture_and_interior_occlusion(self):
+  from formation_frames import front_frame
+  cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text());f=next(f for f in cfg['formations']if f['id']=='clam')
+  self.assertEqual(f['yawDegrees'],-55);self.assertLess(f['width'],240)
+  self.assertEqual(len(f['frontRects']),65)
+  x=int((1080-f['x'])*f['frameWidth']/f['width']);y=int((1002-f['y'])*f['frameHeight']/f['height']);a=np.asarray(front_frame(f,0))[:,:,3]
+  self.assertGreater(a[y-8:y+8,x-14:x+14].mean(),245)
+  self.assertLess(f['x']+f['width'],1220-20)
+  import preview
+  closed=Image.new('RGBA',(1920,1080));closed.alpha_composite(front_frame(f,0),(f['x'],f['y']-36));covered=np.asarray(closed)[:,:,3]>220
+  for name,sp in preview.SPEC.items():
+   baby=dict(name=name,x=1080,y=965,z=.97,sx=1080,sy=965.9,scale=.991,size=min(.27,48/sp['length']),heading=.36,pitch=0,phase=0,finPhase=.4)
+   canvas=Image.new('RGBA',(1920,1080));preview.fish(canvas,baby,'Sunset',0);pixels=np.asarray(canvas)[:,:,3]>100
+   self.assertFalse(np.any(pixels&~covered),name+' must already fit behind the closed shell')
+  for name in ['anemone-material.png','clam-material.png']:
+   material=np.asarray(Image.open(ROOT/'assets/source/marine-renders'/name).convert('RGB'));self.assertGreater(material.std(),25)
  def test_approved_fan_is_restored_exactly(self):
   approved=ROOT/'assets/source/marine-renders/approved-fan'
   self.assertEqual((approved/'atlas.webp').read_bytes(),(ROOT/'roku/images/reef-sea-fan-motion-0.webp').read_bytes())

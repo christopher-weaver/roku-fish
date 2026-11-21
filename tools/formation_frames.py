@@ -49,3 +49,9 @@ def reserve_navigation():
  planes.append(dict(id='grounded-rock-base',z=.58,halfDepth=.26,parallax=1,rows=[''.join('#'if v else'.'for v in row)for row in base]))
  occ={'floor':tank.get('floor'),'waterline':tank.get('waterline'),'volumes':[EXCLUSION],'cell':8,'rows':[''.join('#'if v else'.'for v in row)for row in union],'planes':planes};p.write_text(json.dumps(occ,separators=(',',':')));scene.build_navigation(occ)
 if __name__=='__main__':reserve_navigation()
+
+def front_frame(formation,index,cache=None):
+ source=frame(formation,index,cache);result=Image.new('RGBA',source.size)
+ for r in formation['frontRects'][index]:
+  result.paste(source.crop((r['x'],r['y'],r['x']+r['w'],r['y']+r['h'])),(r['x'],r['y']))
+ return result

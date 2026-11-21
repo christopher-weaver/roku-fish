@@ -41,7 +41,9 @@ test_lfs_pointer_fails (test_release_tracking.ReleaseTrackingChecks.test_lfs_poi
 test_stale_zip_fails_and_is_rebuilt (test_release_tracking.ReleaseTrackingChecks.test_stale_zip_fails_and_is_rebuilt) ... ok
 test_untracked_zip_fails (test_release_tracking.ReleaseTrackingChecks.test_untracked_zip_fails) ... ok
 test_all_fish_have_seamless_closed_shells (test_volume_geometry.VolumeGeometryChecks.test_all_fish_have_seamless_closed_shells) ... ok
+test_anemone_is_slightly_translucent_and_surface_stays_above_fish (test_volume_geometry.VolumeGeometryChecks.test_anemone_is_slightly_translucent_and_surface_stays_above_fish) ... ok
 test_approved_fan_is_restored_exactly (test_volume_geometry.VolumeGeometryChecks.test_approved_fan_is_restored_exactly) ... ok
+test_clam_side_view_texture_and_interior_occlusion (test_volume_geometry.VolumeGeometryChecks.test_clam_side_view_texture_and_interior_occlusion) ... ok
 test_eel_expressions_are_geometry_and_not_constant (test_volume_geometry.VolumeGeometryChecks.test_eel_expressions_are_geometry_and_not_constant) ... ok
 test_eel_stays_inside_cave_until_it_emerges (test_volume_geometry.VolumeGeometryChecks.test_eel_stays_inside_cave_until_it_emerges) ... ok
 test_ground_is_a_textured_ridged_depth_surface (test_volume_geometry.VolumeGeometryChecks.test_ground_is_a_textured_ridged_depth_surface) ... ok
@@ -49,10 +51,20 @@ test_reference_anemone_has_fewer_plumper_tentacles (test_volume_geometry.VolumeG
 test_tentacles_branches_and_footings_are_closed_geometry (test_volume_geometry.VolumeGeometryChecks.test_tentacles_branches_and_footings_are_closed_geometry) ... ok
 
 ----------------------------------------------------------------------
-Ran 45 tests in 15.066s
+Ran 47 tests in 17.236s
 
 OK
 Validated manifest, native entry points, 10 species, 55 images and all atlas regions
+ACTIVITY  green_chromis  lateral travel= 753.5372060000003  span= 753.5372105439676
+ACTIVITY  copperband_butterflyfish  lateral travel= 401.73998889999996  span= 401.73998231018004
+ACTIVITY  blue_tang  lateral travel= 505.02987489999964  span= 505.02987841156005
+ACTIVITY  emperor_angelfish  lateral travel= 498.25361499999997  span= 498.2536218715128
+ACTIVITY  mandarin_dragonet  lateral travel= 195.08545426000003  span= 195.08545433948962
+ACTIVITY  banggai_cardinalfish  lateral travel= 267.27319839999996  span= 267.27319918850037
+ACTIVITY  moorish_idol  lateral travel= 585.4864456000003  span= 585.4864445829166
+ACTIVITY  royal_gramma  lateral travel= 327.3194319  span= 327.3194334917058
+PASS sustained lateral activity over 12 seconds with full reef/floor clearance
+
 PASS native shared-cursor behavior reproduced
 Fish updated= 8  animated= 8  expected= 8
 PASS every fish advances with native cursor semantics
@@ -61,16 +73,16 @@ PASS all body and pectoral phases advance at  Medium  density
 PASS all body and pectoral phases advance at  High  density
 
 PASS ten differently sized fish spawn without fish-to-fish overlap across four seeds
-PASS swept and interpolated body/tail/fin clearance, encounter  0  progress  332.6572 435.9412
-PASS swept and interpolated body/tail/fin clearance, encounter  1  progress  293.3007 382.1302
-PASS swept and interpolated body/tail/fin clearance, encounter  2  progress  588.0414 391.2732
-PASS swept and interpolated body/tail/fin clearance, encounter  3  progress  276.7275 393.6954
-PASS swept and interpolated body/tail/fin clearance, encounter  4  progress  204.0971 354.5101
+PASS swept and interpolated body/tail/fin clearance, encounter  0  progress  467.6007 572.6719
+PASS swept and interpolated body/tail/fin clearance, encounter  1  progress  416.6694 470.0231
+PASS swept and interpolated body/tail/fin clearance, encounter  2  progress  681.233 482.8453
+PASS swept and interpolated body/tail/fin clearance, encounter  3  progress  398.7685 481.1401
+PASS swept and interpolated body/tail/fin clearance, encounter  4  progress  297.4268 441.7228
 PASS swept guard prevents tunneling across another fish
 
-PASS stalled reef route  0  recovers into clear water, progress= 220.5146  without teleport or reef/floor contact
-PASS stalled reef route  1  recovers into clear water, progress= 126.8536  without teleport or reef/floor contact
-PASS stalled reef route  2  recovers into clear water, progress= 174.0394  without teleport or reef/floor contact
+PASS stalled reef route  0  recovers into clear water, progress= 290.1957  without teleport or reef/floor contact
+PASS stalled reef route  1  recovers into clear water, progress= 139.5315  without teleport or reef/floor contact
+PASS stalled reef route  2  recovers into clear water, progress= 263.0447  without teleport or reef/floor contact
 
 PASS clam pearl, staggered rising bubble pool, single safe live-fish birth, normal AI movement and bounded population
 PASS slow continuous hinge motion with open/closed pauses
@@ -124,24 +136,24 @@ PASS positive-scale pitched fish retain their fractional center
 {
   "float32_max_center_error_px": 0.0005859374999772626,
   "head_on_peak_frame_change_ratio_vs_64_angles": {
-    "ocellaris_clownfish": 0.423,
-    "yellow_tang": 0.526,
-    "royal_gramma": 0.479,
-    "emperor_angelfish": 0.66,
-    "moorish_idol": 0.465,
-    "green_chromis": 0.465,
-    "blue_tang": 0.496,
-    "copperband_butterflyfish": 0.456,
-    "banggai_cardinalfish": 0.61,
-    "mandarin_dragonet": 0.59
+    "ocellaris_clownfish": 0.089,
+    "yellow_tang": 0.217,
+    "royal_gramma": 0.119,
+    "emperor_angelfish": 0.102,
+    "moorish_idol": 0.104,
+    "green_chromis": 0.127,
+    "blue_tang": 0.106,
+    "copperband_butterflyfish": 0.128,
+    "banggai_cardinalfish": 0.117,
+    "mandarin_dragonet": 0.102
   },
-  "scope": "Host geometry and raster checks, no pose crossfades; actual Roku GPU/FPS require device validation."
+  "scope": "Host geometry and body-view interpolation checks; actual Roku GPU/FPS require device validation."
 }
 PASS adjacent-pixel pan: maximum centroid error 0.001959px; maximum 60Hz increment 0.027451px; no large-anchor transforms
 
 All requested checks passed
 
-Final geometry/material/package pass:
+Final material/occlusion/package verification:
 test_eel_is_modeled_and_articulated (test_3d_surfaces.ThreeDAndSurfaceChecks.test_eel_is_modeled_and_articulated) ... ok
 test_no_coral_shadow_can_touch_water (test_3d_surfaces.ThreeDAndSurfaceChecks.test_no_coral_shadow_can_touch_water) ... ok
 test_reef_objects_are_closed_volumes (test_3d_surfaces.ThreeDAndSurfaceChecks.test_reef_objects_are_closed_volumes) ... ok
@@ -187,6 +199,7 @@ test_untracked_zip_fails (test_release_tracking.ReleaseTrackingChecks.test_untra
 test_all_fish_have_seamless_closed_shells (test_volume_geometry.VolumeGeometryChecks.test_all_fish_have_seamless_closed_shells) ... ok
 test_anemone_is_slightly_translucent_and_surface_stays_above_fish (test_volume_geometry.VolumeGeometryChecks.test_anemone_is_slightly_translucent_and_surface_stays_above_fish) ... ok
 test_approved_fan_is_restored_exactly (test_volume_geometry.VolumeGeometryChecks.test_approved_fan_is_restored_exactly) ... ok
+test_clam_side_view_texture_and_interior_occlusion (test_volume_geometry.VolumeGeometryChecks.test_clam_side_view_texture_and_interior_occlusion) ... ok
 test_eel_expressions_are_geometry_and_not_constant (test_volume_geometry.VolumeGeometryChecks.test_eel_expressions_are_geometry_and_not_constant) ... ok
 test_eel_stays_inside_cave_until_it_emerges (test_volume_geometry.VolumeGeometryChecks.test_eel_stays_inside_cave_until_it_emerges) ... ok
 test_ground_is_a_textured_ridged_depth_surface (test_volume_geometry.VolumeGeometryChecks.test_ground_is_a_textured_ridged_depth_surface) ... ok
@@ -194,7 +207,7 @@ test_reference_anemone_has_fewer_plumper_tentacles (test_volume_geometry.VolumeG
 test_tentacles_branches_and_footings_are_closed_geometry (test_volume_geometry.VolumeGeometryChecks.test_tentacles_branches_and_footings_are_closed_geometry) ... ok
 
 ----------------------------------------------------------------------
-Ran 46 tests in 15.200s
+Ran 47 tests in 17.105s
 
 OK
 Validated manifest, native entry points, 10 species, 55 images and all atlas regions

@@ -129,3 +129,10 @@ jobs:
           roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs
           roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs
           roku/source/effects.brs roku/source/renderer.brs tests/clam_night_surface.brs
+
+      - name: Check sustained side-to-side swimming
+        run: >-
+          node tests/roku_runner.cjs --root roku
+          roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs
+          roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs
+          roku/source/effects.brs tests/activity.brs

@@ -71,3 +71,7 @@ Marine animation uses the existing NPZ volumes and finished textures, with compl
 `reef-model/` contains the approved reef image's UV colour projection, individual closed-volume NPZ meshes and the packed Blender scene. Geometry is reconstructed from the existing reef silhouettes with anatomically shaped depth fields, shared touching boundaries and a separate tapered hollow tunnel. The Blender scene also includes the existing marine volumes and the actual articulated eel. Existing texture licenses and provenance remain unchanged. This preserves the established frontal composition with editable 3D geometry.
 
 Projected wave shading is original procedural art, applied through conservative surface masks and object material tints. No new generated reef image or third-party 3D asset is used.
+
+## Photographic marine materials and shell occlusion (1.0.18)
+
+No new external artwork is introduced. `marine_materials.py` extracts tissue/shell maps from `marine-renders/sea-anemone-finished.png` and `coral-islands/central-clam.png`, preserving their existing art provenance and license. The maps are attached to individual tube/valve UVs, and included in the packed Blender source. Original procedural geometry is retained. `clam_occlusion.py` derives foreground masks from the depth-rendered shell and reuses the main atlas pixels. `compact_marine.py` packages photographic poses, preserves 80% tentacle opacity, and creates small original branded menu/splash images to reserve package space for the scene.

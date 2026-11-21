@@ -31,3 +31,5 @@ Source code and license files were inspected locally. Review of reference implem
 ## Native iteration rule
 
 Roku objects maintain one `ifEnum` cursor. Nested enumeration of the same fish array, even through a neighbor function, can end the outer loop after its first item. The fish update and neighbor scan now use numeric indices. The test adapter explicitly reproduces this rule; the unmodified JavaScript-backed interpreter did not. References: [Roku developer discussion of shared enumeration](https://forum.developer.roku.com/t/for-each-bug-one-iteration-breaks-another/5160) and [nested-loop behavior](https://forum.developer.roku.com/t/nested-for-each-loops-behavior/7289).
+
+Roku certification criterion 3.7 still requires app files of 4 MB or less: https://developer.roku.com/dev/docs/certification . The photographic material update retains the existing package-size gate.

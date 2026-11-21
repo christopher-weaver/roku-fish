@@ -10,7 +10,7 @@ function ReefLoadAssets(s as object) as object
     plate = "water-day.webp"
     if warm then plate = "water-sunset.webp"
     water=ReefBitmap("pkg:/images/"+plate)
-    a = { plate: ReefLayer(water), formations: [], surfaceShadows: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
+    a = { plate: ReefLayer(water), formations: [], surfaceShadows: [], clamFront: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
     floorPath="pkg:/images/seafloor-sunset.webp"
     a.floor=ReefLayer(ReefBitmap(floorPath))
     a.glow=ReefLayer(ReefBitmap("pkg:/images/bioluminescence.png"))
@@ -53,6 +53,18 @@ function ReefLoadAssets(s as object) as object
             bitmap=ReefBitmap(cfg.image)
             for view=0 to cfg.frames-1
                 views.Push(ReefLayer(bitmap,(view mod cfg.columns)*cfg.frameWidth,Int(view/cfg.columns)*cfg.frameHeight,cfg.frameWidth,cfg.frameHeight))
+            end for
+        end if
+        if cfg.frontRects<>invalid
+            for pose=0 to cfg.frames-1
+                pageIndex=Int(pose/cfg.animation.framesPerPage) : local=pose mod cfg.animation.framesPerPage
+                x=cfg.animation.gutter+(local mod cfg.columns)*cfg.animation.strideX
+                y=cfg.animation.gutter+Int(local/cfg.columns)*cfg.animation.strideY
+                pieces=[]
+                for each rect in cfg.frontRects[pose]
+                    pieces.Push({x:rect.x,y:rect.y,w:rect.w,h:rect.h,region:ReefLayer(pages[pageIndex],x+rect.x,y+rect.y,rect.w,rect.h)})
+                end for
+                a.clamFront.Push(pieces)
             end for
         end if
         a.formations.Push(views)

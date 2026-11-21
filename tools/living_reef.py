@@ -21,9 +21,10 @@ vec3 base=usePhoto>.5?texture(photo,texuv).rgb:color;if(usePhoto>.5&&color.r>.90
 if(tissue>.5){float veins=sin(world.x*.28+sin(world.z*.19)*2.0)*sin(world.y*.22+world.z*.12);base*=.97+.025*veins;float scatter=pow(1.0-abs(normal.z),2.0);base=mix(base,vec3(.97,.64,.59),scatter*.12);shine=pow(max(0.0,dot(normal,normalize(light+vec3(0,0,1)))),42.0)*.16;alpha=.935+.025*lambert;}
 outcol=vec4(base*(.65+.35*lambert+grain*(1.0-tissue*.7))+shine*.3,alpha);}'''
 class Model:
- def __init__(self):self.v=[];self.f=[];self.rgb=[];self.flow=[]
- def add(self,v,f,color,flow=None):
+ def __init__(self):self.v=[];self.f=[];self.rgb=[];self.flow=[];self.uv=[];self.opacity=[]
+ def add(self,v,f,color,flow=None,uv=None,opacity=1.):
   v=np.asarray(v,dtype='f4');offset=len(self.v);self.v.extend(v);self.f.extend(np.asarray(f,dtype='i4')+offset)
+  self.uv.extend(np.zeros((len(v),2))if uv is None else uv);self.opacity.extend(np.broadcast_to(opacity,(len(v),)));
   self.rgb.extend(np.broadcast_to(color,(len(v),3)));self.flow.extend(np.zeros_like(v)if flow is None else flow)
  def arrays(self):
   from cave_geometry import normals
@@ -43,7 +44,7 @@ class Model:
   end=len(v)-1
   for i in range(sides):f.append((end,1+(rows-2)*sides+i,1+(rows-2)*sides+(i+1)%sides))
   self.add(v,np.asarray(f)[:,::-1],color)
- def tube(self,path,radii,color,tip_color=None,flow=None,sides=12,row_colors=None):
+ def tube(self,path,radii,color,tip_color=None,flow=None,sides=12,row_colors=None,material=False):
   path=np.asarray(path);tangent=np.gradient(path,axis=0);tangent/=np.maximum(np.linalg.norm(tangent,axis=1)[:,None],1e-6)
   reference=np.tile([0,0,1.],(len(path),1));reference[np.abs(tangent[:,2])>.9]=[0,1,0]
   right=np.cross(tangent,reference);right/=np.maximum(np.linalg.norm(right,axis=1)[:,None],1e-6);up=np.cross(right,tangent)
@@ -58,7 +59,10 @@ class Model:
     a=row*sides+i;b=row*sides+(i+1)%sides;c=a+sides;d=b+sides;f.extend([(a,c,b),(b,c,d)])
   v.extend([path[0],path[-1]]);colors.extend([color,tip_color or color]);moves.extend([moves[0],moves[-1]])
   for i in range(sides):f.extend([(len(v)-2,i,(i+1)%sides),(len(v)-1,(len(path)-1)*sides+(i+1)%sides,(len(path)-1)*sides+i)])
-  self.add(v,f,np.array(colors),np.array(moves))
+  uv=None
+  if material:
+   uv=np.array([[.5+.499*(i%sides)/sides,(i//sides)/(len(path)-1)]for i in range(len(v)-2)]+[[.5,0],[.5,1]],dtype="f4")
+  self.add(v,f,np.array(colors),np.array(moves),uv=uv,opacity=.8 if material else 1.)
  def cup(self,cx,cy,rx,ry,depth,color):
   sides=128;v=[];f=[];colors=[]
   # A continuous inner bowl, rolled rim, outer wall and closed underside.
@@ -91,7 +95,8 @@ def anemone():
   for i in range(sides):
    a=row*sides+i;b=row*sides+(i+1)%sides;c=a+sides;d=b+sides;faces.extend([(a,c,b),(b,c,d)])
  for i in range(1,sides-1):faces.extend([(0,i,i+1),(10*sides,10*sides+i+1,10*sides+i)])
- m.add(vertices,faces,np.array(colors))
+ uv=np.column_stack([.499*np.clip((np.array(vertices)[:,0]-1370)/210,0,1),np.clip((np.array(vertices)[:,1]-850)/155,0,1)])
+ m.add(vertices,faces,np.array(colors),uv=uv)
  for i in range(64):
   theta=i*2.399963;ring=32+54*np.sqrt((i+.5)/64);radial=np.cos(theta)*u+np.sin(theta)*v
   root=center+radial*ring-axis*3;front=max(0,np.sin(theta));back=max(0,-np.sin(theta))
@@ -111,7 +116,7 @@ def anemone():
   stops=np.array([0.,.10,.25,.55,.85,1.]);palette=np.array([[.67,.24,.20],[.89,.64,.51],[.92,.78,.63],[.81,.56,.63],[.87,.66,.66],[.96,.85,.69]])
   for channel in range(3):row_colors[:,channel]=np.interp(t,stops,palette[:,channel])
   row_colors*=.94+.06*np.sin(i*1.7)
-  m.tube(path,radius,color,(.86,.83,.65),flow,sides=18,row_colors=row_colors)
+  m.tube(path,radius,color,(.86,.83,.65),flow,sides=18,row_colors=row_colors,material=True)
  return m
 
 def corals():
@@ -136,26 +141,29 @@ def photo_material(name,folder):
  image=Image.fromarray(np.uint8(rgb));image.save(folder/(name+'-colour.png'));return image
 
 def save(name,model,folder):
- v,n,f,rgb,flow=model.arrays();uv=np.column_stack([v[:,0]/2048,1-v[:,1]/1152]).astype('f4');np.savez_compressed(folder/(name+'.npz'),vertices=v,normals=n,faces=f,rgb=rgb,flow=flow,uv=uv);return v,n,f,rgb,flow
+ v,n,f,rgb,flow=model.arrays();uv=np.column_stack([v[:,0]/2048,1-v[:,1]/1152]).astype('f4');np.savez_compressed(folder/(name+'.npz'),vertices=v,normals=n,faces=f,rgb=rgb,flow=flow,uv=uv,material_uv=np.array(model.uv,dtype='f4'),opacity=np.array(model.opacity,dtype='f4'));return v,n,f,rgb,flow
 
 def build_marine():
- folder=ROOT/'assets/source/marine-renders';cfgpath=ROOT/'roku/scenes/tank.json';cfg=json.loads(cfgpath.read_text());ctx=moderngl.create_standalone_context(backend='egl');ctx.enable(moderngl.DEPTH_TEST);p=ctx.program(vertex_shader=VS,fragment_shader=FS)
- texture=ctx.texture((1,1),3,bytes([255,255,255]));texture.filter=(moderngl.LINEAR,moderngl.LINEAR);texture.use();p['usePhoto'].value=0;p['tissue'].value=1
- for name,model,period,scale in [('sea-anemone',anemone(),7.5,.75)]:
+ folder=ROOT/'assets/source/marine-renders';cfgpath=ROOT/'roku/scenes/tank.json';cfg=json.loads(cfgpath.read_text());ctx=moderngl.create_standalone_context(backend='egl');ctx.enable(moderngl.DEPTH_TEST)
+ from marine_materials import build as build_materials,VS as TISSUE_VS,FS as TISSUE_FS
+ build_materials();p=ctx.program(vertex_shader=TISSUE_VS,fragment_shader=TISSUE_FS);p['clipDepth'].value=-500
+
+ photo=Image.open(folder/'anemone-material.png');texture=ctx.texture(photo.size,3,photo.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());texture.build_mipmaps();texture.filter=(moderngl.LINEAR_MIPMAP_LINEAR,moderngl.LINEAR);texture.anisotropy=8;texture.use()
+ for name,model,period,scale in [('sea-anemone',anemone(),7.5,.85)]:
   v,n,f,rgb,flow=save(name+'-sculpted',model,folder)
   # Compatibility geometry export uses normalized coordinates but retains real tubes.
   x0,y0=np.floor(np.min(v[:,:2]-np.abs(flow[:,:2]),axis=0)-8).astype(int);x1,y1=np.ceil(np.max(v[:,:2]+np.abs(flow[:,:2]),axis=0)+8).astype(int);w,h=x1-x0,y1-y0
   normalized=v.copy();normalized[:,0]=(v[:,0]-x0)/w*2-1;normalized[:,1]=1-(v[:,1]-y0)/h*2;normalized[:,2]=v[:,2]/100
   np.savez_compressed(folder/(name+'-volume.npz'),vertices=normalized,uv=np.column_stack([(v[:,0]-x0)/w,1-(v[:,1]-y0)/h]),faces=f)
   tw,th=round(w*scale),round(h*scale);cols=2044//(tw+4);capacity=cols*(2044//(th+4));p['stage'].value=(x0,y0,w,h)
-  vb=ctx.buffer(np.column_stack([v,n,rgb,flow]).astype('f4').tobytes());ib=ctx.buffer(f.tobytes());vao=ctx.vertex_array(p,[(vb,'3f 3f 3f 3f','position','normal','rgb','flow')],ib);fb=ctx.simple_framebuffer((w*2,h*2),components=4);fb.use();shots=[];union=np.zeros((h,w),dtype='uint8')
+  vb=ctx.buffer(np.column_stack([v,n,rgb,flow,model.uv,model.opacity]).astype('f4').tobytes());ib=ctx.buffer(f.tobytes());vao=ctx.vertex_array(p,[(vb,'3f 3f 3f 3f 2f 1f','position','normal','rgb','flow','surfaceUV','opacity')],ib);fb=ctx.simple_framebuffer((w*2,h*2),components=4);fb.use();shots=[];union=np.zeros((h,w),dtype='uint8')
   for index in range(65):
    p['strength'].value=-1+index/32;fb.clear(0,0,0,0,depth=1);vao.render();im=Image.frombytes('RGBA',fb.size,fb.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).resize((w,h),Image.Resampling.LANCZOS);a=np.array(im.getchannel('A'));a[a<6]=0;im.putalpha(Image.fromarray(a));union=np.maximum(union,a);shots.append(im.resize((tw,th),Image.Resampling.LANCZOS))
   pages=[]
   for first in range(0,65,capacity):
    batch=shots[first:first+capacity];atlas=Image.new('RGBA',(cols*(tw+4)+4,math.ceil(len(batch)/cols)*(th+4)+4))
    for i,im in enumerate(batch):atlas.paste(im,(2+i%cols*(tw+4),2+i//cols*(th+4)))
-   compact=imagequant.quantize_pil_image(atlas,max_colors=64,dithering_level=0,max_quality=95).convert('RGBA');filename=f'reef-{name}-motion-{len(pages)}.webp';normalized=np.array(compact);normalized[:,:,3][normalized[:,:,3]<6]=0;normalized[normalized[:,:,3]==0,:3]=0;Image.fromarray(normalized).save(ROOT/'roku/images'/filename,lossless=True,method=6,exact=True);pages.append('pkg:/images/'+filename)
+   filename=f'reef-{name}-motion-{len(pages)}.webp';atlas.save(ROOT/'roku/images'/filename,quality=91,method=6,exact=True);pages.append('pkg:/images/'+filename)
   Image.fromarray(union).save(folder/(name+'-motion-footprint.png'))
   for formation in cfg['formations']:
    if formation['id']==name:formation.update(x=int(x0),y=int(y0),width=int(w),height=int(h),frameWidth=tw,frameHeight=th,columns=cols,frames=65,image=pages[0],images=pages,meshVertices=len(v),meshTriangles=len(f),geometryType='closed sculpted tubes and solid anatomy',animation=dict(period=period,count=65,framesPerPage=capacity,strideX=tw+4,strideY=th+4,gutter=2))

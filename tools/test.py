@@ -30,6 +30,7 @@ if __name__=='__main__':
         if '--quick' not in sys.argv:
             output=brs_run('simulation','docs/simulation-results.txt')
             if not re.search(r'RESULT passed=\s*32\s+failed=\s*0',output):raise RuntimeError('Simulation did not complete 32 checks')
+        print(brs_run('activity','docs/activity-results.txt'))
         print(brs_run('movement_regression','docs/movement-regression-results.txt'))
         if '--quick' not in sys.argv:print(output)
         print(brs_run('fish_traffic','docs/fish-traffic-results.txt'))

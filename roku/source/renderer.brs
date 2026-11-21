@@ -58,18 +58,31 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     effort=.6
     if f.speed<>invalid then effort=ReefClamp(f.speed/f.sp.speed,0#,1#)
     r.waveAmplitude=f.sp.length*f.size*p.scale*.012*(.25+.75*effort)*Abs(Cos(pose.heading))
+    if frames[0].bands<>invalid and f.bodyView.first<>invalid
+        ' Neighboring real 3D views share the same projected width and center.
+        ' An opaque base avoids see-through bodies; only body pixels blend.
+        body=f.bodyView : nearest=body.index : sourceWidth=body.sourceWidth
+        body.index=body.first : body.sourceWidth=f.sp.bodyViewWidths[body.first]
+        ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,body,scale,angle,red,green,blue)
+        if body.blend>.001
+            body.index=body.second : body.sourceWidth=f.sp.bodyViewWidths[body.second]
+            ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,body,scale,angle,red,green,blue,Int(255*body.blend+.5))
+        end if
+        body.index=nearest : body.sourceWidth=sourceWidth
+    else
     ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,f.bodyView,scale,angle,red,green,blue)
+    end if
     if a.tails[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.tails[f.name],tailPosition,f.sp.tailPoseCount,view,scale,angle,red,green,blue)
     if a.fins[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.fins[f.name],finPosition,f.sp.finPoseCount,view,scale*f.sp.finTextureScale,angle,red,green,blue)
 end sub
 
-sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,position as double,count as integer,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer)
+sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,position as double,count as integer,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer,opacity=255 as integer)
     ' Body excludes caudal-tail geometry. One tail and one pectoral image
     ' complete the fish; no crossfades, duplicate anatomy or reflections.
     poseIndex=Int(position+0.5)
     yaw=view.index
     sx=scale*view.width/view.sourceWidth
-    region=frames[yaw*count+poseIndex] : tint=ReefRGBA(red,green,blue,255)
+    region=frames[yaw*count+poseIndex] : tint=ReefRGBA(red,green,blue,opacity)
     if r.waveAmplitude=invalid then r.waveAmplitude=0#
     r.partLength=sp.frameW*.9*sx
     if count=sp.finPoseCount then r.partLength=r.partLength/sp.finTextureScale
@@ -162,7 +175,7 @@ sub ReefDrawSurface(r as object, s as object, a as object)
         weight = 1 - wave.blend
         index = wave.first
         if pass = 1 then weight = wave.blend : index = wave.second
-        color = ReefRGBA(255, 236, 223, Int(weight * (160 + 75 * s.lighting[0])))
+        color = ReefRGBA(255, 236, 223, Int(weight * (205 + 50 * s.lighting[0])))
         for tile = 0 to 4
             ReefDraw(r, -512 + tile * 512 - s.camera, -8, cfg.scale, 1, a.surface[index], color)
         end for
@@ -230,6 +243,7 @@ sub ReefRender(r as object, s as object, a as object)
     for fishIndex = 0 to s.fish.Count() - 1
         f = s.fish[fishIndex]
         f.renderPose = ReefDisplayPose(f,s.renderAlpha,f.renderPose)
+        if f.emerging<>true
         s.sorted.Push(f)
         j = s.sorted.Count() - 1
         while j > 0
@@ -239,6 +253,7 @@ sub ReefRender(r as object, s as object, a as object)
             s.sorted[j] = s.sorted[j - 1] : j = j - 1
         end while
         s.sorted[j] = f
+        end if
     end for
     i = 0 : previousDepth = 0#
     reefTint = &hFFFFFFFF
@@ -255,6 +270,7 @@ sub ReefRender(r as object, s as object, a as object)
         offset = 64 + (s.camera - 64) * formation.parallax
         marineView=0
         if formation.animation<>invalid then marineView=ReefMarineFrame(s.displayTime,formation)
+        if formation.id="clam" then marineView=Int(ReefClamDisplayOpening(s)*(formation.frames-1)+.5)
         light=ReefSurfaceShade(formation.x+formation.width*.5,formation.y+formation.height*.45,s.displayTime)
         strength=.35
         if formation.animation<>invalid then strength=0#
@@ -264,7 +280,26 @@ sub ReefRender(r as object, s as object, a as object)
         tint=ReefRGBA(Int(red*light),Int(green*light),Int(blue*light),255)
         ReefDraw(r,formation.x-offset,formation.y-36,formation.width/formation.frameWidth,formation.height/formation.frameHeight,a.formations[formationIndex][marineView],tint)
         ReefDrawSurfaceShadow(r,s,a,formationIndex,formation)
-        if formation.id="clam" then ReefDrawClamContents(r,s,a)
+        if formation.id="clam"
+            ReefDrawClamContents(r,s,a)
+            if s.clam.baby<>invalid
+                if s.clam.baby.emerging=true
+                    ReefDrawFish(r,s,a,s.clam.baby)
+                    if a.clamFront<>invalid
+                        sx=formation.width/formation.frameWidth : sy=formation.height/formation.frameHeight
+                        child=s.clam.baby : p=child.screenPose
+                        fishScale=p.scale*child.sp.length/child.sp.renderLength*child.size
+                        hw=child.sp.collisionHalfWidth*fishScale+8# : hh=child.sp.collisionHalfHeight*fishScale+8#
+                        for each piece in a.clamFront[marineView]
+                            x=formation.x-offset+piece.x*sx : y=formation.y-36+piece.y*sy
+                            if x<p.x+hw and x+piece.w*sx>p.x-hw and y<p.y+hh and y+piece.h*sy>p.y-hh
+                                ReefDraw(r,x,y,sx,sy,piece.region,tint)
+                            end if
+                        end for
+                    end if
+                end if
+            end if
+        end if
         if formation.id="connected-reef" then ReefDrawEel(r,s,a)
     end for
     ReefDrawCaustics(r, s, a)
@@ -311,9 +346,9 @@ end sub
 sub ReefDrawClamContents(r as object,s as object,a as object)
     if s.clam=invalid or a.pearl=invalid then return
     if not s.clam.enabled or s.clam.event<>0 then return
-    openness=ReefClamOpening(s.displayTime)
+    openness=ReefClamDisplayOpening(s)
     alpha=Int(255*ReefEase((openness-.65)/.35))
-    if alpha>0 then ReefDraw(r,1060#-s.camera,929#,.82,.82,a.pearl,ReefRGBA(255,250,241,alpha))
+    if alpha>0 then ReefDraw(r,1092#-s.camera,950#,.50,.50,a.pearl,ReefRGBA(255,250,241,alpha))
 end sub
 
 sub ReefDrawClamBubbles(r as object,s as object,a as object,lo as double,hi as double)
@@ -322,7 +357,7 @@ sub ReefDrawClamBubbles(r as object,s as object,a as object,lo as double,hi as d
     if .91<lo or .91>=hi then return
     for each e in s.clam.bubbles
         age=s.displayTime-e.born
-        y=949#-age*e.speed
+        y=964#-age*e.speed
         if age>=0# and y>45#
             alpha=Int(180*ReefClamp((y-45#)/45#,0#,1#))
             x=e.x+Sin(age*1.3+e.phase)*6#-s.camera

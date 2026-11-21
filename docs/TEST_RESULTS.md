@@ -1,26 +1,26 @@
-# Deep Reef 1.0.17 — targeted verification
+# Deep Reef 1.0.18 — targeted verification
 
-Fish use a head-anchored traveling S/inverse-S curve with smoothly changing section tangents. Independent tail and fin patches follow their attachment tangents. Steering has lower angular acceleration and jerk. Context-matched surrounding skin replaces the shifted texture under pectoral fins.
+Anemone and clam surfaces now use photographic maps extracted from the approved artwork, with UV coordinates attached to the actual modeled surfaces. Tentacle material opacity is exactly 0.8; the oral disc remains opaque. The clam is scaled to 70% and turned 55° sideways. Its front-shell mask reuses rectangles from the same color atlas, with drawing limited to the area overlapping a staged baby fish.
 
-The anemone has shorter fingers, a lower oral-disc angle and subtly translucent tissue. The fan retains its exact approved atlas. Both avoid moving caustic modulation. The moray’s lower jaw is thinner; its cave, expressions and depth-tested emergence remain.
+The same baby object exists behind the closed shell, follows a continuous eased emergence path behind the lip, then enters normal movement. Its size fits the shell for all ten parent species. Swept checks prevent it from entering the reef/floor or crossing another fish. A blocked exit holds the shell open.
 
-A hinged 3D clam has 65 opening poses and three shuffled events: pearl, staggered bubble cluster, and safe live-fish birth. Newborns join ordinary movement and collision handling. Births are bounded per activation. Night lighting adds blue-green coral and plankton emission. Surface reflections draw behind fish and a conservative posed-body envelope keeps all species below the ripples.
+Body-only interpolation between width-aligned 3D headings removes view snapping while retaining one tail and one pectoral image. Angular acceleration/jerk are reduced. Long visible crossings, earlier waypoint rounding, less stacked braking and rare brief pauses increase lateral swimming. Surface reflections are stronger and remain above the full fish envelope.
 
 | Check | Result |
 |---|---|
-| Native compiler | PASS |
-| Python package, geometry, materials and release checks | PASS, 46 tests |
-| Fish body curve | PASS, head anchoring, S/inverse-S shape, continuous tangents and bounded pitch |
-| Clam events | PASS, one event per opening, fixed bubble pool, live offspring movement and population bounds |
-| Night mode | PASS, validated setting, dim lighting, emissive coral/plankton and daylight exclusion |
-| Waterline | PASS, all ten species reserve full posed outline below surface |
-| Reef/fish traffic | PASS, native cursor semantics, safe spawning, five swept/interpolated encounters and stalled-route recovery |
-| Geometry | PASS, closed fish/tentacle/clam shells, floor depth, cave confinement and exact fan restoration |
-| Materials | PASS, translucent anemone alpha and bounded surface footprint |
-| Render, settings, pan, turns and pacing | PASS, targeted native checks |
-| Browser preview | PASS, all lighting modes including Night, assets, play/pause/seek, no page errors |
-| Release archive | PASS, tracked binary ZIP, fresh source contents, checksum and 4 MB budget |
+| Compiler | PASS |
+| Python package, geometry, materials and release checks | PASS, 47 tests |
+| Lateral activity | PASS, all eight fish span about 195–754 design pixels over 12 simulated seconds, without reef/floor entry |
+| Turns | PASS, bounded velocity/acceleration/jerk, cubic display heading, continuous projected width and body-only interpolation |
+| Turn raster comparison | PASS, peak image changes are 0.089–0.217 of the original 64-angle nearest-view reference |
+| Shell occlusion | PASS, every parent species fits behind the closed shell; endpoint clears the shell before ordinary swimming |
+| Baby lifecycle | PASS, same object starts inside, moves continuously through the opening, then uses ordinary AI; births remain bounded |
+| Materials | PASS, 80% tentacle opacity and photographic variation; exact approved fan unchanged |
+| Traffic, routes, floor and cave | PASS, predictive and swept encounters, progress recovery and full body clearance |
+| Surface/pan/settings/render | PASS, protected waterline, continuous clocks, correct depth order and existing settings |
+| Browser | PASS, all lighting modes, assets and play/pause/seek, no page errors |
+| Package | PASS, tracked ZIP, fresh source, checksum and 4 MB limit |
 | Extended soaks | Not run |
 | Actual Roku GPU/FPS | Not measured |
 
-The editable Blender scene and source meshes accompany the offline-rendered native atlases. The browser and host tests do not measure Roku GPU timing.
+The browser and host checks do not measure Roku GPU timing. The editable Blender scene includes the new photo UVs, per-vertex tissue opacity, smaller side-facing clam, and articulated opening geometry.

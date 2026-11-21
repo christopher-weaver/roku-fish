@@ -14,7 +14,7 @@ sub Main()
     for i=0 to sp.finFrames.Count()-1
         fins.Push({normal:"fin",fractional:"fin"})
     end for
-    screen={angles:[],DrawTransformedObject:SwimCapture}
+    screen={angles:[],sources:[],opacity:[],DrawTransformedObject:SwimCapture}
     r={screen:screen,scale:1#,canvasOffset:0#,rotation:true,fractionalFish:true,placement:{}}
     s={camera:64#,displayTime:0#,lighting:[1#,0#,0#,0#],settings:{lighting:"Sunset"}}
     a={fish:{yellow_tang:body},tails:{yellow_tang:tails},fins:{yellow_tang:fins}}
@@ -22,10 +22,12 @@ sub Main()
     previous=invalid : varied=false
     for tick=0 to 119
         f.renderPose.phase=tick*6.283185307/60#
-        screen.angles=[] : ReefDrawFish(r,s,a,f)
-        if screen.angles.Count()<>10 then print "FAIL missing body curve or appendage" : return
+        screen.angles=[] : screen.sources=[] : screen.opacity=[] : ReefDrawFish(r,s,a,f)
+        if screen.angles.Count()<>18 then print "FAIL missing body curve or appendage" : return
+        if screen.sources[16]<>"tail" or screen.sources[17]<>"fin" then print "FAIL duplicate appendages in yaw blend" : return
+        if screen.opacity[0]<>255 or screen.opacity[8]<=0 or screen.opacity[8]>=255 then print "FAIL opaque body base/yaw interpolation" : return
         if Abs(screen.angles[1]-screen.angles[6])>.5 then varied=true
-        for band=0 to 9
+        for band=0 to 17
             if Abs(screen.angles[band])>12.601 then print "FAIL bend exceeds pitch clearance" : return
             if previous<>invalid
                 if Abs(screen.angles[band]-previous[band])>.9 then print "FAIL body curve jumps" : return
@@ -45,6 +47,6 @@ sub Main()
     print "PASS anchored head, traveling S/inverse-S body curve, smooth independent section tangents and attached fin/tail motion within the collision envelope"
 end sub
 function SwimCapture(x as integer,y as integer,angle as float,sx as float,sy as float,source as dynamic,tint as integer) as boolean
-    m.angles.Push(angle)
+    m.angles.Push(angle) : m.sources.Push(source) : m.opacity.Push(tint and 255)
     return true
 end function

@@ -1,4 +1,4 @@
 Validated manifest, native entry points, 10 species, 55 images and all atlas regions
 /workspace/roku-fish/dist/deep-reef-screensaver.zip
-3,959,337 bytes; ZIP integrity verified; SHA256 ff2302fd649f8018d0209cde3aa15dbd3f51cd4fe3a0667de4b4d677a97c85f1
-Tracked sideload ZIP matches the current source: ff2302fd649f8018d0209cde3aa15dbd3f51cd4fe3a0667de4b4d677a97c85f1
+3,988,347 bytes; ZIP integrity verified; SHA256 e4072ad6932cc1110a847ff7dd90f762e674a1dc217e68648b9b4577d0835460
+Tracked sideload ZIP matches the current source: e4072ad6932cc1110a847ff7dd90f762e674a1dc217e68648b9b4577d0835460

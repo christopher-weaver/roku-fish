@@ -7,6 +7,10 @@ sub Main()
         f=world.fish[i]
         if Abs(Cos(f.heading))<.95 then print "FAIL fish starts staring" : return
         ReefPlanRoute(world,f)
+        if f.route.Count()=0
+            if Abs(f.tx-f.x)>200 then lateral=lateral+1
+            if Abs(f.tz-f.homeZ)<.25 then nearHome=nearHome+1
+        end if
         if f.route.Count()>0
             goal=world.navigation.nodes[f.route[f.route.Count()-1]]
             if Abs(goal.x-f.x)>200 then lateral=lateral+1

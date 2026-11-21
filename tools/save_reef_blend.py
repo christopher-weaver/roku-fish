@@ -12,7 +12,7 @@ wall=bpy.data.materials.new('recessed rock bore');wall.diffuse_color=(.20,.12,.1
 record=json.loads((folder/'model.json').read_text())
 for item in record['objects']:
  with np.load(folder/item['file'])as data:
-  v=data['vertices'].copy();v[:,1]*=-1;faces=data['faces'][:,::-1];uv=data['uv'];norm=data['normals'].copy();norm[:,1]*=-1
+  v=data['vertices'].copy();v[:,1]*=-1;faces=data['faces'][:,::-1];uv=data['material_uv']if item['name']=='articulated-clam'else data['uv'];norm=data['normals'].copy();norm[:,1]*=-1
   rgb=data['rgb'].copy()if 'rgb'in data else None
  mesh=bpy.data.meshes.new(item['name']);mesh.from_pydata(v.tolist(),[],faces.tolist());mesh.update();o=bpy.data.objects.new(item['name'],mesh);scene.collection.objects.link(o);o.data.materials.append(wall if item['name']=='hollow-tunnel'else mat)
  layer=mesh.uv_layers.new(name='reference projection')
@@ -24,6 +24,8 @@ for item in record['objects']:
   colors=mesh.color_attributes.new(name='sculpted colour',type='FLOAT_COLOR',domain='POINT');colors.data.foreach_set('color',np.column_stack([rgb,np.ones(len(rgb))]).ravel());material=bpy.data.materials.new(item['name']+' shaded material');material.use_nodes=True;node=material.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';material.node_tree.links.new(node.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);
   if (folder/(item['name']+'-colour.png')).exists():
    texture=material.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(folder/(item['name']+'-colour.png')));texture.image.pack();material.node_tree.links.new(texture.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
+  if item['name']=='articulated-clam':
+   texture=material.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(ROOT/'assets/source/marine-renders/clam-material.png'));texture.image.pack();material.node_tree.links.new(texture.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
   o.data.materials.clear();o.data.materials.append(material)
  if item['name']=='articulated-clam':
   o.shape_key_add(name='Basis');key=o.shape_key_add(name='Upper valve open at hinge');opened=np.load(folder/'clam-open.npz')['vertices'].copy();opened[:,1]*=-1;key.data.foreach_set('co',opened.ravel())
@@ -54,14 +56,14 @@ for name,ox,oy,width,height,base_z in [('sea-fan',80,430,600,565,-45),('sea-anem
   for polygon in mesh.polygons:polygon.use_smooth=True
   continue
  path=ROOT/'assets/source/marine-renders'/(name+'-sculpted.npz')
- with np.load(path)as data:v=data['vertices'].copy();rgb=data['rgb'];flow=data['flow'].copy();faces=data['faces'][:,::-1]
+ with np.load(path)as data:v=data['vertices'].copy();rgb=data['rgb'];opacity=data['opacity'];material_uv=data['material_uv'];flow=data['flow'].copy();faces=data['faces'][:,::-1]
  v[:,1]*=-1;flow[:,1]*=-1
  mesh=bpy.data.meshes.new(name+' sculpted anatomy');mesh.from_pydata(v.tolist(),[],faces.tolist());mesh.update();o=bpy.data.objects.new(name+' individual 3D branches and tentacles',mesh);scene.collection.objects.link(o)
- colors=mesh.color_attributes.new(name='sculpted colour',type='FLOAT_COLOR',domain='POINT');colors.data.foreach_set('color',np.column_stack([rgb,np.ones(len(rgb))]).ravel())
- m=bpy.data.materials.new(name+' shaded tissue');m.use_nodes=True;node=m.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';m.node_tree.links.new(node.outputs['Color'],m.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);p=m.node_tree.nodes.get('Principled BSDF');p.inputs['Roughness'].default_value=.38;p.inputs['Subsurface Weight'].default_value=.16;p.inputs['Transmission Weight'].default_value=.06;p.inputs['Alpha'].default_value=.95;o.data.materials.append(m)
+ colors=mesh.color_attributes.new(name='sculpted colour',type='FLOAT_COLOR',domain='POINT');colors.data.foreach_set('color',np.column_stack([rgb,opacity]).ravel())
+ m=bpy.data.materials.new(name+' shaded tissue');m.use_nodes=True;node=m.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';m.node_tree.links.new(node.outputs['Color'],m.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);p=m.node_tree.nodes.get('Principled BSDF');p.inputs['Roughness'].default_value=.38;p.inputs['Subsurface Weight'].default_value=.16;p.inputs['Transmission Weight'].default_value=.06;p.inputs['Alpha'].default_value=.8;m.node_tree.links.new(node.outputs['Alpha'],p.inputs['Alpha']);texture=m.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(ROOT/'assets/source/marine-renders/anemone-material.png'));texture.image.pack();m.node_tree.links.new(texture.outputs['Color'],p.inputs['Base Color']);o.data.materials.append(m)
  uv=mesh.uv_layers.new(name='reference tissue colour')
  for loop in mesh.loops:
-  point=v[loop.vertex_index];uv.data[loop.index].uv=(point[0]/2048,1+point[1]/1152)
+  uv.data[loop.index].uv=material_uv[loop.vertex_index]
  for polygon in mesh.polygons:polygon.use_smooth=True
  o.shape_key_add(name='Basis')
  for index,strength in enumerate([-1.,0.,1.]):

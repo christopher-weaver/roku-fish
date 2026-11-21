@@ -14,17 +14,22 @@ sub Main()
         s.fish.Pop()
     end while
     s.fish[0].x=250# : s.fish[0].y=400# : s.fish[0].z=.12
-    s.time=103# : ReefClamStep(s)
+    s.time=87# : ReefClamStep(s)
+    s.displayTime=s.time
+    if ReefClamDisplayOpening(s)<>0# then print "FAIL birth must start inside closed clam" : return
     if s.fish.Count()<>2 or c.births<>1 then print "FAIL baby not added" : return
     baby=s.fish[1] : x=baby.x : y=baby.y
     if baby.name<>s.fish[0].name or baby.size>.4 then print "FAIL baby species cache or size" : return
     if ReefCoralBlocked(s,baby,baby,baby) or ReefFishBlocked(s,baby,baby,baby,false) then print "FAIL unsafe birth" : return
     ReefClamStep(s)
     if s.fish.Count()<>2 then print "FAIL duplicate birth" : return
-    for tick=1 to 30
+    if baby.emerging<>true then print "FAIL no interior baby stage" : return
+    s.time=99#
+    for tick=1 to 240
         ReefStep(s,1#/30#)
         if ReefCoralBlocked(s,baby,baby,baby) then print "FAIL baby leaves swim volume" : return
     end for
+    if baby.emerging=true then print "FAIL baby never clears the mouth" : return
     if baby.x=x and baby.y=y then print "FAIL baby is decorative/static" : return
     c.births=4 : s.time=244# : ReefClamStep(s)
     if c.event=2 then print "FAIL unbounded births" : return
