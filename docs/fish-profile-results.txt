@@ -1,2 +1,3 @@
 PASS profile-facing starts and predominantly lateral, home-depth goals
 PASS hovering fish retain a side-facing pose
+PASS vertical escape keeps a steady swimming profile

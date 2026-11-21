@@ -22,6 +22,19 @@ class VolumeGeometryChecks(unittest.TestCase):
     if 'flow'in m:
      flow=m['flow'];self.assertTrue(np.any(np.linalg.norm(flow,axis=1)<.001));self.assertGreater(np.max(np.linalg.norm(flow,axis=1)),5)
      self.assertGreater(np.ptp(flow[:,2]),3)
+ def test_reference_anemone_has_fewer_plumper_tentacles(self):
+  from scipy.sparse import coo_matrix
+  from scipy.sparse.csgraph import connected_components
+  with np.load(ROOT/'assets/source/marine-renders/sea-anemone-sculpted.npz')as m:
+   v=m['vertices'];f=m['faces'];a=np.concatenate([f[:,0],f[:,1],f[:,2]]);b=np.concatenate([f[:,1],f[:,2],f[:,0]])
+   graph=coo_matrix((np.ones(len(a)),(a,b)),shape=(len(v),len(v))).tocsr();count,labels=connected_components(graph,directed=False)
+   self.assertEqual(count-1,64)
+   body=np.argmax(np.bincount(labels))
+   for component in range(count):
+    if component==body:continue
+    root=v[labels==component][:18]
+    diameter=np.linalg.norm(root[:,None,:]-root[None,:,:],axis=2).max()
+    self.assertGreater(diameter,10);self.assertLess(diameter,15.5)
  def test_approved_fan_is_restored_exactly(self):
   approved=ROOT/'assets/source/marine-renders/approved-fan'
   self.assertEqual((approved/'atlas.webp').read_bytes(),(ROOT/'roku/images/reef-sea-fan-motion-0.webp').read_bytes())

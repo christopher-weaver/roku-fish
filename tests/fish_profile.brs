@@ -27,4 +27,12 @@ sub Main()
         if Abs(Cos(f.heading))<.8 then print "FAIL hovering fish stares at viewer" : return
     end for
     print "PASS hovering fish retain a side-facing pose"
+    f.x=900# : f.y=300# : f.z=.5 : f.heading=0# : f.pitch=0#
+    f.vx=0# : f.vy=0# : f.vz=0# : f.speed=0# : f.yawVelocity=0# : f.yawAcceleration=0#
+    f.state="Cruising" : f.stateTime=0# : f.duration=1000# : f.tx=900# : f.ty=100# : f.tz=.5
+    for tick=0 to 59
+        ReefStep(world,1#/30#)
+        if Abs(ReefAngleDelta(0#,f.heading))>.05 then print "FAIL vertical route points at viewer" : return
+    end for
+    print "PASS vertical escape keeps a steady swimming profile"
 end sub

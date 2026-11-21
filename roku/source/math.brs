@@ -202,3 +202,20 @@ function ReefEelPulse(q as double,first as double,last as double) as double
     if t<=0# or t>=1# then return 0#
     return ReefSmoother(1#-Abs(2#*t-1#))
 end function
+
+' Subtle head-anchored 3D body sway, synchronized with the caudal beat.
+' Only the display pose changes; collision envelopes include the full motion.
+function ReefSwimPose(pose as object,sp as object,speed as dynamic,result=invalid as dynamic) as object
+    if result=invalid then result={}
+    effort=.6
+    if speed<>invalid then effort=ReefClamp(speed/sp.speed,0#,1#)
+    yaw=Sin(pose.phase)*(.018+.024*effort)
+    roll=Sin(pose.phase-.65)*(.006+.010*effort)
+    heading=pose.heading+yaw : anchor=sp.length*.18
+    result.x=pose.x+(Cos(pose.heading)-Cos(heading))*anchor
+    result.z=pose.z+(Sin(pose.heading)-Sin(heading))*anchor/800#
+    result.y=pose.y+roll*anchor*Abs(Cos(pose.heading))*Cos(pose.heading)
+    result.heading=heading : result.pitch=ReefClamp(pose.pitch+roll*Cos(pose.heading),0#-.22,.22)
+    result.phase=pose.phase : result.finPhase=pose.finPhase
+    return result
+end function

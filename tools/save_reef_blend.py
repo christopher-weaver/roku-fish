@@ -53,7 +53,7 @@ for name,ox,oy,width,height,base_z in [('sea-fan',80,430,600,565,-45),('sea-anem
  v[:,1]*=-1;flow[:,1]*=-1
  mesh=bpy.data.meshes.new(name+' sculpted anatomy');mesh.from_pydata(v.tolist(),[],faces.tolist());mesh.update();o=bpy.data.objects.new(name+' individual 3D branches and tentacles',mesh);scene.collection.objects.link(o)
  colors=mesh.color_attributes.new(name='sculpted colour',type='FLOAT_COLOR',domain='POINT');colors.data.foreach_set('color',np.column_stack([rgb,np.ones(len(rgb))]).ravel())
- m=bpy.data.materials.new(name+' shaded tissue');m.use_nodes=True;node=m.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';texture=m.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(ROOT/'assets/source/marine-renders/sea-anemone-surface-colour.png'));texture.image.pack();m.node_tree.links.new(texture.outputs['Color'],m.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);m.node_tree.nodes.get('Principled BSDF').inputs['Roughness'].default_value=.56;o.data.materials.append(m)
+ m=bpy.data.materials.new(name+' shaded tissue');m.use_nodes=True;node=m.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';m.node_tree.links.new(node.outputs['Color'],m.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);m.node_tree.nodes.get('Principled BSDF').inputs['Roughness'].default_value=.56;o.data.materials.append(m)
  uv=mesh.uv_layers.new(name='reference tissue colour')
  for loop in mesh.loops:
   point=v[loop.vertex_index];uv.data[loop.index].uv=(point[0]/2048,1+point[1]/1152)
@@ -70,8 +70,11 @@ v,n,faces,kind=animal(0)
 v[:,1]*=-1
 mesh=bpy.data.meshes.new('moray shared cave geometry');mesh.from_pydata(v.tolist(),[],faces[:,::-1].tolist());mesh.update()
 o=bpy.data.objects.new('moray anchored inside blind cave',mesh);scene.collection.objects.link(o)
-for name,color in [('gold honeycomb skin',(.39,.30,.10)),('eyeball',(.82,.73,.40)),('iris',(.44,.19,.035)),('pupil and mouth',(.018,.012,.016)),('teeth',(.83,.79,.60))]:
+for name,color in [('mottled moray skin',(.38,.35,.22)),('eyeball',(.82,.73,.40)),('iris',(.44,.19,.035)),('pupil and mouth',(.018,.012,.016)),('teeth',(.83,.79,.60))]:
  m=bpy.data.materials.new(name);m.diffuse_color=(*color,1);m.use_nodes=True;m.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value=(*color,1);o.data.materials.append(m)
+rest=np.load(ROOT/'assets/source/eel-model/zany-moray.npz')['vertices']
+attribute=mesh.attributes.new(name='skin_rest',type='FLOAT_VECTOR',domain='POINT');attribute.data.foreach_set('vector',rest.ravel())
+skin=o.data.materials[0];nodes=skin.node_tree.nodes;links=skin.node_tree.links;principled=nodes.get('Principled BSDF');coordinate=nodes.new('ShaderNodeAttribute');coordinate.attribute_name='skin_rest';noise=nodes.new('ShaderNodeTexNoise');noise.inputs['Scale'].default_value=6.5;noise.inputs['Detail'].default_value=3;links.new(coordinate.outputs['Vector'],noise.inputs['Vector']);ramp=nodes.new('ShaderNodeValToRGB');ramp.color_ramp.elements[0].position=.24;ramp.color_ramp.elements[0].color=(.20,.18,.11,1);ramp.color_ramp.elements[1].position=.76;ramp.color_ramp.elements[1].color=(.52,.48,.30,1);links.new(noise.outputs['Fac'],ramp.inputs[0]);links.new(ramp.outputs['Color'],principled.inputs['Base Color']);principled.inputs['Roughness'].default_value=.36
 for polygon in mesh.polygons:polygon.use_smooth=True;polygon.material_index=int(kind[polygon.vertices[0]])
 o.shape_key_add(name='Basis')
 for index in range(COUNT):

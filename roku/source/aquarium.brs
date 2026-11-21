@@ -39,11 +39,15 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
             f.probe = {} : f.candidate = {}
             f.steeringHeading = f.heading
             f.avoidance = 0#
+            f.progressTime=0#-i*.23 : f.progressX=f.x : f.progressY=f.y : f.progressZ=f.z
+            f.recoveryUntil=0# : f.recoveryCount=0
+            f.trafficProbe={}
             f.finPhase = ReefRange(s, 0, 6.283185307)
             f.finRate = ReefRange(s, 0.85, 1.15)
             ReefSafeSpawn(s, f)
             if ReefFishSafeSpawn(s, f)
                 f.homeZ=f.z
+                f.progressX=f.x : f.progressY=f.y : f.progressZ=f.z
                 f.heading=ReefRange(s,-.16,.16)
                 if f.x>1024 then f.heading=f.heading+3.141592654#
                 ReefChooseTarget(s, f)

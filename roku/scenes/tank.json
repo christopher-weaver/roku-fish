@@ -157,16 +157,16 @@
       }
     },
     {
-      "x": 1334,
-      "y": 809,
-      "width": 283,
-      "height": 225,
-      "frameWidth": 212,
-      "frameHeight": 169,
+      "x": 1337,
+      "y": 819,
+      "width": 274,
+      "height": 215,
+      "frameWidth": 206,
+      "frameHeight": 161,
       "frames": 65,
       "columns": 9,
-      "meshVertices": 113360,
-      "meshTriangles": 225916,
+      "meshVertices": 43360,
+      "meshTriangles": 86460,
       "rootY": 1030,
       "image": "pkg:/images/reef-sea-anemone-motion-0.webp",
       "id": "sea-anemone",
@@ -180,9 +180,9 @@
       "animation": {
         "period": 7.5,
         "count": 65,
-        "framesPerPage": 99,
-        "strideX": 216,
-        "strideY": 173,
+        "framesPerPage": 108,
+        "strideX": 210,
+        "strideY": 165,
         "gutter": 2
       },
       "geometryType": "closed sculpted tubes and solid anatomy"

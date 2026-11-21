@@ -103,6 +103,24 @@ function ReefNeighbors(s as object, f as object) as object
                     side=1#
                     if dy<0 then side=-1#
                 end if
+                if f.trafficProbe=invalid then f.trafficProbe={}
+                lane=f.trafficProbe
+                lane.x=f.x : lane.y=f.y+side*(height+24#) : lane.z=f.z
+                blockedPreferred=ReefCoralBlocked(s,f,f,lane)
+                if blockedPreferred
+                    lane.y=f.y-side*(height+24#)
+                    if Abs(dy)<=height*.3 and not ReefCoralBlocked(s,f,f,lane)
+                        side=0#-side
+                    else
+                        ' Never undo useful separation by steering back toward
+                        ' the other fish when the floor blocks the outward lane.
+                        side=0#
+                    end if
+                end if
+                if f.id<other.id and Abs(dy)<=height*.3
+                    lane.x=other.x : lane.y=other.y+height+24# : lane.z=other.z
+                    if blockedPreferred or ReefCoralBlocked(s,other,other,lane) then side=0#
+                end if
                 steer.y=steer.y+side*pressure*520#
                 steer.z=steer.z+side*pressure*90#
                 horizontal=Sqr(dx*dx+dz*dz)

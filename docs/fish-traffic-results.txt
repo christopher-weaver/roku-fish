@@ -3,4 +3,5 @@ PASS swept and interpolated body/tail/fin clearance, encounter  0  progress  411
 PASS swept and interpolated body/tail/fin clearance, encounter  1  progress  375.8059 420.6148
 PASS swept and interpolated body/tail/fin clearance, encounter  2  progress  585.9579 390.5116
 PASS swept and interpolated body/tail/fin clearance, encounter  3  progress  400.3596 425.6129
+PASS swept and interpolated body/tail/fin clearance, encounter  4  progress  174.9924 362.4001
 PASS swept guard prevents tunneling across another fish

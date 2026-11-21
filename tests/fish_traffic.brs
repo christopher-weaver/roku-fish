@@ -10,7 +10,7 @@ sub Main()
         end for
     end for
     print "PASS ten differently sized fish spawn without fish-to-fish overlap across four seeds"
-    for scenario=0 to 3
+    for scenario=0 to 4
         world=ReefWorld(ReefValidateSettings({density:"Low"}),species,invalid,91)
         while world.fish.Count()>2
             world.fish.Pop()
@@ -42,6 +42,13 @@ sub Main()
             a.heading=0# : b.heading=1.570796327#
             a.tx=1850# : b.tx=1100# : b.tz=0.94
         end if
+        if scenario=4
+            world.occupancy=occ
+            world.navigation=ParseJson(ReadAsciiFile("pkg:/scenes/navigation.json"))
+            a.x=1200# : b.x=1700# : a.y=800# : b.y=800# : a.z=.94 : b.z=.94
+            a.heading=0# : b.heading=3.141592654#
+            a.tx=1900# : b.tx=1000# : a.ty=780# : b.ty=780# : a.tz=.94 : b.tz=.94
+        end if
         for i=0 to 1
             f=world.fish[i] : f.vx=Cos(f.heading)*f.speed : f.vz=Sin(f.heading)*f.speed/800#
             ReefSavePose(f)
@@ -49,6 +56,9 @@ sub Main()
         startA={x:a.x,y:a.y,z:a.z} : startB={x:b.x,y:b.y,z:b.z}
         for tick=0 to 359
             ReefAdvance(world,1#/30#)
+            if scenario=4
+                if ReefCoralBlocked(world,a,a,a) or ReefCoralBlocked(world,b,b,b) then print "FAIL passing lane enters floor or reef" : return
+            end if
             if ReefFishPairBlocked(a,{x:a.previousX,y:a.previousY,z:a.previousZ},a,b) then print "FAIL swept fish contact ";scenario;" tick ";tick : return
             for sample=0 to 4
                 pose=ReefDisplayPose(a,sample/4#) : otherPose=ReefDisplayPose(b,sample/4#)

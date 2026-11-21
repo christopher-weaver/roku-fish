@@ -34,7 +34,8 @@ end sub
 sub ReefDrawFish(r as object, s as object, a as object, f as object)
     frames = a.fish[f.name]
     if frames = invalid then return
-    pose = f.renderPose
+    f.swimPose=ReefSwimPose(f.renderPose,f.sp,f.speed,f.swimPose)
+    pose = f.swimPose
     f.screenPose = ReefProjection(pose,s.camera,f.screenPose)
     p = f.screenPose
     if p.x < -200 or p.x > 2120 then return

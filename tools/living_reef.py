@@ -41,7 +41,7 @@ class Model:
   end=len(v)-1
   for i in range(sides):f.append((end,1+(rows-2)*sides+i,1+(rows-2)*sides+(i+1)%sides))
   self.add(v,np.asarray(f)[:,::-1],color)
- def tube(self,path,radii,color,tip_color=None,flow=None,sides=12):
+ def tube(self,path,radii,color,tip_color=None,flow=None,sides=12,row_colors=None):
   path=np.asarray(path);tangent=np.gradient(path,axis=0);tangent/=np.maximum(np.linalg.norm(tangent,axis=1)[:,None],1e-6)
   reference=np.tile([0,0,1.],(len(path),1));reference[np.abs(tangent[:,2])>.9]=[0,1,0]
   right=np.cross(tangent,reference);right/=np.maximum(np.linalg.norm(right,axis=1)[:,None],1e-6);up=np.cross(right,tangent)
@@ -49,7 +49,7 @@ class Model:
   for row,(center,radius)in enumerate(zip(path,radii)):
    t=row/(len(path)-1)
    for col in range(sides):
-    a=2*np.pi*col/sides;v.append(center+radius*(np.cos(a)*right[row]+np.sin(a)*up[row]));colors.append(np.array(color)*(1-t)+np.array(tip_color or color)*t);moves.append(np.zeros(3)if flow is None else flow[row])
+    a=2*np.pi*col/sides;v.append(center+radius*(np.cos(a)*right[row]+np.sin(a)*up[row]));colors.append(row_colors[row]if row_colors is not None else np.array(color)*(1-t)+np.array(tip_color or color)*t);moves.append(np.zeros(3)if flow is None else flow[row])
   f=[]
   for row in range(len(path)-1):
    for i in range(sides):
@@ -71,8 +71,8 @@ class Model:
   self.add(v,np.asarray(f)[:,::-1],np.array(colors))
 
 def anemone():
- # Match the approved broad, curled flower form: a visible mouth, a low oral
- # disc, ivory/green translucent-looking tissue and peach bulb tips.
+ # Match the new reference: fewer, fleshy pink/ivory tapered fingers.
+ # All finger geometry is closed and has independently pinned motion.
  m=Model();rng=np.random.default_rng(482);center=np.array([1474.,949.,210.])
  u=np.array([1.,0.,0.]);v=np.array([0.,.56,.8285]);axis=np.cross(u,v)
  sides=160;vertices=[];colors=[];faces=[]
@@ -83,15 +83,15 @@ def anemone():
    vertices.append(center+(np.cos(a)*u+np.sin(a)*v)*r*82+axis*(height+fold))
    if r<.17:c=np.array([.35,.12,.075])
    elif r<.4:c=np.array([.76,.43,.34])
-   else:c=np.array([.72,.66,.48])
+   else:c=np.array([.91,.76,.55])
    colors.append(c*(.92+.08*np.cos(a*64)))
  for row in range(len(profile)-1):
   for i in range(sides):
    a=row*sides+i;b=row*sides+(i+1)%sides;c=a+sides;d=b+sides;faces.extend([(a,c,b),(b,c,d)])
  for i in range(1,sides-1):faces.extend([(0,i,i+1),(10*sides,10*sides+i+1,10*sides+i)])
  m.add(vertices,faces,np.array(colors))
- for i in range(100):
-  theta=i*2.399963;ring=32+54*np.sqrt((i+.5)/100);radial=np.cos(theta)*u+np.sin(theta)*v
+ for i in range(64):
+  theta=i*2.399963;ring=32+54*np.sqrt((i+.5)/64);radial=np.cos(theta)*u+np.sin(theta)*v
   root=center+radial*ring-axis*3;front=max(0,np.sin(theta));back=max(0,-np.sin(theta))
   height=rng.uniform(50,91)+18*back-40*front;reach=rng.uniform(18,43)
   if front>.65:height=max(8.,(root[1]-rng.uniform(957,969))/.84)
@@ -100,15 +100,16 @@ def anemone():
   p2=root+np.array([np.cos(theta)*(reach+9),-height*1.16,18.+np.sin(theta)*8])
   p3=root+np.array([np.cos(theta)*reach+12*np.sin(i*1.7),-height*.84,23.+np.sin(theta)*15])
   t=np.linspace(0,1,36);path=(1-t[:,None])**3*p0+3*(1-t[:,None])**2*t[:,None]*p1+3*(1-t[:,None])*t[:,None]**2*p2+t[:,None]**3*p3
-  path[:,0]+=rng.uniform(10,23)*np.sin(t*np.pi*1.5+i*.81)*np.sin(t*np.pi)
+  path[:,0]+=rng.uniform(3,8)*np.sin(t*np.pi*1.5+i*.81)*np.sin(t*np.pi)
   path[:,2]+=12*np.sin(t*np.pi+i*.67)*np.sin(t*np.pi)
-  radius=rng.uniform(2.8,4.1)*(1-.18*t);radius[-4:]*=[1.08,1.2,1.05,.55]
+  radius=rng.uniform(5.2,7.4)*(1+.20*np.sin(t*np.pi))*np.sqrt(1-.94*t*t);radius[-2:]*=[.65,.22]
   color=(.76+.04*np.sin(i*.6),.76+.03*np.cos(i),.56+.04*np.sin(i*.3));tip=(.94,.68,.57)
   flow=np.column_stack([(2.6+1.4*np.sin(i*.7))*t*t,1.2*np.sin(i)*t*t,(1.5+2*np.cos(i))*t*t])
-  m.tube(path,radius,color,(.86,.83,.65),flow,sides=14)
-  # Rounded peach bulbs, attached to their moving finger rather than a sprite.
-  start=len(m.v);m.sphere(path[-1],(3.1,3.1,3.1),tip)
-  m.flow[start:]=np.tile(flow[-1],(len(m.v)-start,1))
+  row_colors=np.empty((len(t),3))
+  stops=np.array([0.,.10,.25,.55,.85,1.]);palette=np.array([[.67,.24,.20],[.89,.64,.51],[.92,.78,.63],[.81,.56,.63],[.87,.66,.66],[.96,.85,.69]])
+  for channel in range(3):row_colors[:,channel]=np.interp(t,stops,palette[:,channel])
+  row_colors*=.94+.06*np.sin(i*1.7)
+  m.tube(path,radius,color,(.86,.83,.65),flow,sides=18,row_colors=row_colors)
  return m
 
 def corals():
@@ -135,19 +136,9 @@ def photo_material(name,folder):
 def save(name,model,folder):
  v,n,f,rgb,flow=model.arrays();uv=np.column_stack([v[:,0]/2048,1-v[:,1]/1152]).astype('f4');np.savez_compressed(folder/(name+'.npz'),vertices=v,normals=n,faces=f,rgb=rgb,flow=flow,uv=uv);return v,n,f,rgb,flow
 
-def anemone_material():
- from connected_scene import marine
- from scipy.ndimage import distance_transform_edt
- folder=ROOT/'assets/source/marine-renders'
- image=Image.new('RGBA',(2048,1152));image.alpha_composite(marine('sea-anemone',285,215),(1330,815));rgba=np.array(image)
- solid=rgba[:,:,3]>230
- distance,indices=distance_transform_edt(~solid,return_indices=True)
- rgb=rgba[indices[0],indices[1],:3]
- image=Image.fromarray(rgb);image.save(folder/'sea-anemone-surface-colour.png');return image
-
 def build_marine():
  folder=ROOT/'assets/source/marine-renders';cfgpath=ROOT/'roku/scenes/tank.json';cfg=json.loads(cfgpath.read_text());ctx=moderngl.create_standalone_context(backend='egl');ctx.enable(moderngl.DEPTH_TEST);p=ctx.program(vertex_shader=VS,fragment_shader=FS)
- image=anemone_material();texture=ctx.texture(image.size,3,image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());texture.filter=(moderngl.LINEAR,moderngl.LINEAR);texture.use();p['usePhoto'].value=1
+ texture=ctx.texture((1,1),3,bytes([255,255,255]));texture.filter=(moderngl.LINEAR,moderngl.LINEAR);texture.use();p['usePhoto'].value=0
  for name,model,period,scale in [('sea-anemone',anemone(),7.5,.75)]:
   v,n,f,rgb,flow=save(name+'-sculpted',model,folder)
   # Compatibility geometry export uses normalized coordinates but retains real tubes.

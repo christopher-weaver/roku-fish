@@ -13,14 +13,17 @@ from cave_geometry import STAGE,COUNT,FRAME_COUNT,animal
 from reef_geometry import FS
 ROOT=Path(__file__).resolve().parents[1]
 VS='''#version 330
-in vec3 position;in vec2 uv;in vec3 normal;in float kind;uniform vec4 stage;
-out vec2 texuv;out vec3 n;out vec3 world;out float material;
-void main(){gl_Position=vec4((position.x-stage.x)/stage.z*2-1,1-(position.y-stage.y)/stage.w*2,-position.z/500.0,1);texuv=uv;n=normal;world=position;material=kind;}'''
+in vec3 position;in vec2 uv;in vec3 normal;in float kind;in vec3 skin;uniform vec4 stage;
+out vec2 texuv;out vec3 n;out vec3 world;out float material;out vec3 skinPoint;
+void main(){gl_Position=vec4((position.x-stage.x)/stage.z*2-1,1-(position.y-stage.y)/stage.w*2,-position.z/500.0,1);texuv=uv;n=normal;world=position;material=kind;skinPoint=skin;}'''
 EEL_FS='''#version 330
-in vec3 n;in vec3 world;in float material;out vec4 color;
+in vec3 n;in vec3 world;in float material;in vec3 skinPoint;out vec4 color;
+float hash3(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453123);}
+float noise3(vec3 p){vec3 cell=floor(p),q=fract(p);q=q*q*(3.0-2.0*q);return mix(mix(mix(hash3(cell),hash3(cell+vec3(1,0,0)),q.x),mix(hash3(cell+vec3(0,1,0)),hash3(cell+vec3(1,1,0)),q.x),q.y),mix(mix(hash3(cell+vec3(0,0,1)),hash3(cell+vec3(1,0,1)),q.x),mix(hash3(cell+vec3(0,1,1)),hash3(cell+vec3(1,1,1)),q.x),q.y),q.z);}
+float organic(vec3 p){return .58*noise3(p)+.28*noise3(p*1.93+vec3(8.3,2.8,13.4))+.14*noise3(p*4.17+vec3(17.1,11.8,3.9));}
 void main(){
 vec3 base=vec3(.39,.30,.10);
-if(material<.5){float cell=sin(world.x*.53+sin(world.z*.43))*sin(world.y*.49+sin(world.x*.32));base=mix(vec3(.20,.14,.043),vec3(.48,.38,.15),smoothstep(-.4,.25,cell));}
+if(material<.5){vec3 p=skinPoint*6.5;vec3 warp=vec3(noise3(p*.67+9.2),noise3(p*.81+21.7),noise3(p*.73+4.8));float mottles=organic(p+warp*1.8);float pores=noise3(skinPoint*83.0);base=mix(vec3(.20,.18,.11),vec3(.52,.48,.30),smoothstep(.24,.76,mottles));base*=.96+.08*pores;}
 else if(material<1.5)base=vec3(.82,.73,.40);
 else if(material<2.5)base=vec3(.44,.19,.035);
 else if(material<3.5)base=vec3(.018,.012,.016);
@@ -41,8 +44,9 @@ def build():
     # Shader compilers remove unused attributes; bind only the active ones.
     def draw(index,v,uv,n,f,kind=None):
         p=shaders[index];p['stage'].value=STAGE
-        data=np.column_stack([v,uv,n,np.zeros(len(v))if kind is None else kind]).astype('f4')
-        names=['position','uv','normal','kind'];sizes=[3,2,3,1];fmt=' '.join(str(size)+'f'if name in p else str(size*4)+'x'for name,size in zip(names,sizes));active=[name for name in names if name in p]
+        skin=np.load(ROOT/'assets/source/eel-model/zany-moray.npz')['vertices']if index==1 else np.zeros_like(v)
+        data=np.column_stack([v,uv,n,np.zeros(len(v))if kind is None else kind,skin]).astype('f4')
+        names=['position','uv','normal','kind','skin'];sizes=[3,2,3,1,3];fmt=' '.join(str(size)+'f'if name in p else str(size*4)+'x'for name,size in zip(names,sizes));active=[name for name in names if name in p]
         vb=ctx.buffer(data.tobytes());ib=ctx.buffer(f.astype('i4').tobytes());vao=ctx.vertex_array(p,[(vb,fmt,*active)],ib);vao.render();vao.release();vb.release();ib.release()
     photo=Image.open(folder/'reef-projection.png').convert('RGBA');tex=ctx.texture(photo.size,4,photo.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());tex.filter=(moderngl.LINEAR,moderngl.LINEAR);tex.use()
     record=json.loads((folder/'model.json').read_text());holdouts=[]

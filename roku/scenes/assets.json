@@ -37,7 +37,7 @@
   "cave-eel-3d.webp": {
     "width": 1136,
     "height": 1534,
-    "sha256": "7fd6cd2a47dfed1b0ff8250a65d78bc1587040444f9bdad710d450fdad715601"
+    "sha256": "029dd0f1f8a979d21e16c4ee9e1ed3bf2159a89ab74327779df5ca601de8836b"
   },
   "copperband_butterflyfish-atlas.webp": {
     "width": 1024,
@@ -165,9 +165,9 @@
     "sha256": "66f6ab7912535256a47ad1ad149f4ecef21a4d902b7e7b18bf008d78163ebe67"
   },
   "reef-sea-anemone-motion-0.webp": {
-    "width": 1948,
-    "height": 1388,
-    "sha256": "2f7c06fa6e965d0c86109b34c8a8de1466bc3475b8d819f0f787550c04395910"
+    "width": 1894,
+    "height": 1324,
+    "sha256": "46287d0985867b85d20e33a482717a980671ee4dad02ba779b91d3fa79872705"
   },
   "reef-sea-fan-motion-0.webp": {
     "width": 1922,
