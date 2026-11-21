@@ -69,3 +69,12 @@ Version 1.0.10 adds finer head-on fish rotations, fish-to-fish avoidance and con
 Version 1.0.11 replaces marine strip warping with complete animated poses, adds the tunnel eel and moving wave-net shadow, refines turns and reduces prolonged head-on swimming. Slow camera movement now completes a cycle in three minutes. Dismiss the active preview, install the fresh ZIP and preview again. No new settings are required.
 
 Version 1.0.12 adds the articulated 3D moray, reconstructed coral volumes and hollow tunnel. Softer perspective wave shading is restricted to fish, coral and sand. Install the fresh ZIP with the same developer installer and preview Deep Reef again; no new settings are needed. Editable Blender/mesh sources are included in the GitHub repository and complete source archive.
+
+### Night mode and new residents
+
+1. Open Roku **Settings → Theme → Screensavers → Deep Reef → Settings** (some firmware calls the screensaver **dev**).
+2. Highlight **Lighting** and choose **Night** with Left/Right.
+3. Choose **Done**, then preview the screensaver. The water dims and small blue-green coral lights and plankton glow.
+4. The clam opens on its own. Its events alternate in a shuffled order between a pearl, bubbles, and a baby fish. Babies remain in the current tank session; the initial population returns on the next activation.
+
+After installing an updated ZIP, exit an already running preview and start it again so Roku loads the new assets.

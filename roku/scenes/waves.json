@@ -1,6 +1,7 @@
 {
   "frames": 32,
   "period": 8.0,
+  "maxWaveY": 48,
   "surface": {
     "width": 256,
     "height": 128,

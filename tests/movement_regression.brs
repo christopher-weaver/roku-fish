@@ -13,6 +13,7 @@ sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     occupancy=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     s=ReefWorld(prefs,species,occupancy,47831)
+    s.clam.enabled=false
     before=[]
     for i=0 to s.fish.Count()-1
         f=s.fish[i] : before.Push({x:f.x,y:f.y,z:f.z,phase:f.phase})
@@ -33,6 +34,7 @@ sub Main()
     for each density in ["Low","Medium","High"]
         prefs=ReefValidateSettings({density:density})
         world=ReefWorld(prefs,species,occupancy,1900000001)
+    world.clam.enabled=false
         seen={}
         if world.fish.Count()<>world.cfg.populations[density] then print "FAIL population" : return
         for i=0 to world.fish.Count()-1

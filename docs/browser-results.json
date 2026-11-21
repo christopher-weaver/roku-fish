@@ -1,40 +1,49 @@
 {
   "checks": [
-    "All 8 body and pectoral animations advance in the short native-world recording",
+    "All recorded body and pectoral animations advance in the short native-world recording",
     "All fish, coral and wave-shadow images and production snapshots loaded in Chromium",
     {
       "lighting": "Daylight",
       "sample_pixel": [
-        51,
-        71,
-        91,
+        27,
+        57,
+        107,
         255
       ]
     },
     {
       "lighting": "Dusk",
       "sample_pixel": [
-        55,
-        60,
-        84,
+        40,
+        51,
+        95,
         255
       ]
     },
     {
       "lighting": "Moonlight",
       "sample_pixel": [
-        29,
-        42,
-        74,
+        17,
+        36,
+        83,
+        255
+      ]
+    },
+    {
+      "lighting": "Night",
+      "sample_pixel": [
+        11,
+        24,
+        68,
         255
       ]
     },
     {
       "lighting": "Sunset",
       "sample_pixel": [
-        79,
-        76,
-        93,
+        58,
+        64,
+        107,
         255
       ]
     },

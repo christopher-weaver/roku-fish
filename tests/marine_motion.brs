@@ -2,7 +2,7 @@ sub Main()
     tank=ParseJson(ReadAsciiFile("pkg:/scenes/tank.json")) : moving=0
     for index=0 to tank.formations.Count()-1
         f=tank.formations[index]
-        if f.animation<>invalid
+        if f.animation<>invalid and f.id<>"clam"
             moving=moving+1 : previous=-1 : changes=0
             for tick=0 to 599
                 frame=ReefMarineFrame(tick/60#,f)

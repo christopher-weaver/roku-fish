@@ -16,10 +16,10 @@ class VolumeGeometryChecks(unittest.TestCase):
     self.assertTrue(np.all(np.linalg.norm(m['normals'],axis=1)>.99))
    self.assertEqual(Image.open(ROOT/'assets/source'/(name+'-texture.png')).getchannel('A').getextrema(),(255,255))
  def test_tentacles_branches_and_footings_are_closed_geometry(self):
-  for name,folder in [('sea-anemone-sculpted','marine-renders'),('grounded-footings','reef-model')]:
+  for name,folder in [('clam-sculpted','marine-renders'),('sea-anemone-sculpted','marine-renders'),('grounded-footings','reef-model')]:
    with self.subTest(object=name),np.load(ROOT/'assets/source'/folder/(name+'.npz'))as m:
     self.assert_closed(m['vertices'],m['faces']);self.assertGreater(np.ptp(m['vertices'][:,2]),30)
-    if 'flow'in m:
+    if name=='sea-anemone-sculpted':
      flow=m['flow'];self.assertTrue(np.any(np.linalg.norm(flow,axis=1)<.001));self.assertGreater(np.max(np.linalg.norm(flow,axis=1)),5)
      self.assertGreater(np.ptp(flow[:,2]),3)
  def test_reference_anemone_has_fewer_plumper_tentacles(self):
@@ -35,6 +35,13 @@ class VolumeGeometryChecks(unittest.TestCase):
     root=v[labels==component][:18]
     diameter=np.linalg.norm(root[:,None,:]-root[None,:,:],axis=2).max()
     self.assertGreater(diameter,10);self.assertLess(diameter,15.5)
+ def test_anemone_is_slightly_translucent_and_surface_stays_above_fish(self):
+  cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text());f=next(f for f in cfg['formations']if f['id']=='sea-anemone')
+  alpha=np.asarray(Image.open(ROOT/'roku'/f['image'][5:]).convert('RGBA'))[:,:,3]
+  tissue=alpha[alpha>220];self.assertGreater(len(tissue),1000);self.assertLess(np.median(tissue),250)
+  waves=np.asarray(Image.open(ROOT/'roku/images/surface-waves.png').convert('RGBA'))[:,:,3]
+  for row in range(4):self.assertEqual(waves[row*128+57:(row+1)*128].max(),0)
+  self.assertGreater(cfg['waterline']['clearanceY'],cfg['waterline']['maxWaveY'])
  def test_approved_fan_is_restored_exactly(self):
   approved=ROOT/'assets/source/marine-renders/approved-fan'
   self.assertEqual((approved/'atlas.webp').read_bytes(),(ROOT/'roku/images/reef-sea-fan-motion-0.webp').read_bytes())

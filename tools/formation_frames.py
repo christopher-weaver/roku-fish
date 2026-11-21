@@ -47,5 +47,5 @@ def reserve_navigation():
  v[:,:2]*=4;uv=np.column_stack([v[:,0]/2048,1-v[:,1]/1152]).astype('f4')
  np.savez_compressed(ROOT/'assets/source/reef-model/grounded-footings.npz',vertices=v,uv=uv,normals=norm,faces=faces)
  planes.append(dict(id='grounded-rock-base',z=.58,halfDepth=.26,parallax=1,rows=[''.join('#'if v else'.'for v in row)for row in base]))
- occ={'floor':tank.get('floor'),'volumes':[EXCLUSION],'cell':8,'rows':[''.join('#'if v else'.'for v in row)for row in union],'planes':planes};p.write_text(json.dumps(occ,separators=(',',':')));scene.build_navigation(occ)
+ occ={'floor':tank.get('floor'),'waterline':tank.get('waterline'),'volumes':[EXCLUSION],'cell':8,'rows':[''.join('#'if v else'.'for v in row)for row in union],'planes':planes};p.write_text(json.dumps(occ,separators=(',',':')));scene.build_navigation(occ)
 if __name__=='__main__':reserve_navigation()

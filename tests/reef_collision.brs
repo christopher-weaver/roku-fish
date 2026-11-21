@@ -3,6 +3,7 @@ sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     occ=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     world=ReefWorld(prefs,species,occ,47831)
+    world.clam.enabled=false
     for i=0 to world.fish.Count()-1
         f=world.fish[i]
         if ReefCoralBlocked(world,f,f,f) then print "FAIL unsafe spawn ";i : return
@@ -45,6 +46,7 @@ sub Main()
     if violations<>0 then print "FAIL coral intersections at simulation or interpolated poses ";violations : return
     print "PASS 30 seconds, 8 fish, whole footprints and interpolated poses stay clear without position jumps"
     s=ReefWorld(prefs,species,occ,1)
+    s.clam.enabled=false
     if s.renderFps<>60 then print "FAIL default 60Hz target" : return
     for i=0 to 2
         ReefQualitySample(s,4#,160)

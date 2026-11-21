@@ -62,10 +62,8 @@ def prepare_texture(name):
     mask=Image.new('L',im.size);ImageDraw.Draw(mask).polygon([(round(x*im.width),round(y*im.height))for x,y in outline],fill=255)
     mask=mask.filter(ImageFilter.GaussianBlur(max(.6,im.width*.002)))
     fin=im.copy();fin.putalpha(Image.fromarray(np.minimum(np.asarray(mask),np.asarray(im.getchannel('A')))))
-    # Underpaint the old fin with nearby body scales so the moving fin is not duplicated.
-    shift=max(2,round(im.height*.14));sample=im.copy()
-    sample.paste(im.crop((0,0,im.width,im.height-shift)),(0,shift))
-    body=Image.composite(sample,im,mask);body.putalpha(im.getchannel('A'))
+    from skin_repair import repair
+    body=repair(im,mask)
     body=wrap_texture(body,opaque=True)
     fin=wrap_texture(fin,opaque=False)
     body.save(SRC/(name+'-texture.png'));fin.save(SRC/(name+'-pectoral.png'))

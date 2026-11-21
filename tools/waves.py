@@ -37,18 +37,21 @@ def build():
     ridge_detail=np.clip((luminance-gaussian_filter(luminance,4))/18+.5,0,1)
     for frame in range(FRAMES):
         phase=frame*2*np.pi/FRAMES
-        crest=np.zeros((128,256));trough=np.zeros_like(crest)
-        for band in range(4):
-            ridge=13+band*25+(8-band*.8)*height(sx*2+band*43,phase)
-            crest+=np.exp(-((sy-ridge)/1.6)**2)*(1-.16*band)
-            trough+=np.exp(-((sy-ridge-4)/3.0)**2)*.45
-        fade=np.clip(1-sy/128,0,1)**1.6
-        alpha=np.clip((crest*145+trough*85)*fade,0,155)
+        depth=sy/48
+        z=depth*depth*75
+        dx=np.zeros((128,256));dz=np.zeros_like(dx)
+        for kx,kz,speed,amp,offset in [(1,1,1,.45,0),(2,-1,-2,.20,1.7),(3,2,3,.09,.8),(5,-3,-1,.04,2.8)]:
+            arg=2*np.pi*(kx*sx/256+kz*z/180)+speed*phase+offset
+            dx+=amp*kx*np.cos(arg);dz+=amp*kz*np.cos(arg)
+        reflection=np.clip(.56+dz*.28+dx*.12,0,1)
+        glint=np.exp(-((dz+.35+dx*.18)/.18)**2)
+        fade=np.clip((48-sy)/28,0,1)**1.7
+        alpha=np.clip((22+reflection*52+glint*85)*fade,0,145)
         rgba=np.zeros((128,256,4),dtype=np.uint8)
-        bright=crest>=trough
-        rgba[:,:,:3]=np.where(bright[:,:,None],np.array([255,238,223]),np.array([62,48,75]))
+        dark=np.array([58,74,91]);light=np.array([244,239,232])
+        rgba[:,:,:3]=np.uint8(dark+(light-dark)*np.clip(reflection*.75+glint*.35,0,1)[:,:,None])
         rgba[:,:,3]=np.uint8(alpha)
-        surface.paste(Image.fromarray(rgba).filter(ImageFilter.GaussianBlur(.65)),((frame%8)*256,(frame//8)*128))
+        surface.paste(Image.fromarray(rgba).filter(ImageFilter.GaussianBlur(.5)),((frame%8)*256,(frame//8)*128))
         # Preserve the photograph's ridges. Waves gently change the light on them,
         # rather than replacing the sand texture with a large moving bright net.
         depth=fy/24
@@ -70,7 +73,7 @@ def build():
     shadows.save(out/'sand-wave-shadows.png',optimize=True)
     surface.save(out/'surface-waves.png',optimize=True)
     caustics.save(out/'sand-caustics.png',optimize=True)
-    (ROOT/'roku/scenes/waves.json').write_text(json.dumps({'frames':FRAMES,'period':PERIOD,'surface':{'width':256,'height':128,'columns':8,'scale':2},'sand':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960},'shadow':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960}},indent=2)+'\n')
+    (ROOT/'roku/scenes/waves.json').write_text(json.dumps({'frames':FRAMES,'period':PERIOD,'maxWaveY':48,'surface':{'width':256,'height':128,'columns':8,'scale':2},'sand':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960},'shadow':{'width':256,'height':24,'columns':8,'scale':8,'x':0,'y':960}},indent=2)+'\n')
     for pattern in ['caustic-*.png','surface-ripples.png','sun-dapple.png']:
         for p in out.glob(pattern):p.unlink()
     (ROOT/'roku/scenes/dapple.json').unlink(missing_ok=True)

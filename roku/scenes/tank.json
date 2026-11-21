@@ -12,7 +12,8 @@
     0.26,
     0.48,
     0.7,
-    0.75
+    0.75,
+    0.83
   ],
   "camera": {
     "center": 64,
@@ -158,11 +159,11 @@
     },
     {
       "x": 1337,
-      "y": 819,
+      "y": 848,
       "width": 274,
-      "height": 215,
+      "height": 182,
       "frameWidth": 206,
-      "frameHeight": 161,
+      "frameHeight": 136,
       "frames": 65,
       "columns": 9,
       "meshVertices": 43360,
@@ -180,12 +181,43 @@
       "animation": {
         "period": 7.5,
         "count": 65,
-        "framesPerPage": 108,
+        "framesPerPage": 126,
         "strideX": 210,
-        "strideY": 165,
+        "strideY": 140,
         "gutter": 2
       },
       "geometryType": "closed sculpted tubes and solid anatomy"
+    },
+    {
+      "id": "clam",
+      "x": 911,
+      "y": 869,
+      "width": 338,
+      "height": 167,
+      "frameWidth": 220,
+      "frameHeight": 109,
+      "columns": 9,
+      "frames": 65,
+      "image": "pkg:/images/reef-clam-motion-0.webp",
+      "images": [
+        "pkg:/images/reef-clam-motion-0.webp"
+      ],
+      "z": 0.83,
+      "halfDepth": 0.025,
+      "parallax": 1,
+      "rootY": 1030,
+      "renderedMesh": true,
+      "meshVertices": 37502,
+      "meshTriangles": 74984,
+      "geometryType": "closed articulated ridged bivalve shell",
+      "animation": {
+        "period": 47,
+        "count": 65,
+        "framesPerPage": 162,
+        "strideX": 224,
+        "strideY": 113,
+        "gutter": 2
+      }
     }
   ],
   "baseline": 1025,
@@ -216,5 +248,9 @@
       "Daylight": "pkg:/images/seafloor-sunset.webp"
     },
     "mesh": "assets/source/reef-model/seafloor.npz"
+  },
+  "waterline": {
+    "clearanceY": 58,
+    "maxWaveY": 48
   }
 }

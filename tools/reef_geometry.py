@@ -68,7 +68,12 @@ def build():
  folder=ROOT/'assets/source/reef-model';folder.mkdir(parents=True,exist_ok=True)
  for name,width,height in [('sea-fan',600,565),('sea-anemone',285,215)]:
   image=marine(name,width,height);tile=Image.new('RGBA',(width+16,height+16));tile.alpha_composite(image,(8,8));tile.save(folder/(name+'-projection.png'))
- photo=source_reef();photo.save(folder/'reef-projection.png');a=np.asarray(photo.getchannel('A'));mask=(a.reshape(H//2,2,W//2,2)>8).any(axis=(1,3))
+ photo=source_reef()
+ # Replace the former photographed clam with matching stone beneath the new
+ # articulated animal. Keep the reef opaque so an open shell reveals rock.
+ pixels=np.array(photo);yy0,xx0=np.mgrid[:H,:W];weight=np.clip((1-((xx0-1080)/185)**2-((yy0-944)/142)**2)*12,0,1)
+ dy=np.abs((yy0%390)-195);dx=np.abs((xx0%220)-110);donor=pixels[610+dy,805+dx,:3];pixels[:,:,:3]=np.uint8(pixels[:,:,:3]*(1-weight[:,:,None])+donor*weight[:,:,None]);photo=Image.fromarray(pixels)
+ photo.save(folder/'reef-projection.png');a=np.asarray(photo.getchannel('A'));mask=(a.reshape(H//2,2,W//2,2)>8).any(axis=(1,3))
  y,x=np.mgrid[:H//2,:W//2];xx=x*2;yy=y*2
  distance=distance_transform_edt(mask)*2;depth=18+np.minimum(distance*.55,44)
  scores=[]

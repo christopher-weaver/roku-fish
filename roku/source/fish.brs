@@ -74,9 +74,9 @@ sub ReefFishStep(s as object, f as object, dt as double)
     turn = ReefAngleDelta(f.heading, desired)
     ' Damped steering with bounded angular acceleration and jerk.
     ' An opposite goal cannot instantly reverse the turn direction.
-    targetYawVelocity = ReefClamp(turn * 1.15, -f.turnRate, f.turnRate)
-    desiredYawAcceleration = ReefClamp((targetYawVelocity - f.yawVelocity) * 2.8, -0.65, 0.65)
-    f.yawAcceleration = f.yawAcceleration + ReefClamp(desiredYawAcceleration - f.yawAcceleration, -1.2 * dt, 1.2 * dt)
+    targetYawVelocity = ReefClamp(turn * .95, -f.turnRate, f.turnRate)
+    desiredYawAcceleration = ReefClamp((targetYawVelocity - f.yawVelocity) * 2.6, -0.48, 0.48)
+    f.yawAcceleration = f.yawAcceleration + ReefClamp(desiredYawAcceleration - f.yawAcceleration, -.65 * dt, .65 * dt)
     f.yawVelocity = ReefClamp(f.yawVelocity + f.yawAcceleration * dt, -f.turnRate, f.turnRate)
     f.heading = ReefWrap(f.heading + f.yawVelocity * dt, 6.283185307)
     desiredSpeed = f.sp.speed * s.motion

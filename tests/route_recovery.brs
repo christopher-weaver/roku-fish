@@ -5,6 +5,7 @@ sub Main()
     goals=[[1230#,630#,.94],[650#,440#,.12],[400#,630#,.12]]
     for encounter=0 to 2
         s=ReefWorld(ReefValidateSettings({density:"Low"}),species,occ,730+encounter)
+    s.clam.enabled=false
         while s.fish.Count()>1
             s.fish.Pop()
         end while

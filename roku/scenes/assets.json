@@ -2,7 +2,7 @@
   "banggai_cardinalfish-atlas.webp": {
     "width": 1024,
     "height": 892,
-    "sha256": "1f77511f63fe30dae4e4cc7134167652a923084225fe190d5be931ac9b418cc3"
+    "sha256": "dec65d6e659e71e16ff60369cf279bc420232112a7aa0f17e9d0d775defc61a5"
   },
   "banggai_cardinalfish-fins.webp": {
     "width": 512,
@@ -14,10 +14,15 @@
     "height": 639,
     "sha256": "21fcd8769fdfa911079356a745931155aed32ef41fc5e14dc5b628e484a03bb6"
   },
+  "bioluminescence.png": {
+    "width": 32,
+    "height": 32,
+    "sha256": "0e53c5c7cd28b5ab1b48f3ad7a6f3537b73f03bc67060804a4b4df565b5fe3ac"
+  },
   "blue_tang-atlas.webp": {
     "width": 1024,
     "height": 612,
-    "sha256": "0a4ddec13d52e4471f77b12746ae349df542ac3eec7bf06661877b3888c50630"
+    "sha256": "de5189c5a25881999bc725439702f8e4b80b13c2e355c930778ebe7518ad0d07"
   },
   "blue_tang-fins.webp": {
     "width": 512,
@@ -37,12 +42,17 @@
   "cave-eel-3d.webp": {
     "width": 1136,
     "height": 1534,
-    "sha256": "029dd0f1f8a979d21e16c4ee9e1ed3bf2159a89ab74327779df5ca601de8836b"
+    "sha256": "8dd2dd8134a2d19a31ce0226b7ef33d754d58044d657550e5de5f829d50947fb"
+  },
+  "clam-pearl.png": {
+    "width": 40,
+    "height": 40,
+    "sha256": "73d05d0d7b8ea1394a79adbeaf36c03905b5ce4c3123e65919dbb9b402e3db3b"
   },
   "copperband_butterflyfish-atlas.webp": {
     "width": 1024,
     "height": 975,
-    "sha256": "16ed3f39494fc2a062c5b7a71a85d984bfb78b6cfb6d436c8a95481f6286fc1f"
+    "sha256": "1959a7568dfecfdf0f6f5fa45f0dcb43e436f791b07c8ef863f4178f5d5096ad"
   },
   "copperband_butterflyfish-fins.webp": {
     "width": 512,
@@ -57,7 +67,7 @@
   "emperor_angelfish-atlas.webp": {
     "width": 1024,
     "height": 581,
-    "sha256": "0ddf1fe0f1c6874a3e0ac8617bdd25c61cd7f0b2807b8b1ba444d2b82c287362"
+    "sha256": "33f132e6a481c6c94e3941b78257c99a618ed0c7b32ad7668ba78826d2318240"
   },
   "emperor_angelfish-fins.webp": {
     "width": 512,
@@ -72,7 +82,7 @@
   "green_chromis-atlas.webp": {
     "width": 1024,
     "height": 461,
-    "sha256": "82dadde18ec0ee9a8026c59e3f9f161a9555d038830dcd53ef4571a4ad1041f9"
+    "sha256": "2064a02c3dbb54679bc36d5cdeb87e236a97252caa358a00c8199c3d921a33a0"
   },
   "green_chromis-fins.webp": {
     "width": 512,
@@ -102,7 +112,7 @@
   "mandarin_dragonet-atlas.webp": {
     "width": 1024,
     "height": 682,
-    "sha256": "408453f14784f9967eb363b8ff02dd0deffbb7b67473a5892609174e03167e2b"
+    "sha256": "f7f725359e66b78f2018c9b732393952057edab05fb222748ba61a0d99926eb4"
   },
   "mandarin_dragonet-fins.webp": {
     "width": 512,
@@ -117,7 +127,7 @@
   "moorish_idol-atlas.webp": {
     "width": 1024,
     "height": 698,
-    "sha256": "f5c7d62bee44bdb251ed67a45aa409453e81a96c4ee5896f67775d02db114457"
+    "sha256": "c858f4c88e71581ea40a82ae7468af36ddd9a46a6c1831e890bc93371330a0de"
   },
   "moorish_idol-fins.webp": {
     "width": 512,
@@ -137,7 +147,7 @@
   "ocellaris_clownfish-atlas.webp": {
     "width": 1024,
     "height": 488,
-    "sha256": "ca9fb69421af6d8655729d02669aef2b4dadf3b4f6643a0f599a52b3f55deabe"
+    "sha256": "2cc4d857fb77a109db1ee828380a23a9a6a4e5603276c5d81f4e576db9e6de2d"
   },
   "ocellaris_clownfish-fins.webp": {
     "width": 512,
@@ -154,20 +164,25 @@
     "height": 512,
     "sha256": "3d5f5202a0d7d6d14d72aab7e6a1fa05773ad139cedb68aa70d118c953b1f8a1"
   },
+  "reef-clam-motion-0.webp": {
+    "width": 2020,
+    "height": 908,
+    "sha256": "c451d9e211e9dcb1be6744dd999b21596f5061df09a41c2ae46b452dbac14aa9"
+  },
   "reef-connected-reef.webp": {
     "width": 2038,
     "height": 825,
-    "sha256": "c4810b3fd418a483b19f3e72bce77d2261cf78a93133c539ffdcde4a5c1ccba5"
+    "sha256": "a534fe31d9c0a6363fe248f4b16753f0a83e3053d90e83a84e5c1415be207f3f"
   },
   "reef-foreground-reef.webp": {
     "width": 2037,
     "height": 447,
-    "sha256": "66f6ab7912535256a47ad1ad149f4ecef21a4d902b7e7b18bf008d78163ebe67"
+    "sha256": "11f5f2aca440b1ae2d37b0f6df3455abbb0947ee035c255c5ab8e6d731185d1d"
   },
   "reef-sea-anemone-motion-0.webp": {
     "width": 1894,
-    "height": 1324,
-    "sha256": "46287d0985867b85d20e33a482717a980671ee4dad02ba779b91d3fa79872705"
+    "height": 1124,
+    "sha256": "593b4ed948c2dba537f43d92a8f699fdcff07b66c82b2344a6b53ab809ad8aa8"
   },
   "reef-sea-fan-motion-0.webp": {
     "width": 1922,
@@ -177,7 +192,7 @@
   "royal_gramma-atlas.webp": {
     "width": 1024,
     "height": 472,
-    "sha256": "f2a21d48a8a97666dc1c17420cfae618dd58b9d3c7e202d2ed1a9d40a8c6dcf4"
+    "sha256": "eefe70a2b8637ef0bb24f4503efe885bb4ff73ef1dd1784a4ae7336c9e071e95"
   },
   "royal_gramma-fins.webp": {
     "width": 512,
@@ -192,12 +207,12 @@
   "sand-caustics.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "bfaa5f13af52ce96afa70e6826efec087588eb2212a926f87aa59a5f80e2968b"
+    "sha256": "2ee37fee8ede40a1b55ad7cf550660203ea4df03fe668d4ccc4230d2a991e639"
   },
   "sand-wave-shadows.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "d0790b91bb66a2debedb37507202570b6ad3c6a28a472ad3b2a7dbb98af1db62"
+    "sha256": "2440319c6b2a7ff1a44e753f56c1ed5e4160bbc7adfec52aa72900457994c83f"
   },
   "seafloor-sunset.webp": {
     "width": 2048,
@@ -232,7 +247,7 @@
   "surface-waves.png": {
     "width": 2048,
     "height": 512,
-    "sha256": "c5e57453e3958a2eab7275d85078dca9de98f964ddfa3d987400b86361089066"
+    "sha256": "a1a66014b435055e191c06433d619ce4b7772030ce5b8acbbaf3854a6120090e"
   },
   "water-day.webp": {
     "width": 2048,
@@ -247,7 +262,7 @@
   "yellow_tang-atlas.webp": {
     "width": 1024,
     "height": 666,
-    "sha256": "1051b6e622de4d3734ac8d17a2896e4060d372049aa5b66518391fdba63bd79a"
+    "sha256": "596b08ca2dd204d487956706f19cbbae008e6ce584dc025b9a83073f7820c4c5"
   },
   "yellow_tang-fins.webp": {
     "width": 512,

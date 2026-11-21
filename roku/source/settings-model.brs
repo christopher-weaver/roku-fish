@@ -1,6 +1,6 @@
 function ReefSettingsSchema() as object
     return [
-        { id: "lighting", label: "Lighting", choices: ["Sunset", "Daylight", "Dusk", "Moonlight", "Automatic"], defaultValue: "Sunset" }
+        { id: "lighting", label: "Lighting", choices: ["Sunset", "Daylight", "Dusk", "Moonlight", "Night", "Automatic"], defaultValue: "Sunset" }
         { id: "density", label: "Fish density", choices: ["Low", "Medium", "High"], defaultValue: "Medium" }
         { id: "camera", label: "Camera movement", choices: ["Off", "Subtle", "Slow"], defaultValue: "Slow" }
         { id: "bubbles", label: "Bubble density", choices: ["Off", "Low", "Medium"], defaultValue: "Low" }

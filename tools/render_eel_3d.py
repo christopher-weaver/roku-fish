@@ -23,7 +23,7 @@ ellipsoid('rounded moray cranium',(0,.02,.25),(.29,.34,.28),skin)
 ellipsoid('long upper snout',(0,-.32,.20),(.245,.44,.15),skin)
 ellipsoid('mouth recess',(0,-.32,.075),(.23,.40,.075),black)
 jaw=bpy.data.objects.new('jaw hinge',None);scene.collection.objects.link(jaw);jaw.parent=root;jaw.location=(0,.05,.075)
-ellipsoid('articulated lower jaw',(0,-.32,-.018),(.24,.42,.085),skin,jaw)
+ellipsoid('articulated lower jaw',(0,-.32,-.018),(.24,.42,.048),skin,jaw)
 # Slightly unequal eye focus, with true spherical eyeballs, irises and pupils.
 for side in [-1,1]:
  x=side*.237

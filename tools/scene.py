@@ -106,6 +106,10 @@ def build_navigation(occ):
         for sp in species.values():
             radius=sp['bodyThickness']*sp['length']*1.12/1728+.012
             scale=(.70+.30*max(a[2],b[2]))*sp['length']/sp['renderLength']*1.12
+            waterline=occ.get('waterline')
+            if waterline:
+                hh=(sp['collisionHalfHeight']+sp['collisionHalfWidth']*.22)*scale+16
+                if min(p[1]+(1-p[2])*30-hh for p in [a,b])<waterline['clearanceY']:return True
             floor=occ.get('floor')
             if floor:
                 hh=(sp['collisionHalfHeight']+sp['collisionHalfWidth']*.22)*scale+16
@@ -135,7 +139,7 @@ def build_navigation(occ):
                 top=max(0,int((min(ys)-hh)//cell));bottom=min(143,int((max(ys)+hh)//cell))
                 if mask[top:bottom+1,left:right+1].any():return True
         return False
-    xs=[180,400,650,790,1030,1230,1500,1780,1920];ys=[100,260,440,630,790,910];zs=[.12,.28,.42,.54,.72,.86,.94]
+    xs=[180,400,650,790,1030,1230,1500,1780,1920];ys=[200,260,440,630,790,910];zs=[.12,.28,.42,.54,.72,.86,.94]
     nodes=[];lookup={}
     for xi,x in enumerate(xs):
         for yi,y in enumerate(ys):

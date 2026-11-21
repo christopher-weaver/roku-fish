@@ -1,1 +1,1 @@
-PASS production body, tail and fins sway together continuously while physical trajectory and clearance remain unchanged
+PASS anchored head, traveling S/inverse-S body curve, smooth independent section tangents and attached fin/tail motion within the collision envelope

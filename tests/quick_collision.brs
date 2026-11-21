@@ -3,6 +3,7 @@ sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     occ=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     s=ReefWorld(prefs,species,occ,47831)
+    s.clam.enabled=false
     for tick=0 to 59
         ReefAdvance(s,1#/30#)
         for i=0 to s.fish.Count()-1

@@ -45,6 +45,7 @@ end function
 ' Fish footprints include every yaw, tail and fin pose plus the maximum pitch.
 ' Test the swept rectangle, not just the center at a depth-plane crossing.
 function ReefCoralBlocked(s as object, f as object, fromPose as object, toPose as object) as boolean
+    if ReefSurfaceBlocked(s,f,fromPose,toPose) then return true
     if ReefFloorBlocked(s,f,fromPose,toPose) then return true
     if s.occupancy = invalid then return false
     if ReefCaveBlocked(s,f,fromPose,toPose) then return true
@@ -166,4 +167,15 @@ function ReefFloorBlocked(s as object,f as object,a as object,b as object) as bo
     firstCeiling=floor.baseY+floor.slope*(a.z-radius)-floor.ridgeClearance-hh
     lastCeiling=floor.baseY+floor.slope*(b.z-radius)-floor.ridgeClearance-hh
     return a.y>firstCeiling or b.y>lastCeiling
+end function
+
+' Bound every posed fish below the thin surface layer, including pitched fins.
+function ReefSurfaceBlocked(s as object,f as object,a as object,b as object) as boolean
+    if s.cfg=invalid then return false
+    if s.cfg.waterline=invalid then return false
+    scale=(.70+.30*ReefMax(a.z,b.z))*f.sp.length/f.sp.renderLength*f.size
+    hh=(f.sp.collisionHalfHeight+f.sp.collisionHalfWidth*.22)*scale+12#
+    firstTop=a.y+(1#-a.z)*30#-hh
+    lastTop=b.y+(1#-b.z)*30#-hh
+    return ReefMin(firstTop,lastTop)<s.cfg.waterline.clearanceY
 end function

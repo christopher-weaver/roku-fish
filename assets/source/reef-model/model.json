@@ -93,7 +93,7 @@
     },
     {
       "name": "central-clam-connected-reef",
-      "group": "central-clam",
+      "group": "clam-rock-bed",
       "layer": "connected-reef",
       "vertices": 486,
       "triangles": 956,
@@ -102,7 +102,7 @@
     },
     {
       "name": "central-clam-foreground-reef",
-      "group": "central-clam",
+      "group": "clam-rock-bed",
       "layer": "foreground-reef",
       "vertices": 27942,
       "triangles": 55880,
@@ -190,6 +190,16 @@
       "vertices": 610,
       "triangles": 1216,
       "file": "sculpted-brain-coral.npz",
+      "closed": true,
+      "sculpted": true
+    },
+    {
+      "name": "articulated-clam",
+      "group": "central-clam",
+      "layer": "clam",
+      "vertices": 37502,
+      "triangles": 74984,
+      "file": "articulated-clam.npz",
       "closed": true,
       "sculpted": true
     }

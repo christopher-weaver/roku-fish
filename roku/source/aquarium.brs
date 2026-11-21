@@ -57,6 +57,7 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
         end if
     end for
     ReefEffectsInit(s)
+    ReefClamInit(s)
     s.effectBands=[]
     for i=0 to s.cfg.formations.Count()
         s.effectBands.Push([])
@@ -88,6 +89,7 @@ sub ReefStep(s as object, elapsed as double)
         ReefFishStep(s, s.fish[fishIndex], dt)
     end for
     ReefEffectsStep(s, dt)
+    ReefClamStep(s)
 end sub
 
 sub ReefSavePose(f as object)

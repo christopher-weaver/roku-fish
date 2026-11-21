@@ -150,6 +150,7 @@ end function
 
 ' Spatially dense complete mesh poses. No strip transforms or large anchors.
 function ReefMarineFrame(time as double,formation as object) as integer
+    if formation.id="clam" then return Int(ReefClamOpening(time)*(formation.frames-1)+.5)
     phase=ReefWrap(time,formation.animation.period)*6.283185307/formation.animation.period
     return Int((Sin(phase)+1#)*.5*(formation.animation.count-1)+.5)
 end function
@@ -203,19 +204,22 @@ function ReefEelPulse(q as double,first as double,last as double) as double
     return ReefSmoother(1#-Abs(2#*t-1#))
 end function
 
-' Subtle head-anchored 3D body sway, synchronized with the caudal beat.
-' Only the display pose changes; collision envelopes include the full motion.
+ ' Swimming bends along a traveling curve; steering alone controls rotation.
 function ReefSwimPose(pose as object,sp as object,speed as dynamic,result=invalid as dynamic) as object
     if result=invalid then result={}
-    effort=.6
-    if speed<>invalid then effort=ReefClamp(speed/sp.speed,0#,1#)
-    yaw=Sin(pose.phase)*(.018+.024*effort)
-    roll=Sin(pose.phase-.65)*(.006+.010*effort)
-    heading=pose.heading+yaw : anchor=sp.length*.18
-    result.x=pose.x+(Cos(pose.heading)-Cos(heading))*anchor
-    result.z=pose.z+(Sin(pose.heading)-Sin(heading))*anchor/800#
-    result.y=pose.y+roll*anchor*Abs(Cos(pose.heading))*Cos(pose.heading)
-    result.heading=heading : result.pitch=ReefClamp(pose.pitch+roll*Cos(pose.heading),0#-.22,.22)
+    result.x=pose.x : result.y=pose.y : result.z=pose.z
+    result.heading=pose.heading : result.pitch=pose.pitch
     result.phase=pose.phase : result.finPhase=pose.finPhase
     return result
+end function
+
+function ReefBodyWave(u as double,phase as double,amplitude as double) as double
+    u=ReefClamp(u,0#,1#)
+    return amplitude*u*u*Sin(phase-u*6.283185307#)
+end function
+
+function ReefBodyWaveSlope(u as double,phase as double,amplitude as double) as double
+    u=ReefClamp(u,0#,1#)
+    a=phase-u*6.283185307#
+    return amplitude*(2#*u*Sin(a)-6.283185307#*u*u*Cos(a))
 end function

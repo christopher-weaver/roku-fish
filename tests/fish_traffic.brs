@@ -3,6 +3,7 @@ sub Main()
     occ=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     for each seed in [1,91,47831,1900000001]
         world=ReefWorld(ReefValidateSettings({density:"High"}),species,occ,seed)
+    world.clam.enabled=false
         if world.fish.Count()<>10 then print "FAIL high density roster" : return
         for i=0 to world.fish.Count()-1
             f=world.fish[i]
@@ -12,6 +13,7 @@ sub Main()
     print "PASS ten differently sized fish spawn without fish-to-fish overlap across four seeds"
     for scenario=0 to 4
         world=ReefWorld(ReefValidateSettings({density:"Low"}),species,invalid,91)
+    world.clam.enabled=false
         while world.fish.Count()>2
             world.fish.Pop()
         end while

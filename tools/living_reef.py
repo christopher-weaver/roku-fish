@@ -14,10 +14,12 @@ in vec3 position;in vec3 normal;in vec3 rgb;in vec3 flow;uniform vec4 stage;unif
 out vec3 n;out vec3 color;out vec3 world;out vec2 texuv;
 void main(){vec3 p=position+flow*strength;gl_Position=vec4((p.x-stage.x)/stage.z*2-1,1-(p.y-stage.y)/stage.w*2,-p.z/500.0,1);n=normal;color=rgb;world=p;texuv=vec2(position.x/2048.0,1.0-position.y/1152.0);}'''
 FS='''#version 330
-uniform sampler2D photo;uniform float usePhoto;in vec3 n;in vec3 color;in vec3 world;in vec2 texuv;out vec4 outcol;
+uniform sampler2D photo;uniform float usePhoto;uniform float tissue;in vec3 n;in vec3 color;in vec3 world;in vec2 texuv;out vec4 outcol;
 void main(){vec3 normal=normalize(n);vec3 light=normalize(vec3(-.35,-.7,1));float lambert=max(0.0,dot(normal,light));float shine=pow(max(0.0,dot(normal,normalize(light+vec3(0,0,1)))),30.0)*.07;
 float grain=sin(world.x*2.7+sin(world.y*3.1))*sin(world.z*2.3)*.018;
-vec3 base=usePhoto>.5?texture(photo,texuv).rgb:color;if(usePhoto>.5&&color.r>.90&&color.g<.72)base=mix(base,color,.85);outcol=vec4(base*(.65+.35*lambert+grain)+shine*.3,1);}'''
+vec3 base=usePhoto>.5?texture(photo,texuv).rgb:color;if(usePhoto>.5&&color.r>.90&&color.g<.72)base=mix(base,color,.85);float alpha=1.0;
+if(tissue>.5){float veins=sin(world.x*.28+sin(world.z*.19)*2.0)*sin(world.y*.22+world.z*.12);base*=.97+.025*veins;float scatter=pow(1.0-abs(normal.z),2.0);base=mix(base,vec3(.97,.64,.59),scatter*.12);shine=pow(max(0.0,dot(normal,normalize(light+vec3(0,0,1)))),42.0)*.16;alpha=.935+.025*lambert;}
+outcol=vec4(base*(.65+.35*lambert+grain*(1.0-tissue*.7))+shine*.3,alpha);}'''
 class Model:
  def __init__(self):self.v=[];self.f=[];self.rgb=[];self.flow=[]
  def add(self,v,f,color,flow=None):
@@ -74,7 +76,7 @@ def anemone():
  # Match the new reference: fewer, fleshy pink/ivory tapered fingers.
  # All finger geometry is closed and has independently pinned motion.
  m=Model();rng=np.random.default_rng(482);center=np.array([1474.,949.,210.])
- u=np.array([1.,0.,0.]);v=np.array([0.,.56,.8285]);axis=np.cross(u,v)
+ u=np.array([1.,0.,0.]);v=np.array([0.,.35,.93675]);axis=np.cross(u,v)
  sides=160;vertices=[];colors=[];faces=[]
  profile=[(.015,-13),(.10,-12),(.17,-4),(.22,2),(.40,3),(.65,1),(.90,-2),(1.,-6),(.95,-24),(.60,-58),(.015,-75)]
  for row,(r,height)in enumerate(profile):
@@ -95,7 +97,7 @@ def anemone():
   root=center+radial*ring-axis*3;front=max(0,np.sin(theta));back=max(0,-np.sin(theta))
   height=rng.uniform(50,91)+18*back-40*front;reach=rng.uniform(18,43)
   if front>.65:height=max(8.,(root[1]-rng.uniform(957,969))/.84)
-  height*=.86
+  height*=.71
   p0=root;p1=root+np.array([np.cos(theta)*reach*.25,-height*.24,12.])
   p2=root+np.array([np.cos(theta)*(reach+9),-height*1.16,18.+np.sin(theta)*8])
   p3=root+np.array([np.cos(theta)*reach+12*np.sin(i*1.7),-height*.84,23.+np.sin(theta)*15])
@@ -138,7 +140,7 @@ def save(name,model,folder):
 
 def build_marine():
  folder=ROOT/'assets/source/marine-renders';cfgpath=ROOT/'roku/scenes/tank.json';cfg=json.loads(cfgpath.read_text());ctx=moderngl.create_standalone_context(backend='egl');ctx.enable(moderngl.DEPTH_TEST);p=ctx.program(vertex_shader=VS,fragment_shader=FS)
- texture=ctx.texture((1,1),3,bytes([255,255,255]));texture.filter=(moderngl.LINEAR,moderngl.LINEAR);texture.use();p['usePhoto'].value=0
+ texture=ctx.texture((1,1),3,bytes([255,255,255]));texture.filter=(moderngl.LINEAR,moderngl.LINEAR);texture.use();p['usePhoto'].value=0;p['tissue'].value=1
  for name,model,period,scale in [('sea-anemone',anemone(),7.5,.75)]:
   v,n,f,rgb,flow=save(name+'-sculpted',model,folder)
   # Compatibility geometry export uses normalized coordinates but retains real tubes.
@@ -153,7 +155,7 @@ def build_marine():
   for first in range(0,65,capacity):
    batch=shots[first:first+capacity];atlas=Image.new('RGBA',(cols*(tw+4)+4,math.ceil(len(batch)/cols)*(th+4)+4))
    for i,im in enumerate(batch):atlas.paste(im,(2+i%cols*(tw+4),2+i//cols*(th+4)))
-   compact=imagequant.quantize_pil_image(atlas,max_colors=64,dithering_level=0,max_quality=95).convert('RGBA');filename=f'reef-{name}-motion-{len(pages)}.webp';normalized=np.array(compact);normalized[:,:,3][normalized[:,:,3]>245]=255;normalized[:,:,3][normalized[:,:,3]<6]=0;normalized[normalized[:,:,3]==0,:3]=0;Image.fromarray(normalized).save(ROOT/'roku/images'/filename,lossless=True,method=6,exact=True);pages.append('pkg:/images/'+filename)
+   compact=imagequant.quantize_pil_image(atlas,max_colors=64,dithering_level=0,max_quality=95).convert('RGBA');filename=f'reef-{name}-motion-{len(pages)}.webp';normalized=np.array(compact);normalized[:,:,3][normalized[:,:,3]<6]=0;normalized[normalized[:,:,3]==0,:3]=0;Image.fromarray(normalized).save(ROOT/'roku/images'/filename,lossless=True,method=6,exact=True);pages.append('pkg:/images/'+filename)
   Image.fromarray(union).save(folder/(name+'-motion-footprint.png'))
   for formation in cfg['formations']:
    if formation['id']==name:formation.update(x=int(x0),y=int(y0),width=int(w),height=int(h),frameWidth=tw,frameHeight=th,columns=cols,frames=65,image=pages[0],images=pages,meshVertices=len(v),meshTriangles=len(f),geometryType='closed sculpted tubes and solid anatomy',animation=dict(period=period,count=65,framesPerPage=capacity,strideX=tw+4,strideY=th+4,gutter=2))

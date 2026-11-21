@@ -10,10 +10,14 @@ sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     occ=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     a=ReefWorld(prefs,species,occ,47831) : b=ReefWorld(prefs,species,occ,47831)
+    a.clam.enabled=false
+    b.clam.enabled=false
     Check(a.fish.Count()=8,"medium population")
     Check(a.fish[4].x=b.fish[4].x and a.fish[4].heading=b.fish[4].heading,"seed initialization repeats")
     low=ReefValidateSettings({density:"Low"}) : high=ReefValidateSettings({density:"High"})
     lowWorld=ReefWorld(low,species,occ,1) : highWorld=ReefWorld(high,species,occ,1)
+    lowWorld.clam.enabled=false
+    highWorld.clam.enabled=false
     Check(lowWorld.fish.Count()=6,"low population")
     Check(highWorld.fish.Count()=10,"high population")
     badSpeed=0 : badTurn=0 : badBoundary=0 : maxAccel=0#
@@ -78,6 +82,8 @@ sub Main()
     Check(wave.first=31 and wave.second=0 and seam.first=0 and seam.blend=0,"water surface animation loops continuously")
     Check(ReefBubbleScale(0#)*32>=13 and ReefBubbleScale(1#)*32>=27,"bubbles are larger across depth")
     fixedA=ReefWorld(prefs,species,occ,99) : fixedB=ReefWorld(prefs,species,occ,99)
+    fixedA.clam.enabled=false
+    fixedB.clam.enabled=false
     ReefAdvance(fixedA,0.1)
     ReefAdvance(fixedB,0.01) : ReefAdvance(fixedB,0.025) : ReefAdvance(fixedB,0.015) : ReefAdvance(fixedB,0.05)
     Check(Abs(fixedA.time-fixedB.time)<0.000001 and fixedA.fish[7].x=fixedB.fish[7].x,"fixed ticks withstand jittery rendering intervals")

@@ -13,6 +13,8 @@ function ReefLoadAssets(s as object) as object
     a = { plate: ReefLayer(water), formations: [], surfaceShadows: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
     floorPath="pkg:/images/seafloor-sunset.webp"
     a.floor=ReefLayer(ReefBitmap(floorPath))
+    a.glow=ReefLayer(ReefBitmap("pkg:/images/bioluminescence.png"))
+    a.pearl=ReefLayer(ReefBitmap("pkg:/images/clam-pearl.png"))
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
     surface = ReefBitmap("pkg:/images/surface-waves.png")
     shadow = ReefBitmap("pkg:/images/sand-wave-shadows.png")
@@ -72,7 +74,7 @@ function ReefLoadAssets(s as object) as object
         name=s.fish[fishIndex].name
         sp = s.species[name]
         b = ReefBitmap(sp.image)
-        if b <> invalid then a.fish[name] = ReefFishFrames(b,sp.frames,s.settings.quality)
+        if b <> invalid then a.fish[name] = ReefFishFrames(b,sp.frames,s.settings.quality,8)
         b = ReefBitmap(sp.tailImage)
         if b <> invalid then a.tails[name] = ReefFishFrames(b,sp.tailFrames,s.settings.quality)
         b = ReefBitmap(sp.finImage)
@@ -93,7 +95,7 @@ function ReefLayer(bitmap as dynamic, x = 0 as integer, y = 0 as integer, width 
 end function
 
 
-function ReefFishFrames(bitmap as object, metadata as object, quality as string) as object
+function ReefFishFrames(bitmap as object, metadata as object, quality as string,bands=0 as integer) as object
     frames = [] : cache = {}
     for index = 0 to metadata.Count()-1
         frame = metadata[index]
@@ -106,6 +108,20 @@ function ReefFishFrames(bitmap as object, metadata as object, quality as string)
             fractional.SetPretranslation(4096-Int(frame.anchorX),4096-Int(frame.anchorY))
             fractional.SetScaleMode(1)
             cache[key] = {normal:reg,fractional:fractional,offsetX:Int(frame.anchorX)-frame.anchorX,offsetY:Int(frame.anchorY)-frame.anchorY}
+            if bands>0
+                strips=[]
+                for band=0 to bands-1
+                    left=Int(frame.w*band/bands) : right=Int(frame.w*(band+1)/bands)
+                    left=ReefMax(0,left-2) : right=ReefMin(frame.w,right+2)
+                    ax=frame.anchorX-left
+                    normal=CreateObject("roRegion",bitmap,frame.x+left,frame.y,right-left,frame.h)
+                    normal.SetPretranslation(0-Int(ax),0-Int(frame.anchorY)) : normal.SetScaleMode(1)
+                    fractional=CreateObject("roRegion",bitmap,frame.x+left,frame.y,right-left,frame.h)
+                    fractional.SetPretranslation(4096-Int(ax),4096-Int(frame.anchorY)) : fractional.SetScaleMode(1)
+                    strips.Push({normal:normal,fractional:fractional,offsetX:Int(ax)-ax,offsetY:Int(frame.anchorY)-frame.anchorY,centerX:(left+right)*.5-frame.anchorX})
+                end for
+                cache[key].bands=strips
+            end if
         end if
         frames.Push(cache[key])
     end for

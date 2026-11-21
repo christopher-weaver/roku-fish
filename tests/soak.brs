@@ -3,6 +3,7 @@ sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     occupancy=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     s=ReefWorld(prefs,species,occupancy,9182)
+    s.clam.enabled=false
     while s.fish.Count()>6
         s.fish.Pop()
     end while
