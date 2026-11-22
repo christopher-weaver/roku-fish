@@ -208,8 +208,8 @@
       "group": "anemone-platform",
       "layer": "anemone-platform",
       "file": "anemone-platform.npz",
-      "vertices": 3298,
-      "triangles": 6580,
+      "vertices": 5880,
+      "triangles": 11740,
       "closed": true,
       "sculpted": true
     }

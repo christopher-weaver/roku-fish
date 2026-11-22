@@ -85,3 +85,8 @@ No new external artwork is introduced. `anemone_pocket.py` builds an original cl
 ## Complete anemone and rock/sand platform (1.0.20)
 
 No new external artwork is introduced. `anemone_pocket.py` replaces the former foreground rim with a closed irregular stone ledge, smaller side stones and a shallow sand apron. Photographic rock colour is extracted from the existing reef projection; the sand uses the existing seabed projection. The apron feathers into the floor. The same source maps and material selection are packed into the Blender scene. The original complete pedal-column geometry is restored and its existing photographic tissue material is retained.
+
+
+## Small platform lip (1.0.21)
+
+Adds an original closed, low U-shaped tube to the existing platform mesh and slightly extends its upper shelf. The lip reuses the platform's existing photographic rock map. No new artwork or third-party assets are introduced; the complete anemone mesh and animation atlas are unchanged.

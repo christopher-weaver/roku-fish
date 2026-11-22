@@ -14,6 +14,7 @@
     0.7,
     0.74,
     0.75,
+    0.76,
     0.83
   ],
   "camera": {
@@ -162,19 +163,19 @@
       "id": "anemone-platform",
       "image": "pkg:/images/reef-anemone-platform.webp",
       "x": 1256,
-      "y": 997,
+      "y": 998,
       "width": 436,
-      "height": 97,
+      "height": 96,
       "frameWidth": 436,
-      "frameHeight": 97,
+      "frameHeight": 96,
       "frames": 1,
       "columns": 1,
       "z": 0.74,
       "halfDepth": 0.035,
       "parallax": 1,
       "renderedMesh": true,
-      "meshVertices": 3298,
-      "meshTriangles": 6580,
+      "meshVertices": 5880,
+      "meshTriangles": 11740,
       "meshObjects": [
         "anemone-platform"
       ],
@@ -219,6 +220,37 @@
         "gutter": 2
       },
       "geometryType": "closed sculpted tubes and solid anatomy"
+    },
+    {
+      "id": "anemone-lip",
+      "image": "pkg:/images/reef-anemone-lip.webp",
+      "x": 1378,
+      "y": 998,
+      "width": 192,
+      "height": 24,
+      "frameWidth": 192,
+      "frameHeight": 24,
+      "frames": 1,
+      "columns": 1,
+      "z": 0.76,
+      "halfDepth": 0.01,
+      "parallax": 1,
+      "renderedMesh": true,
+      "meshVertices": 2582,
+      "meshTriangles": 5160,
+      "meshObjects": [
+        "anemone-platform"
+      ],
+      "surfaceShadow": {
+        "image": "pkg:/images/shadow-anemone-lip.webp",
+        "width": 128,
+        "height": 72,
+        "columns": 8,
+        "scale": 16,
+        "x": 0,
+        "y": 0,
+        "frames": 32
+      }
     },
     {
       "id": "clam",
@@ -31754,7 +31786,14 @@
   },
   "anemonePlatform": {
     "x": 1474,
-    "supportY": 1018,
+    "supportY": 1023,
+    "lip": {
+      "centerY": 1005,
+      "radiusX": 92,
+      "radiusY": 13,
+      "thickness": 3.8,
+      "formation": "anemone-lip"
+    },
     "fullBase": true,
     "sandApron": true,
     "formation": "anemone-platform"

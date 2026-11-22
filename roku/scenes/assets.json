@@ -164,10 +164,15 @@
     "height": 512,
     "sha256": "3d5f5202a0d7d6d14d72aab7e6a1fa05773ad139cedb68aa70d118c953b1f8a1"
   },
+  "reef-anemone-lip.webp": {
+    "width": 192,
+    "height": 24,
+    "sha256": "b8d7d2daf7b8633cf0e4553b799ba772a3816f2ce001da02924299a350e43ae5"
+  },
   "reef-anemone-platform.webp": {
     "width": 436,
-    "height": 97,
-    "sha256": "82ce28da681a03ca61bb494265dabfbc4d63f9c061555a218e9572405ce1d271"
+    "height": 96,
+    "sha256": "92e4ac87721c22f926a6a70187e937eef50bffdb508d17fe851d1ff6a8f66710"
   },
   "reef-clam-motion-0.webp": {
     "width": 1914,
@@ -224,10 +229,15 @@
     "height": 232,
     "sha256": "f0a74bd69a61c5fa4559492ecea15610aa788ac7634bcd52fb07c8630b144904"
   },
+  "shadow-anemone-lip.webp": {
+    "width": 1024,
+    "height": 288,
+    "sha256": "49c30997cf8c41c611547ad75d1777804b9c308607770d0281b4b2a169568283"
+  },
   "shadow-anemone-platform.webp": {
     "width": 1024,
     "height": 288,
-    "sha256": "f9457222d3bc328dc9d03d82418539d8a784a6ca2e99c70bdfb7984e256d5120"
+    "sha256": "e40d119b145418669c4d590fcc834779d28ae308cc9ea33ed640fb8a1973301d"
   },
   "shadow-connected-reef.webp": {
     "width": 1024,

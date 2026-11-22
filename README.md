@@ -173,3 +173,7 @@ Repairs depth-boundary deadlocks and stalled escape maneuvers, adds velocity eas
 ## Version 1.0.20
 
 Restores the anemone's full original pedal column and removes the foreground rim that cut across it. A closed, irregular rock platform now sits behind and beneath the complete animal, with settled sand on the ledge and a feathered apron matching the photographed seabed. Updated source geometry, Blender materials, collision masks, screenshot and sideload ZIP are included.
+
+## Version 1.0.21
+
+Adds a small raised rock lip around the anemone's foot and brings the ledge forward slightly so the complete animal is visibly supported. The original anemone model and animated texture remain unchanged. The new lip is part of the closed platform geometry, with the same rock texture and sand transition. Updated screenshot, Blender source and sideload ZIP are included.
