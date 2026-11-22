@@ -13,6 +13,7 @@
     0.48,
     0.7,
     0.75,
+    0.76,
     0.83
   ],
   "camera": {
@@ -161,9 +162,9 @@
       "x": 1337,
       "y": 860,
       "width": 274,
-      "height": 194,
+      "height": 182,
       "frameWidth": 206,
-      "frameHeight": 146,
+      "frameHeight": 136,
       "frames": 65,
       "columns": 9,
       "meshVertices": 43360,
@@ -181,12 +182,43 @@
       "animation": {
         "period": 7.5,
         "count": 65,
-        "framesPerPage": 117,
+        "framesPerPage": 126,
         "strideX": 210,
-        "strideY": 150,
+        "strideY": 140,
         "gutter": 2
       },
       "geometryType": "closed sculpted tubes and solid anatomy"
+    },
+    {
+      "id": "anemone-base-rocks",
+      "image": "pkg:/images/reef-anemone-base-rocks.webp",
+      "x": 1399,
+      "y": 1012,
+      "width": 151,
+      "height": 28,
+      "frameWidth": 151,
+      "frameHeight": 28,
+      "frames": 1,
+      "columns": 1,
+      "z": 0.76,
+      "halfDepth": 0.015,
+      "parallax": 1,
+      "renderedMesh": true,
+      "meshVertices": 389,
+      "meshTriangles": 742,
+      "meshObjects": [
+        "anemone-base-rocks"
+      ],
+      "surfaceShadow": {
+        "image": "pkg:/images/shadow-anemone-base-rocks.webp",
+        "width": 128,
+        "height": 72,
+        "columns": 8,
+        "scale": 16,
+        "x": 0,
+        "y": 0,
+        "frames": 32
+      }
     },
     {
       "id": "clam",
@@ -31723,8 +31755,10 @@
   "anemoneHabitat": {
     "support": "foreground-reef",
     "fullBase": true,
-    "drapedTentacles": true,
+    "drapedTentacles": false,
     "seatOffsetY": 12,
+    "border": "anemone-base-rocks",
+    "edgeDarkening": 0.62,
     "sandTransition": "existing modeled seabed"
   }
 }

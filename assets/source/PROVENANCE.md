@@ -100,3 +100,8 @@ The lip now uses an original deterministic, multiscale mineral-grain material in
 ## Reference-led natural reef attachment (1.0.23)
 
 No new external artwork is introduced. The supplied reference guides the attachment and silhouette: outer front tentacles drape over the complete pedal column and the existing closed reef volumes toward the photographed sand. The artificial rim and separate support platform, including their unused material maps, are removed. Existing photographic tissue maps, static base shading, tentacle opacity and the original reef/seabed provenance remain unchanged.
+
+
+## Broken stone border and rounded tissue shading (1.0.24)
+
+Removes the side-draping control-point override and restores the original upright crown. The base border uses original deterministic convex-hull stone meshes with neutral mineral-grain shading, rather than a continuous tube or a projected coral image. A view-normal edge factor shades the full tissue geometry, stronger on the pedal column and gentler on the translucent fingers. The same factor and stone geometry/materials are included in Blender. Existing tissue-map provenance and licenses are unchanged. No new external artwork is introduced.

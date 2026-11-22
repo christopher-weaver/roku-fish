@@ -18,7 +18,7 @@ def compact(only=None):
    batch=shots[first:first+capacity];atlas=Image.new('RGBA',(cols*(tw+4)+4,((len(batch)+cols-1)//cols)*(th+4)+4))
    for i,im in enumerate(batch):atlas.paste(im,(2+i%cols*(tw+4),2+i//cols*(th+4)))
    a=np.array(atlas);a[:,:,3]=np.uint8(np.round(a[:,:,3]/17)*17);a[a[:,:,3]==0,:3]=0
-   name=f"reef-{f['id']}-motion-{len(pages)}.webp";Image.fromarray(a).save(ROOT/'roku/images'/name,quality=54 if f['id']=='sea-anemone'else 75,method=6,exact=False);pages.append('pkg:/images/'+name)
+   name=f"reef-{f['id']}-motion-{len(pages)}.webp";Image.fromarray(a).save(ROOT/'roku/images'/name,quality=60 if f['id']=='sea-anemone'else 75,method=6,exact=False);pages.append('pkg:/images/'+name)
   f.update(image=pages[0],images=pages,frameWidth=tw,frameHeight=th,columns=cols);f['animation'].update(framesPerPage=capacity,strideX=tw+4,strideY=th+4)
  p.write_text(json.dumps(cfg,indent=2)+'\n')
  if only is not None:return

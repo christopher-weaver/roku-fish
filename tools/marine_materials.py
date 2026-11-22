@@ -30,9 +30,10 @@ uniform vec4 stage;uniform float strength;out vec3 n;out vec3 color;out vec3 wor
 void main(){vec3 p=position+flow*strength;gl_Position=vec4((p.x-stage.x)/stage.z*2-1,1-(p.y-stage.y)/stage.w*2,-p.z/500.0,1);n=normal;color=rgb;world=p;texuv=surfaceUV;alphaMaterial=opacity;}
 '''
 FS='''#version 330
-uniform sampler2D photo;uniform float clipDepth;in vec3 n;in vec3 color;in vec3 world;in vec2 texuv;in float alphaMaterial;out vec4 outcol;
+uniform sampler2D photo;uniform float clipDepth;uniform float edgeDarkening;in vec3 n;in vec3 color;in vec3 world;in vec2 texuv;in float alphaMaterial;out vec4 outcol;
 void main(){if(world.z<clipDepth)discard;vec3 normal=normalize(n);vec3 base=texture(photo,texuv).rgb;
 vec2 step=vec2(1.0/1024.0,1.0/512.0);float bx=dot(texture(photo,texuv+vec2(step.x,0)).rgb-texture(photo,texuv-vec2(step.x,0)).rgb,vec3(.2126,.7152,.0722));float by=dot(texture(photo,texuv+vec2(0,step.y)).rgb-texture(photo,texuv-vec2(0,step.y)).rgb,vec3(.2126,.7152,.0722));normal=normalize(normal+vec3(-bx,-by,0)*.55);
 vec3 light=normalize(vec3(-.35,-.7,1));float diffuse=max(0.0,dot(normal,light));float sheen=pow(max(0.0,dot(normal,normalize(light+vec3(0,0,1)))),38.0)*.035;
-base=mix(base,color,.13);outcol=vec4(base*(.78+.22*diffuse)+sheen,alphaMaterial);}
+float edge=1.0-edgeDarkening*(alphaMaterial>.99?1.0:.25)*pow(max(0.0,1.0-abs(normalize(n).z)),1.2);
+base=mix(base,color,.13);outcol=vec4((base*(.78+.22*diffuse)+sheen)*edge,alphaMaterial);}
 '''

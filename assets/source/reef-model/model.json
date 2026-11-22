@@ -202,6 +202,16 @@
       "file": "articulated-clam.npz",
       "closed": true,
       "sculpted": true
+    },
+    {
+      "name": "anemone-base-rocks",
+      "group": "anemone-base-rocks",
+      "layer": "anemone-base-rocks",
+      "file": "anemone-base-rocks.npz",
+      "vertices": 389,
+      "triangles": 742,
+      "closed": true,
+      "sculpted": true
     }
   ]
 }

@@ -106,12 +106,6 @@ def anemone():
   p0=root;p1=root+np.array([np.cos(theta)*reach*.25,-height*.24,12.])
   p2=root+np.array([np.cos(theta)*(reach+9),-height*1.16,18.+np.sin(theta)*8])
   p3=root+np.array([np.cos(theta)*reach+12*np.sin(i*1.7),-height*.84,23.+np.sin(theta)*15])
-  if front>.3 and ring>55:
-   # Reference-like outer fingers drape over the complete column and rocks.
-   # Their roots stay pinned to the disc; the existing 3D tip motion is retained.
-   p1=root+np.array([np.cos(theta)*reach*.30,8.,14.])
-   p2=root+np.array([np.cos(theta)*reach*.65,18.+31.*front,32.])
-   p3=root+np.array([np.cos(theta)*reach*.7+5*np.sin(i*1.7),22.+30.*front,28.])
   t=np.linspace(0,1,36);path=(1-t[:,None])**3*p0+3*(1-t[:,None])**2*t[:,None]*p1+3*(1-t[:,None])*t[:,None]**2*p2+t[:,None]**3*p3
   path[:,0]+=rng.uniform(3,8)*np.sin(t*np.pi*1.5+i*.81)*np.sin(t*np.pi)
   path[:,2]+=12*np.sin(t*np.pi+i*.67)*np.sin(t*np.pi)
@@ -154,7 +148,7 @@ def save(name,model,folder):
 def build_marine():
  folder=ROOT/'assets/source/marine-renders';cfgpath=ROOT/'roku/scenes/tank.json';cfg=json.loads(cfgpath.read_text());ctx=moderngl.create_standalone_context(backend='egl');ctx.enable(moderngl.DEPTH_TEST)
  from marine_materials import build as build_materials,VS as TISSUE_VS,FS as TISSUE_FS
- build_materials();p=ctx.program(vertex_shader=TISSUE_VS,fragment_shader=TISSUE_FS);p['clipDepth'].value=-500
+ build_materials();p=ctx.program(vertex_shader=TISSUE_VS,fragment_shader=TISSUE_FS);p['clipDepth'].value=-500;p['edgeDarkening'].value=.62
 
  photo=Image.open(folder/'anemone-material.png');texture=ctx.texture(photo.size,3,photo.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());texture.build_mipmaps();texture.filter=(moderngl.LINEAR_MIPMAP_LINEAR,moderngl.LINEAR);texture.anisotropy=8;texture.use()
  for name,model,period,scale in [('sea-anemone',anemone(),7.5,.85)]:

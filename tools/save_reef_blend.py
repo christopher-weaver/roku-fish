@@ -24,6 +24,11 @@ for item in record['objects']:
   colors=mesh.color_attributes.new(name='sculpted colour',type='FLOAT_COLOR',domain='POINT');colors.data.foreach_set('color',np.column_stack([rgb,np.ones(len(rgb))]).ravel());material=bpy.data.materials.new(item['name']+' shaded material');material.use_nodes=True;node=material.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';material.node_tree.links.new(node.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);
   if (folder/(item['name']+'-colour.png')).exists():
    texture=material.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(folder/(item['name']+'-colour.png')));texture.image.pack();material.node_tree.links.new(texture.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
+  if item['name']=='anemone-base-rocks':
+   for polygon in mesh.polygons:polygon.use_smooth=False
+   principled=material.node_tree.nodes.get('Principled BSDF');principled.inputs['Roughness'].default_value=.94
+   noise=material.node_tree.nodes.new('ShaderNodeTexNoise');noise.inputs['Scale'].default_value=32;noise.inputs['Detail'].default_value=3
+   bump=material.node_tree.nodes.new('ShaderNodeBump');bump.inputs['Strength'].default_value=.25;bump.inputs['Distance'].default_value=.12;material.node_tree.links.new(noise.outputs['Fac'],bump.inputs['Height']);material.node_tree.links.new(bump.outputs['Normal'],principled.inputs['Normal'])
   if item['name']=='articulated-clam':
    texture=material.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(ROOT/'assets/source/marine-renders/clam-material.png'));texture.image.pack();material.node_tree.links.new(texture.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
   o.data.materials.clear();o.data.materials.append(material)
@@ -56,11 +61,14 @@ for name,ox,oy,width,height,base_z in [('sea-fan',80,430,600,565,-45),('sea-anem
   for polygon in mesh.polygons:polygon.use_smooth=True
   continue
  path=ROOT/'assets/source/marine-renders'/(name+'-sculpted.npz')
- with np.load(path)as data:v=data['vertices'].copy();rgb=data['rgb'];opacity=data['opacity'];material_uv=data['material_uv'];flow=data['flow'].copy();faces=data['faces'][:,::-1]
+ with np.load(path)as data:v=data['vertices'].copy();rgb=data['rgb'];opacity=data['opacity'];material_uv=data['material_uv'];flow=data['flow'].copy();faces=data['faces'][:,::-1];edge_shade=1-.62*np.where(opacity>.99,1.,.25)*(1-np.clip(np.abs(data['normals'][:,2]),0,1))**1.2
  v[:,1]*=-1;flow[:,1]*=-1
  mesh=bpy.data.meshes.new(name+' sculpted anatomy');mesh.from_pydata(v.tolist(),[],faces.tolist());mesh.update();o=bpy.data.objects.new(name+' individual 3D branches and tentacles',mesh);scene.collection.objects.link(o)
  colors=mesh.color_attributes.new(name='sculpted colour',type='FLOAT_COLOR',domain='POINT');colors.data.foreach_set('color',np.column_stack([rgb,opacity]).ravel())
  m=bpy.data.materials.new(name+' shaded tissue');m.use_nodes=True;node=m.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';m.node_tree.links.new(node.outputs['Color'],m.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);p=m.node_tree.nodes.get('Principled BSDF');p.inputs['Roughness'].default_value=.38;p.inputs['Subsurface Weight'].default_value=.16;p.inputs['Transmission Weight'].default_value=.06;p.inputs['Alpha'].default_value=.8;m.node_tree.links.new(node.outputs['Alpha'],p.inputs['Alpha']);texture=m.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(ROOT/'assets/source/marine-renders/anemone-material.png'));texture.image.pack();m.node_tree.links.new(texture.outputs['Color'],p.inputs['Base Color']);o.data.materials.append(m)
+ shade=mesh.color_attributes.new(name='rounded edge shade',type='FLOAT_COLOR',domain='POINT');shade.data.foreach_set('color',np.column_stack([edge_shade,edge_shade,edge_shade,np.ones(len(edge_shade))]).ravel())
+ edge_node=m.node_tree.nodes.new('ShaderNodeVertexColor');edge_node.layer_name='rounded edge shade'
+ multiply=m.node_tree.nodes.new('ShaderNodeMixRGB');multiply.blend_type='MULTIPLY';multiply.inputs[0].default_value=1.;m.node_tree.links.new(texture.outputs['Color'],multiply.inputs[1]);m.node_tree.links.new(edge_node.outputs['Color'],multiply.inputs[2]);m.node_tree.links.new(multiply.outputs[0],p.inputs['Base Color'])
  uv=mesh.uv_layers.new(name='reference tissue colour')
  for loop in mesh.loops:
   uv.data[loop.index].uv=material_uv[loop.vertex_index]

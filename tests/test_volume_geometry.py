@@ -71,8 +71,10 @@ class VolumeGeometryChecks(unittest.TestCase):
   self.assertEqual(cfg['anemoneHabitat']['support'],'foreground-reef');self.assertTrue(cfg['anemoneHabitat']['fullBase'])
   with np.load(ROOT/'assets/source/marine-renders/sea-anemone-sculpted.npz')as m:
    v=m['vertices'];self.assertGreater(v[:1760,1].max(),1018,'Pedal column remains complete')
-   self.assertGreater(np.count_nonzero((v[:,1]>1015)&np.isclose(m['opacity'],.8)),100,'Moving front fingers must drape down over the attachment')
+   self.assertLess(v[np.isclose(m['opacity'],.8),1].max(),1015,'No dangling side/front finger extensions')
    self.assert_closed(v,m['faces'])
+  border=next(f for f in cfg['formations']if f['id']=='anemone-base-rocks');self.assertGreater(border['z'],plant['z']);self.assertLess(border['height'],40)
+  with np.load(ROOT/'assets/source/reef-model/anemone-base-rocks.npz')as m:self.assert_closed(m['vertices'],m['faces'])
  def test_approved_fan_is_restored_exactly(self):
   approved=ROOT/'assets/source/marine-renders/approved-fan'
   self.assertEqual((approved/'atlas.webp').read_bytes(),(ROOT/'roku/images/reef-sea-fan-motion-0.webp').read_bytes())

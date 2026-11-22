@@ -164,6 +164,11 @@
     "height": 512,
     "sha256": "3d5f5202a0d7d6d14d72aab7e6a1fa05773ad139cedb68aa70d118c953b1f8a1"
   },
+  "reef-anemone-base-rocks.webp": {
+    "width": 151,
+    "height": 28,
+    "sha256": "ebe64c1230e3c058395b135d00fca77033d7fbc0513dd31a0dcfed768ee06003"
+  },
   "reef-clam-motion-0.webp": {
     "width": 1914,
     "height": 1117,
@@ -181,8 +186,8 @@
   },
   "reef-sea-anemone-motion-0.webp": {
     "width": 1894,
-    "height": 1204,
-    "sha256": "1f429b497932e1d860759b551bec67665a558029529c8c1f09c5661a94dabf5a"
+    "height": 1124,
+    "sha256": "eb05e89125e61589e639453b8a0a2d42791e6988338d4a197cd682c21f4e699c"
   },
   "reef-sea-fan-motion-0.webp": {
     "width": 1922,
@@ -212,12 +217,17 @@
   "sand-wave-shadows.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "2e8b34d3d9fb3a098031001ff4b8340eb25bcd429e1870c4265f40fc2d5a49ee"
+    "sha256": "80c3ae994d29cfec47ea604d9413d3748d4c72f17d387f3e8b2b1f43b42f924e"
   },
   "seafloor-sunset.webp": {
     "width": 2048,
     "height": 232,
     "sha256": "f0a74bd69a61c5fa4559492ecea15610aa788ac7634bcd52fb07c8630b144904"
+  },
+  "shadow-anemone-base-rocks.webp": {
+    "width": 1024,
+    "height": 288,
+    "sha256": "49c30997cf8c41c611547ad75d1777804b9c308607770d0281b4b2a169568283"
   },
   "shadow-connected-reef.webp": {
     "width": 1024,
