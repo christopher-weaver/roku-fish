@@ -11,9 +11,13 @@ ROOT=Path(__file__).resolve().parents[1]
 def build():
     path=ROOT/'roku/scenes/tank.json';cfg=json.loads(path.read_text());folder=ROOT/'assets/source/reef-model'
     rng=np.random.default_rng(2401);model=Model()
-    for index,angle in enumerate(np.linspace(-.14,np.pi+.14,9)):
+    angles=[-.16,.14,.48,.94,1.43,1.76,2.15,2.61,3.27]
+    sizes=[1.30,.62,.85,1.48,.55,1.08,.70,1.30,.58]
+    for index,angle in enumerate(angles):
         center=np.array([1474+66*np.cos(angle)+rng.uniform(-2,2),1022+13*np.sin(angle)+rng.uniform(-1.5,1.5),209+rng.uniform(-2,2)])
         radius=np.array([rng.uniform(9,13.5),rng.uniform(4.5,6.5),rng.uniform(6,10)])
+        original_height=radius[1];radius*=sizes[index]
+        center[1]+=(original_height-radius[1])*.5
         t=(np.arange(58)+.5)/58;y=1-2*t;theta=np.arange(58)*2.399963
         points=np.column_stack([np.sqrt(1-y*y)*np.cos(theta),y,np.sqrt(1-y*y)*np.sin(theta)])
         points=center+points*radius*rng.uniform(.81,1.12,(58,1))
@@ -35,7 +39,7 @@ void main(){float grain=noise(world*1.6);float pores=pow(max(0.,noise(world*3.7)
     im=Image.frombytes('RGBA',fb.size,fb.read(components=4)).transpose(Image.Transpose.FLIP_TOP_BOTTOM);box=im.getchannel('A').getbbox();im=im.crop(box);im.save(ROOT/'roku/images/reef-anemone-base-rocks.webp',quality=88,method=6,exact=True)
     props={'anemone-rim','anemone-platform','anemone-lip','anemone-foot-rocks','anemone-base-rocks'}
     cfg['formations']=[f for f in cfg['formations']if f['id']not in props]
-    cfg['formations'].append(dict(id='anemone-base-rocks',image='pkg:/images/reef-anemone-base-rocks.webp',x=box[0],y=box[1],width=im.width,height=im.height,frameWidth=im.width,frameHeight=im.height,frames=1,columns=1,z=.76,halfDepth=.015,parallax=1,renderedMesh=True,meshVertices=len(v),meshTriangles=len(f),meshObjects=['anemone-base-rocks']))
+    cfg['formations'].append(dict(id='anemone-base-rocks',image='pkg:/images/reef-anemone-base-rocks.webp',x=box[0],y=box[1],width=im.width,height=im.height,frameWidth=im.width,frameHeight=im.height,frames=1,columns=1,z=.76,halfDepth=.02,parallax=1,renderedMesh=True,meshVertices=len(v),meshTriangles=len(f),meshObjects=['anemone-base-rocks']))
     cfg['formations'].sort(key=lambda f:f['z']);cfg['occlusionDepths']=[f['z']for f in cfg['formations']]
     cfg.pop('anemonePocket',None);cfg.pop('anemonePlatform',None)
     cfg['anemoneHabitat']={'support':'foreground-reef','fullBase':True,'drapedTentacles':False,'seatOffsetY':12,'border':'anemone-base-rocks','edgeDarkening':.62,'sandTransition':'existing modeled seabed'}
@@ -44,5 +48,5 @@ void main(){float grain=noise(world*1.6);float pores=pow(max(0.,noise(world*3.7)
     record['objects'].append(dict(name='anemone-base-rocks',group='anemone-base-rocks',layer='anemone-base-rocks',file='anemone-base-rocks.npz',vertices=len(v),triangles=len(f),closed=True,sculpted=True));path.write_text(json.dumps(record,indent=2)+'\n')
     for name in props-{'anemone-base-rocks'}:
         for prefix in ['reef-','shadow-']:(ROOT/'roku/images'/f'{prefix}{name}.webp').unlink(missing_ok=True)
-    print('Small rock border:',im.size,'9 independent closed stones; no continuous rim',flush=True)
+    print('Small rock border:',im.size,'9 independent closed stones with mixed sizes and irregular spacing',flush=True)
 if __name__=='__main__':build()

@@ -105,3 +105,8 @@ No new external artwork is introduced. The supplied reference guides the attachm
 ## Broken stone border and rounded tissue shading (1.0.24)
 
 Removes the side-draping control-point override and restores the original upright crown. The base border uses original deterministic convex-hull stone meshes with neutral mineral-grain shading, rather than a continuous tube or a projected coral image. A view-normal edge factor shades the full tissue geometry, stronger on the pedal column and gentler on the translucent fingers. The same factor and stone geometry/materials are included in Blender. Existing tissue-map provenance and licenses are unchanged. No new external artwork is introduced.
+
+
+## Bright pink tissue and varied stone sizes (1.0.25)
+
+No new external artwork is introduced. The latest supplied image guides a vivid rose-pink palette applied to the existing tissue map's photographic luminance. Wrinkles, fine variation, the static grounding gradient and geometry-based edge shade remain. The original deterministic stone meshes now use deliberately mixed size factors and irregular angular spacing. The same tissue map and stone geometry are included in the Blender source. Existing image provenance and licenses remain unchanged.

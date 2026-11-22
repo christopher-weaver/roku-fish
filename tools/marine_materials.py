@@ -8,11 +8,20 @@ def patch(image,box,size):
  im=image.crop(box).convert('RGBA');a=np.asarray(im);valid=a[:,:,3]>220
  _,indices=distance_transform_edt(~valid,return_indices=True)
  rgb=a[indices[0],indices[1],:3];return Image.fromarray(rgb).resize(size,Image.Resampling.LANCZOS)
+def pink_tissue(image):
+ # Map the photographic light/dark detail to the reference's vivid rose palette.
+ rgb=np.asarray(image,dtype=float);luma=(rgb@np.array([.2126,.7152,.0722]))/255
+ stops=np.array([0.,.22,.45,.68,.9,1.])
+ palette=np.array([[72,5,26],[173,27,78],[250,92,157],[255,158,201],[255,215,234],[255,235,242]])
+ colored=np.stack([np.interp(luma,stops,palette[:,channel])for channel in range(3)],axis=2)
+ return Image.fromarray(np.uint8(np.clip(colored,0,255)))
+
 def build():
  folder=ROOT/'assets/source/marine-renders'
  an=Image.open(folder/'sea-anemone-finished.png')
  # Genuine wrinkles, translucency and fine tissue grain from the approved art.
  oral=patch(an,(230,430,640,700),(512,512));tissue=patch(an,(330,160,600,510),(512,512))
+ oral=pink_tissue(oral);tissue=pink_tissue(tissue)
  # The pedal column occupies the left UV tile. Its lower rows in model space
  # map to the top of this image (the upload flips the photo vertically).
  # Bake a soft static grounding gradient into tissue, leaving fingers unchanged.
