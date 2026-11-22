@@ -202,16 +202,6 @@
       "file": "articulated-clam.npz",
       "closed": true,
       "sculpted": true
-    },
-    {
-      "name": "anemone-platform",
-      "group": "anemone-platform",
-      "layer": "anemone-platform",
-      "file": "anemone-platform.npz",
-      "vertices": 5880,
-      "triangles": 11740,
-      "closed": true,
-      "sculpted": true
     }
   ]
 }

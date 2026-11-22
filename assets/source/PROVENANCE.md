@@ -95,3 +95,8 @@ Adds an original closed, low U-shaped tube to the existing platform mesh and sli
 ## Neutral stone and grounded anemone tissue (1.0.22)
 
 The lip now uses an original deterministic, multiscale mineral-grain material in neutral warm gray. It contains no projected coral artwork. Existing tissue artwork receives a smooth grounding gradient in the pedal-column UV tile; the tentacle tile is unchanged. A soft local contact shadow is baked into the existing photographic rock map beneath the foot. The stone map and shaded tissue map are packed into the Blender source. No external artwork or third-party assets are introduced.
+
+
+## Reference-led natural reef attachment (1.0.23)
+
+No new external artwork is introduced. The supplied reference guides the attachment and silhouette: outer front tentacles drape over the complete pedal column and the existing closed reef volumes toward the photographed sand. The artificial rim and separate support platform, including their unused material maps, are removed. Existing photographic tissue maps, static base shading, tentacle opacity and the original reef/seabed provenance remain unchanged.

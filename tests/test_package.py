@@ -201,7 +201,7 @@ class PackageChecks(unittest.TestCase):
     def test_fine_per_plane_collision_masks(self):
         occ=json.loads((ROOT/'roku/scenes/occupancy.json').read_text())
         self.assertEqual(occ['cell'],8)
-        self.assertEqual(len(occ['planes']),8)
+        self.assertEqual(len(occ['planes']),6)
         cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text())
         self.assertEqual([(p['id'],p['z'],p['parallax'])for p in occ['planes'] if p['id']!='grounded-rock-base'],[(p['id'],p['z'],p['parallax'])for p in cfg['formations']])
         for plane in occ['planes']:

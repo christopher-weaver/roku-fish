@@ -106,6 +106,12 @@ def anemone():
   p0=root;p1=root+np.array([np.cos(theta)*reach*.25,-height*.24,12.])
   p2=root+np.array([np.cos(theta)*(reach+9),-height*1.16,18.+np.sin(theta)*8])
   p3=root+np.array([np.cos(theta)*reach+12*np.sin(i*1.7),-height*.84,23.+np.sin(theta)*15])
+  if front>.3 and ring>55:
+   # Reference-like outer fingers drape over the complete column and rocks.
+   # Their roots stay pinned to the disc; the existing 3D tip motion is retained.
+   p1=root+np.array([np.cos(theta)*reach*.30,8.,14.])
+   p2=root+np.array([np.cos(theta)*reach*.65,18.+31.*front,32.])
+   p3=root+np.array([np.cos(theta)*reach*.7+5*np.sin(i*1.7),22.+30.*front,28.])
   t=np.linspace(0,1,36);path=(1-t[:,None])**3*p0+3*(1-t[:,None])**2*t[:,None]*p1+3*(1-t[:,None])*t[:,None]**2*p2+t[:,None]**3*p3
   path[:,0]+=rng.uniform(3,8)*np.sin(t*np.pi*1.5+i*.81)*np.sin(t*np.pi)
   path[:,2]+=12*np.sin(t*np.pi+i*.67)*np.sin(t*np.pi)
@@ -117,6 +123,8 @@ def anemone():
   for channel in range(3):row_colors[:,channel]=np.interp(t,stops,palette[:,channel])
   row_colors*=.94+.06*np.sin(i*1.7)
   m.tube(path,radius,color,(.86,.83,.65),flow,sides=18,row_colors=row_colors,material=True)
+ # Seat the complete animal into the reef; keep its material UVs pinned.
+ for point in m.v:point[1]+=12.
  return m
 
 def corals():

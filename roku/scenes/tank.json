@@ -12,9 +12,7 @@
     0.26,
     0.48,
     0.7,
-    0.74,
     0.75,
-    0.76,
     0.83
   ],
   "camera": {
@@ -160,43 +158,12 @@
       }
     },
     {
-      "id": "anemone-platform",
-      "image": "pkg:/images/reef-anemone-platform.webp",
-      "x": 1256,
-      "y": 998,
-      "width": 436,
-      "height": 96,
-      "frameWidth": 436,
-      "frameHeight": 96,
-      "frames": 1,
-      "columns": 1,
-      "z": 0.74,
-      "halfDepth": 0.035,
-      "parallax": 1,
-      "renderedMesh": true,
-      "meshVertices": 5880,
-      "meshTriangles": 11740,
-      "meshObjects": [
-        "anemone-platform"
-      ],
-      "surfaceShadow": {
-        "image": "pkg:/images/shadow-anemone-platform.webp",
-        "width": 128,
-        "height": 72,
-        "columns": 8,
-        "scale": 16,
-        "x": 0,
-        "y": 0,
-        "frames": 32
-      }
-    },
-    {
       "x": 1337,
-      "y": 848,
+      "y": 860,
       "width": 274,
-      "height": 182,
+      "height": 194,
       "frameWidth": 206,
-      "frameHeight": 136,
+      "frameHeight": 146,
       "frames": 65,
       "columns": 9,
       "meshVertices": 43360,
@@ -214,43 +181,12 @@
       "animation": {
         "period": 7.5,
         "count": 65,
-        "framesPerPage": 126,
+        "framesPerPage": 117,
         "strideX": 210,
-        "strideY": 140,
+        "strideY": 150,
         "gutter": 2
       },
       "geometryType": "closed sculpted tubes and solid anatomy"
-    },
-    {
-      "id": "anemone-lip",
-      "image": "pkg:/images/reef-anemone-lip.webp",
-      "x": 1378,
-      "y": 998,
-      "width": 192,
-      "height": 24,
-      "frameWidth": 192,
-      "frameHeight": 24,
-      "frames": 1,
-      "columns": 1,
-      "z": 0.76,
-      "halfDepth": 0.01,
-      "parallax": 1,
-      "renderedMesh": true,
-      "meshVertices": 2582,
-      "meshTriangles": 5160,
-      "meshObjects": [
-        "anemone-platform"
-      ],
-      "surfaceShadow": {
-        "image": "pkg:/images/shadow-anemone-lip.webp",
-        "width": 128,
-        "height": 72,
-        "columns": 8,
-        "scale": 16,
-        "x": 0,
-        "y": 0,
-        "frames": 32
-      }
     },
     {
       "id": "clam",
@@ -31784,18 +31720,11 @@
     "clearanceY": 106,
     "maxWaveY": 96
   },
-  "anemonePlatform": {
-    "x": 1474,
-    "supportY": 1023,
-    "lip": {
-      "centerY": 1005,
-      "radiusX": 92,
-      "radiusY": 13,
-      "thickness": 3.8,
-      "formation": "anemone-lip"
-    },
+  "anemoneHabitat": {
+    "support": "foreground-reef",
     "fullBase": true,
-    "sandApron": true,
-    "formation": "anemone-platform"
+    "drapedTentacles": true,
+    "seatOffsetY": 12,
+    "sandTransition": "existing modeled seabed"
   }
 }
