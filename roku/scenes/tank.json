@@ -12,8 +12,8 @@
     0.26,
     0.48,
     0.7,
+    0.74,
     0.75,
-    0.8,
     0.83
   ],
   "camera": {
@@ -159,12 +159,43 @@
       }
     },
     {
+      "id": "anemone-platform",
+      "image": "pkg:/images/reef-anemone-platform.webp",
+      "x": 1256,
+      "y": 997,
+      "width": 436,
+      "height": 97,
+      "frameWidth": 436,
+      "frameHeight": 97,
+      "frames": 1,
+      "columns": 1,
+      "z": 0.74,
+      "halfDepth": 0.035,
+      "parallax": 1,
+      "renderedMesh": true,
+      "meshVertices": 3298,
+      "meshTriangles": 6580,
+      "meshObjects": [
+        "anemone-platform"
+      ],
+      "surfaceShadow": {
+        "image": "pkg:/images/shadow-anemone-platform.webp",
+        "width": 128,
+        "height": 72,
+        "columns": 8,
+        "scale": 16,
+        "x": 0,
+        "y": 0,
+        "frames": 32
+      }
+    },
+    {
       "x": 1337,
-      "y": 857,
+      "y": 848,
       "width": 274,
-      "height": 150,
+      "height": 182,
       "frameWidth": 206,
-      "frameHeight": 112,
+      "frameHeight": 136,
       "frames": 65,
       "columns": 9,
       "meshVertices": 43360,
@@ -182,33 +213,12 @@
       "animation": {
         "period": 7.5,
         "count": 65,
-        "framesPerPage": 153,
+        "framesPerPage": 126,
         "strideX": 210,
-        "strideY": 116,
+        "strideY": 140,
         "gutter": 2
       },
       "geometryType": "closed sculpted tubes and solid anatomy"
-    },
-    {
-      "id": "anemone-rim",
-      "image": "pkg:/images/reef-anemone-rim.webp",
-      "x": 1342,
-      "y": 942,
-      "width": 264,
-      "height": 47,
-      "frameWidth": 264,
-      "frameHeight": 47,
-      "frames": 1,
-      "columns": 1,
-      "z": 0.8,
-      "halfDepth": 0.028,
-      "parallax": 1,
-      "renderedMesh": true,
-      "meshVertices": 3482,
-      "meshTriangles": 6960,
-      "meshObjects": [
-        "anemone-pocket-rim"
-      ]
     },
     {
       "id": "clam",
@@ -31742,12 +31752,11 @@
     "clearanceY": 106,
     "maxWaveY": 96
   },
-  "anemonePocket": {
+  "anemonePlatform": {
     "x": 1474,
-    "y": 970,
-    "width": 220,
-    "height": 124,
-    "recessDepth": 55,
-    "frontRim": "anemone-rim"
+    "supportY": 1018,
+    "fullBase": true,
+    "sandApron": true,
+    "formation": "anemone-platform"
   }
 }

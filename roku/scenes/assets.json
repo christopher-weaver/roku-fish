@@ -164,10 +164,10 @@
     "height": 512,
     "sha256": "3d5f5202a0d7d6d14d72aab7e6a1fa05773ad139cedb68aa70d118c953b1f8a1"
   },
-  "reef-anemone-rim.webp": {
-    "width": 264,
-    "height": 47,
-    "sha256": "eeb397fea8dda54dfc7f3d9ecb97d3945ddb9939af204548efd572e019185c39"
+  "reef-anemone-platform.webp": {
+    "width": 436,
+    "height": 97,
+    "sha256": "82ce28da681a03ca61bb494265dabfbc4d63f9c061555a218e9572405ce1d271"
   },
   "reef-clam-motion-0.webp": {
     "width": 1914,
@@ -186,8 +186,8 @@
   },
   "reef-sea-anemone-motion-0.webp": {
     "width": 1894,
-    "height": 932,
-    "sha256": "50348a085453a4f80c53dbee6c2c6ba9d582803b1999eb5638e7c92e6a797f70"
+    "height": 1124,
+    "sha256": "35a9f935c4296867b5e4e0a2cff108a0d96a463631d66de9eeca83f947acea26"
   },
   "reef-sea-fan-motion-0.webp": {
     "width": 1922,
@@ -217,17 +217,17 @@
   "sand-wave-shadows.png": {
     "width": 2048,
     "height": 96,
-    "sha256": "c4422cc735278b66ece5a105f53e8e1cbe221e01d1c7e2eee15eefb5354000a1"
+    "sha256": "152a0708af3a75cf888af162fb14296a79eae3dfcbc589b226bf7f60dce1474a"
   },
   "seafloor-sunset.webp": {
     "width": 2048,
     "height": 232,
     "sha256": "f0a74bd69a61c5fa4559492ecea15610aa788ac7634bcd52fb07c8630b144904"
   },
-  "shadow-anemone-rim.webp": {
+  "shadow-anemone-platform.webp": {
     "width": 1024,
     "height": 288,
-    "sha256": "49c30997cf8c41c611547ad75d1777804b9c308607770d0281b4b2a169568283"
+    "sha256": "f9457222d3bc328dc9d03d82418539d8a784a6ca2e99c70bdfb7984e256d5120"
   },
   "shadow-connected-reef.webp": {
     "width": 1024,

@@ -5,11 +5,11 @@ import numpy as np
 from PIL import Image,ImageDraw,ImageFont
 import imagequant
 ROOT=Path(__file__).resolve().parents[1]
-def compact():
+def compact(only=None):
  from formation_frames import frame
  p=ROOT/'roku/scenes/tank.json';cfg=json.loads(p.read_text())
  for f in cfg['formations']:
-  if f['id']not in ['clam','sea-anemone']:continue
+  if f['id']not in ['clam','sea-anemone'] or (only is not None and f['id']not in only):continue
   scale=.75 if f['id']=='sea-anemone'else 1.
   tw,th=round(f['width']*scale),round(f['height']*scale);cols=2044//(tw+4);capacity=cols*(2044//(th+4));cache={};shots=[]
   for i in range(f['frames']):shots.append(frame(f,i,cache).resize((tw,th),Image.Resampling.LANCZOS))

@@ -24,6 +24,10 @@ for item in record['objects']:
   colors=mesh.color_attributes.new(name='sculpted colour',type='FLOAT_COLOR',domain='POINT');colors.data.foreach_set('color',np.column_stack([rgb,np.ones(len(rgb))]).ravel());material=bpy.data.materials.new(item['name']+' shaded material');material.use_nodes=True;node=material.node_tree.nodes.new('ShaderNodeVertexColor');node.layer_name='sculpted colour';material.node_tree.links.new(node.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color']);
   if (folder/(item['name']+'-colour.png')).exists():
    texture=material.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(folder/(item['name']+'-colour.png')));texture.image.pack();material.node_tree.links.new(texture.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
+  if item['name']=='anemone-platform':
+   sand=material.node_tree.nodes.new('ShaderNodeTexImage');sand.image=bpy.data.images.load(str(folder/'anemone-platform-sand.png'));sand.image.pack()
+   mask=material.node_tree.nodes.new('ShaderNodeMath');mask.operation='GREATER_THAN';mask.inputs[1].default_value=.2;material.node_tree.links.new(node.outputs['Color'],mask.inputs[0])
+   mix=material.node_tree.nodes.new('ShaderNodeMixRGB');material.node_tree.links.new(mask.outputs[0],mix.inputs[0]);material.node_tree.links.new(sand.outputs['Color'],mix.inputs[1]);material.node_tree.links.new(texture.outputs['Color'],mix.inputs[2]);material.node_tree.links.new(mix.outputs[0],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
   if item['name']=='articulated-clam':
    texture=material.node_tree.nodes.new('ShaderNodeTexImage');texture.image=bpy.data.images.load(str(ROOT/'assets/source/marine-renders/clam-material.png'));texture.image.pack();material.node_tree.links.new(texture.outputs['Color'],material.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
   o.data.materials.clear();o.data.materials.append(material)

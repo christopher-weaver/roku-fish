@@ -64,14 +64,17 @@ class VolumeGeometryChecks(unittest.TestCase):
    self.assertFalse(np.any(pixels&~covered),name+' must already fit behind the closed shell')
   for name in ['anemone-material.png','clam-material.png']:
    material=np.asarray(Image.open(ROOT/'assets/source/marine-renders'/name).convert('RGB'));self.assertGreater(material.std(),25)
- def test_anemone_has_surrounding_closed_rock_rim(self):
-  cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text());plant=next(f for f in cfg['formations']if f['id']=='sea-anemone');rim=next(f for f in cfg['formations']if f['id']=='anemone-rim')
-  self.assertGreater(rim['z'],plant['z']);self.assertLess(rim['x'],1474-100);self.assertGreater(rim['x']+rim['width'],1474+100)
-  with np.load(ROOT/'assets/source/reef-model/anemone-pocket-rim.npz')as m:
-   self.assert_closed(m['vertices'],m['faces']);self.assertGreater(np.ptp(m['vertices'][:,2]),30)
-  self.assertGreater(cfg['anemonePocket']['recessDepth'],40)
-  with np.load(ROOT/'assets/source/reef-model/grounded-footings.npz')as m:
-   v=m['vertices'];inside=(abs(v[:,0]-1474)<12)&(abs(v[:,1]-970)<12)&(v[:,2]>0);self.assertTrue(inside.any());self.assertLess(v[inside,2].max(),120)
+ def test_complete_anemone_stands_on_sandy_rock_platform(self):
+  cfg=json.loads((ROOT/'roku/scenes/tank.json').read_text());plant=next(f for f in cfg['formations']if f['id']=='sea-anemone');platform=next(f for f in cfg['formations']if f['id']=='anemone-platform')
+  self.assertLess(platform['z'],plant['z'],'Support must draw behind the complete base')
+  self.assertFalse(any(f['id']=='anemone-rim'for f in cfg['formations']))
+  self.assertTrue(cfg['anemonePlatform']['fullBase']);self.assertTrue(cfg['anemonePlatform']['sandApron'])
+  with np.load(ROOT/'assets/source/marine-renders/sea-anemone-sculpted.npz')as m:
+   v=m['vertices'][:1760];self.assertGreater(v[:,1].max(),1018,'Full pedal column must be restored')
+   self.assert_closed(m['vertices'],m['faces'])
+  with np.load(ROOT/'assets/source/reef-model/anemone-platform.npz')as m:
+   self.assert_closed(m['vertices'],m['faces']);self.assertGreater(np.ptp(m['vertices'][:,0]),400);self.assertGreater(np.ptp(m['vertices'][:,2]),50)
+  pixels=np.asarray(Image.open(ROOT/'roku/images/reef-anemone-platform.webp').convert('RGBA'));self.assertTrue(((pixels[:,:,3]>0)&(pixels[:,:,3]<240)).any(),'Sand apron must feather into seabed')
  def test_approved_fan_is_restored_exactly(self):
   approved=ROOT/'assets/source/marine-renders/approved-fan'
   self.assertEqual((approved/'atlas.webp').read_bytes(),(ROOT/'roku/images/reef-sea-fan-motion-0.webp').read_bytes())

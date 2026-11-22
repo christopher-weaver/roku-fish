@@ -204,12 +204,12 @@
       "sculpted": true
     },
     {
-      "name": "anemone-pocket-rim",
-      "group": "anemone-pocket-rim",
-      "layer": "anemone-rim",
-      "file": "anemone-pocket-rim.npz",
-      "vertices": 3482,
-      "triangles": 6960,
+      "name": "anemone-platform",
+      "group": "anemone-platform",
+      "layer": "anemone-platform",
+      "file": "anemone-platform.npz",
+      "vertices": 3298,
+      "triangles": 6580,
       "closed": true,
       "sculpted": true
     }

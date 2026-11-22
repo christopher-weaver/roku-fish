@@ -80,3 +80,8 @@ No new external artwork is introduced. `marine_materials.py` extracts tissue/she
 ## Recessed anemone and illuminated clam lining (1.0.19)
 
 No new external artwork is introduced. `anemone_pocket.py` builds an original closed U-shaped rock rim, with photographic colour projected from the existing approved reef and a matching depression in the reef/foundation volumes. The anemone's original photographic tissue maps and 80% tentacle opacity are preserved. The clam lining uses the existing photographic interior material, fitted to a shallower pale mantle. Foreground shell masks exclude the lining, so contents exist at full opacity behind the shell and are progressively uncovered by opening geometry. Source meshes, colour projection and the packed Blender scene are included. Existing artwork licenses remain unchanged.
+
+
+## Complete anemone and rock/sand platform (1.0.20)
+
+No new external artwork is introduced. `anemone_pocket.py` replaces the former foreground rim with a closed irregular stone ledge, smaller side stones and a shallow sand apron. Photographic rock colour is extracted from the existing reef projection; the sand uses the existing seabed projection. The apron feathers into the floor. The same source maps and material selection are packed into the Blender scene. The original complete pedal-column geometry is restored and its existing photographic tissue material is retained.
