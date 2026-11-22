@@ -177,3 +177,7 @@ Restores the anemone's full original pedal column and removes the foreground rim
 ## Version 1.0.21
 
 Adds a small raised rock lip around the anemone's foot and brings the ledge forward slightly so the complete animal is visibly supported. The original anemone model and animated texture remain unchanged. The new lip is part of the closed platform geometry, with the same rock texture and sand transition. Updated screenshot, Blender source and sideload ZIP are included.
+
+## Version 1.0.22
+
+Changes the narrow anemone lip to neutral, finely grained stone without projected coral colours. Adds a gradual static shadow to the lower pedal column and a soft contact shadow on the receiving rock. The complete geometry and tentacle opacity are preserved. Updated materials, Blender source, screenshot and installation ZIP are included.

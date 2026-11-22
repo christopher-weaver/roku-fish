@@ -167,12 +167,12 @@
   "reef-anemone-lip.webp": {
     "width": 192,
     "height": 24,
-    "sha256": "b8d7d2daf7b8633cf0e4553b799ba772a3816f2ce001da02924299a350e43ae5"
+    "sha256": "091f4f40a9fde7273716eb842afc3870ee38e5d31c6ec17b413f592384d672a9"
   },
   "reef-anemone-platform.webp": {
     "width": 436,
     "height": 96,
-    "sha256": "92e4ac87721c22f926a6a70187e937eef50bffdb508d17fe851d1ff6a8f66710"
+    "sha256": "1a41d0d01b3db3c70587f8201a8043b8e41d3fa10a72d0e723842f4bdcec7274"
   },
   "reef-clam-motion-0.webp": {
     "width": 1914,
@@ -192,7 +192,7 @@
   "reef-sea-anemone-motion-0.webp": {
     "width": 1894,
     "height": 1124,
-    "sha256": "35a9f935c4296867b5e4e0a2cff108a0d96a463631d66de9eeca83f947acea26"
+    "sha256": "f87150ac3ddc4993857eaf6e071b699a0bbf0260ea25e5829653a84ea21def37"
   },
   "reef-sea-fan-motion-0.webp": {
     "width": 1922,

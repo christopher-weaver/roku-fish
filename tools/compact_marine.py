@@ -21,6 +21,7 @@ def compact(only=None):
    name=f"reef-{f['id']}-motion-{len(pages)}.webp";Image.fromarray(a).save(ROOT/'roku/images'/name,quality=60 if f['id']=='sea-anemone'else 75,method=6,exact=False);pages.append('pkg:/images/'+name)
   f.update(image=pages[0],images=pages,frameWidth=tw,frameHeight=th,columns=cols);f['animation'].update(framesPerPage=capacity,strideX=tw+4,strideY=th+4)
  p.write_text(json.dumps(cfg,indent=2)+'\n')
+ if only is not None:return
  # Low-entropy branded menu artwork reserves scene quality for moving animals.
  fontpath=Path('/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf')
  for prefix,sizes in [('icon',[(540,405,'fhd'),(290,218,'hd'),(214,144,'sd')]),('splash',[(1920,1080,'fhd'),(1280,720,'hd'),(720,480,'sd')])]:

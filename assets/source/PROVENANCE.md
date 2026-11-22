@@ -90,3 +90,8 @@ No new external artwork is introduced. `anemone_pocket.py` replaces the former f
 ## Small platform lip (1.0.21)
 
 Adds an original closed, low U-shaped tube to the existing platform mesh and slightly extends its upper shelf. The lip reuses the platform's existing photographic rock map. No new artwork or third-party assets are introduced; the complete anemone mesh and animation atlas are unchanged.
+
+
+## Neutral stone and grounded anemone tissue (1.0.22)
+
+The lip now uses an original deterministic, multiscale mineral-grain material in neutral warm gray. It contains no projected coral artwork. Existing tissue artwork receives a smooth grounding gradient in the pedal-column UV tile; the tentacle tile is unchanged. A soft local contact shadow is baked into the existing photographic rock map beneath the foot. The stone map and shaded tissue map are packed into the Blender source. No external artwork or third-party assets are introduced.

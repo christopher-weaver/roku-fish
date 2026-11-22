@@ -13,6 +13,12 @@ def build():
  an=Image.open(folder/'sea-anemone-finished.png')
  # Genuine wrinkles, translucency and fine tissue grain from the approved art.
  oral=patch(an,(230,430,640,700),(512,512));tissue=patch(an,(330,160,600,510),(512,512))
+ # The pedal column occupies the left UV tile. Its lower rows in model space
+ # map to the top of this image (the upload flips the photo vertically).
+ # Bake a soft static grounding gradient into tissue, leaving fingers unchanged.
+ world_y=850+155*(1-np.linspace(0,1,512))
+ foot=np.clip((world_y-965)/40,0,1);foot=foot*foot*(3-2*foot)
+ oral=Image.fromarray(np.uint8(np.asarray(oral).astype(float)*(1-.45*foot[:,None,None])))
  atlas=Image.new('RGB',(1024,512));atlas.paste(oral);atlas.paste(tissue,(512,0));atlas.save(folder/'anemone-material.png',optimize=True)
  clam=Image.open(ROOT/'assets/source/coral-islands/central-clam.png')
  shell=patch(clam,(72,105,416,330),(512,512));mantle=patch(clam,(160,130,395,305),(512,512))

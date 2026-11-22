@@ -4,6 +4,7 @@ import json
 import numpy as np
 from PIL import Image
 import moderngl
+from scipy.ndimage import gaussian_filter
 from living_reef import Model,save,VS
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -52,14 +53,26 @@ def build():
     dust=np.clip((grain-.87)*3,0,.18)+np.clip((yy-1034)/60,0,.12)
     blend=np.maximum(edge,dust)[:,:,None]
     color=np.uint8(np.clip(rock*(1-blend)+sand*blend,0,255))
+    # Contact shade stays on the receiving rock beneath the pedal column.
+    contact=np.exp(-((xx-1474)/61)**2-((yy-1017)/11)**2)
+    color=np.uint8(color.astype(float)*(1-.28*contact[:,:,None]))
     color=Image.fromarray(color);color.save(folder/'anemone-platform-colour.png')
+    # Neutral mineral grain instead of projected coral colours on the narrow lip.
+    rng=np.random.default_rng(431);coarse=gaussian_filter(rng.normal(size=(144,256)),2)
+    coarse=coarse/max(float(coarse.std()),1e-6)
+    broad=np.asarray(Image.fromarray(coarse.astype('f4')).resize((2048,1152),Image.Resampling.BICUBIC))
+    fine=rng.normal(size=(1152,2048));pores=np.maximum(0,-gaussian_filter(fine,1.1)-.35)
+    level=np.clip(1+.065*broad+.035*fine-.20*pores,.65,1.28)
+    lip_color=Image.fromarray(np.uint8(np.clip(level[:,:,None]*np.array([125,121,112]),0,255)))
+    lip_color.save(folder/'anemone-platform-lip.png')
     ctx=moderngl.create_standalone_context(backend='egl');ctx.enable(moderngl.DEPTH_TEST)
     fs='''#version 330
-uniform sampler2D photo;uniform sampler2D sandPhoto;in vec3 n;in vec3 color;in vec3 world;in vec2 texuv;out vec4 outcol;
-void main(){vec3 base=texture(photo,texuv).rgb;float a=1.;float light=.83+.17*max(0.,dot(normalize(n),normalize(vec3(-.35,-.7,1.))));if(color.r>.8){base=min(base*1.20,vec3(.92));light=.67+.33*max(0.,dot(normalize(n),normalize(vec3(-.35,-.7,1.))));}if(color.r<.2){float r=length(vec2((world.x-1474.)/222.,(world.y-1053.)/42.));a=1.-smoothstep(.65,.99,r);light=1.;base=texture(sandPhoto,texuv).rgb;}outcol=vec4(base*light,a);}'''
+uniform sampler2D photo;uniform sampler2D sandPhoto;uniform sampler2D lipPhoto;in vec3 n;in vec3 color;in vec3 world;in vec2 texuv;out vec4 outcol;
+void main(){vec3 base=texture(photo,texuv).rgb;float a=1.;float light=.83+.17*max(0.,dot(normalize(n),normalize(vec3(-.35,-.7,1.))));if(color.r>.8){base=texture(lipPhoto,texuv).rgb;light=.60+.40*max(0.,dot(normalize(n),normalize(vec3(-.35,-.7,1.))));}if(color.r<.2){float r=length(vec2((world.x-1474.)/222.,(world.y-1053.)/42.));a=1.-smoothstep(.65,.99,r);light=1.;base=texture(sandPhoto,texuv).rgb;}outcol=vec4(base*light,a);}'''
     p=ctx.program(vertex_shader=VS,fragment_shader=fs);p['stage'].value=(0,0,2048,1152);p['strength'].value=0
     texture=ctx.texture(color.size,3,color.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());texture.filter=(moderngl.LINEAR,moderngl.LINEAR);texture.use(location=0);p['photo'].value=0
     sand_texture=ctx.texture(color.size,3,Image.fromarray(np.uint8(sand)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());sand_texture.filter=(moderngl.LINEAR,moderngl.LINEAR);sand_texture.use(location=1);p['sandPhoto'].value=1
+    lip_texture=ctx.texture(lip_color.size,3,lip_color.transpose(Image.Transpose.FLIP_TOP_BOTTOM).tobytes());lip_texture.filter=(moderngl.LINEAR,moderngl.LINEAR);lip_texture.use(location=2);p['lipPhoto'].value=2
     vb=ctx.buffer(np.column_stack([v,n,rgb,flow]).astype('f4').tobytes());platform_faces=np.concatenate([f[:lip_start],f[lip_end:]])
     ib=ctx.buffer(platform_faces.tobytes());vao=ctx.vertex_array(p,[(vb,'3f 3f 3f 3f','position','normal','rgb','flow')],ib)
     fb=ctx.simple_framebuffer((2048,1152),components=4);fb.use();fb.clear(0,0,0,0,depth=1);vao.render()
