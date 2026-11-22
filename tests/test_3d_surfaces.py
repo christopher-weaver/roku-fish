@@ -44,7 +44,8 @@ class ThreeDAndSurfaceChecks(unittest.TestCase):
    receiver=Image.new('L',(2048,1152));receiver.paste(footprint(f),(f['x'],f['y']));outside=np.asarray(receiver)<251
    c=f['surfaceShadow'];atlas=Image.open(ROOT/'roku'/c['image'][5:]).convert('RGBA')
    for i in range(32):
-    x=i%c['columns']*c['width'];y=i//c['columns']*c['height'];mask=atlas.crop((x,y,x+c['width'],y+c['height'])).getchannel('A').resize((2048,1152),Image.Resampling.BILINEAR)
+    x=i%c['columns']*c['width'];y=i//c['columns']*c['height'];piece=atlas.crop((x,y,x+c['width'],y+c['height'])).getchannel('A').resize((c['width']*c['scale'],c['height']*c['scale']),Image.Resampling.BILINEAR)
+    mask=Image.new('L',(2048,1152));mask.paste(piece,(c['x'],c['y']))
     self.assertEqual(np.asarray(mask)[outside].max(),0,f['id'])
  def test_soft_shadow_projector_has_floor_perspective(self):
   for y in [300.,970.,1150.]:

@@ -30,6 +30,7 @@ sub Main()
             output.calls=[] : s.camera=ReefCamera(60#+frame/60#,"Slow")
             ReefPresent(r,s)
             first=output.calls[0]
+            if first.scaled then print "FAIL native canvas scaled a second time" : return
             if first.alpha<>255 then print "FAIL base canvas opacity" : return
             centroid=first.x
             if output.calls.Count()=2
@@ -56,11 +57,11 @@ end sub
 sub PresentClear(color as integer)
 end sub
 function PresentCapture(x as integer,y as integer,sx as float,sy as float,source as dynamic,tint as integer) as boolean
-    m.calls.Push({x:x,alpha:tint and 255})
+    m.calls.Push({x:x,alpha:tint and 255,scaled:true})
     return true
 end function
 
 function PresentObject(x as integer,y as integer,source as dynamic,tint as integer) as boolean
-    m.calls.Push({x:x,alpha:tint and 255})
+    m.calls.Push({x:x,alpha:tint and 255,scaled:false})
     return true
 end function

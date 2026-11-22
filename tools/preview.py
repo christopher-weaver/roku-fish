@@ -146,7 +146,7 @@ def render(frame,mode='Sunset',density='Medium'):
             c=formation['surfaceShadow'];atlas=asset(c['image'].split('/')[-1]);phase=t%8*4;first=int(phase);blend=phase-first
             for j in range(2):
                 i=(first+j)%32;x=i%c['columns']*c['width'];y=i//c['columns']*c['height'];part=atlas.crop((x,y,x+c['width'],y+c['height']))
-                paste(img,part,-cam,-36,c['scale'],opacity=(blend if j else 1-blend)*.65*(.35+.65*day))
+                paste(img,part,c.get('x',0)-cam,c.get('y',0)-36,c['scale'],opacity=(blend if j else 1-blend)*.65*(.35+.65*day))
         if formation['id']=='connected-reef':
             fr=EEL['frames'][eel_pose(t)];atlas=asset(EEL['image'].split('/')[-1]);actor=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
             light=int(255*(1-float(field(773,858,t))/255*.30*(.35+.65*day)))

@@ -193,3 +193,7 @@ Removes the downward side/front tentacle extensions. Adds a small border of sepa
 ## Version 1.0.25
 
 Colors the anemone bright pink using a reference-inspired palette while retaining photographic tissue detail, edge shading, translucency and the approved shape. The small stone border now mixes larger rocks with small infill pieces, with varied dimensions and less regular spacing. Updated materials, Blender source, screenshot and installation ZIP are included.
+
+## Version 1.0.26
+
+Fixes the long-standing full-resolution offscreen canvas in Performance mode, removes empty shadow passes, and crops receiver maps without changing visible shadow pixels. Reduces repeated fish-bending trigonometry while preserving the eight-section curve and body-view blending. Adds native update/draw/swap/event timings to the FPS display and developer console. See [the performance investigation](docs/PERFORMANCE.md) for measured workload reductions and the remaining device-validation step. Updated source and sideload ZIP remain tracked on GitHub.

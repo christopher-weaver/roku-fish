@@ -15,7 +15,7 @@ def brs_run(test,log):
     work=ROOT/'work';work.mkdir(exist_ok=True)
     settings=(ROOT/'roku/source/settings-model.brs').read_text().replace('CreateObject("roRegistrySection", "deep-reef-v1")','ReefTestRegistry("deep-reef-v1")')
     (work/'settings-test.brs').write_text(settings)
-    extra=['roku/components/ReefSettings.brs'] if test=='settings_ui' else ['roku/source/renderer.brs'] if test in ['render_depth','upright_present','swim_sway','clam_night_surface','clam_contents'] else []
+    extra=['roku/components/ReefSettings.brs'] if test=='settings_ui' else ['roku/source/renderer.brs'] if test in ['render_depth','upright_present','swim_sway','clam_night_surface','clam_contents','wave_equivalence'] else []
     args=['node','tests/roku_runner.cjs','--root','roku']+[f'roku/source/{s}.brs'for s in SOURCES]+['work/settings-test.brs','tests/registry-stub.brs',f'tests/{test}.brs']+extra
     result=subprocess.run(args,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=dict(os.environ,BRS_BIN=binary('brs')))
     (ROOT/log).write_text(result.stdout)
@@ -39,6 +39,8 @@ if __name__=='__main__':
         print(brs_run('clam_night_surface','docs/clam-night-surface-results.txt'))
         print(brs_run('appendage_smoothness','docs/appendage-smoothness-results.txt'))
         print(brs_run('swim_sway','docs/swim-sway-results.txt'))
+        print(brs_run('frame_profile','docs/frame-profile-results.txt'))
+        print(brs_run('wave_equivalence','docs/wave-equivalence-results.txt'))
         print(brs_run('fish_profile','docs/fish-profile-results.txt'))
         print(brs_run('floor_collision','docs/floor-collision-results.txt'))
         print(brs_run('cave_collision','docs/cave-collision-results.txt'))

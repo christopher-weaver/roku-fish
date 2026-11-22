@@ -28,11 +28,23 @@ def build():
     for f in tank['formations']:
         if f.get('animation'):continue
         canvas=Image.new('L',(2048,1152));canvas.paste(footprint(f),(f['x'],f['y']));mask=conservative_mask(np.asarray(canvas));atlas=Image.new('RGBA',(1024,288))
+        name='shadow-'+f['id']+'.webp'
+        if not mask.any():
+            f.pop('surfaceShadow',None);(ROOT/'roku/images'/name).unlink(missing_ok=True)
+            print('Skipped empty surface shadow',f['id'],flush=True);continue
         for i in range(32):
             rgba=np.zeros((72,128,4),dtype='uint8');rgba[:,:,:3]=[18,23,32];rgba[:,:,3]=np.uint8(field(worldx,worldy,i/4)*mask)
             atlas.paste(Image.fromarray(rgba),((i%8)*128,(i//8)*72))
-        name='shadow-'+f['id']+'.webp';compact=imagequant.quantize_pil_image(atlas,max_colors=24,dithering_level=0,max_quality=95);compact.convert('RGBA').save(ROOT/'roku/images'/name,lossless=True,method=6,exact=True)
-        f['surfaceShadow']={'image':'pkg:/images/'+name,'width':128,'height':72,'columns':8,'scale':16,'x':0,'y':0,'frames':32}
+        # Quantize before cropping: every retained receiver pixel stays identical.
+        compact=imagequant.quantize_pil_image(atlas,max_colors=24,dithering_level=0,max_quality=95).convert('RGBA')
+        yy,xx=np.nonzero(mask);left=max(0,int(xx.min())-2);top=max(0,int(yy.min())-2)
+        right=min(128,int(xx.max())+3);bottom=min(72,int(yy.max())+3);width=right-left;height=bottom-top
+        cropped=Image.new('RGBA',(width*8,height*4))
+        for i in range(32):
+            x=i%8*128;y=i//8*72
+            cropped.paste(compact.crop((x+left,y+top,x+right,y+bottom)),(i%8*width,i//8*height))
+        cropped.save(ROOT/'roku/images'/name,lossless=True,method=6,exact=True)
+        f['surfaceShadow']={'image':'pkg:/images/'+name,'width':width,'height':height,'columns':8,'scale':16,'x':left*16,'y':top*16,'frames':32}
         print('Surface-only shadow',f['id'],flush=True)
     ground=np.asarray(sand_mask().crop((0,960,2048,1152)),dtype=np.uint8)
     # Whole neighbourhood coverage makes interpolation incapable of leaking

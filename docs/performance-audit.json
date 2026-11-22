@@ -1,0 +1,42 @@
+{
+  "scope": "Source work counts and host regression checks, not measured Roku GPU time or device FPS",
+  "before": {
+    "shadow_passes": 6,
+    "shadow_source_pixels_per_fhd_frame": 14155776
+  },
+  "after": {
+    "shadow_passes": 4,
+    "shadow_source_pixels_per_fhd_frame": 4788224
+  },
+  "shadow_reconstruction": {
+    "frames_verified": 96,
+    "alpha_error": 0,
+    "visible_color_error": 0
+  },
+  "performance_canvas_pixels": {
+    "before": 2211840,
+    "after": 982800
+  },
+  "default_medium_fish_transform_draws_per_frame": 144,
+  "fish_regions_for_eight_unique_species": 12960,
+  "body_render_fixture": {
+    "frames": 120,
+    "before": {
+      "sin": 11942,
+      "cos": 11379,
+      "atn": 2160,
+      "sqr": 0,
+      "reeffishtransform": 2160
+    },
+    "after": {
+      "sin": 5582,
+      "cos": 7179,
+      "atn": 2160,
+      "sqr": 2160,
+      "reeffishtransform": 2160
+    },
+    "draws_before": 2160,
+    "draws_after": 2160
+  },
+  "desktop_high_preview_max_rgb_delta": 2
+}

@@ -1,7 +1,7 @@
-# Deep Reef 1.0.25 — bright pink tissue and varied stone border
+# Deep Reef 1.0.26 — performance investigation
 
-The approved anemone geometry is retained and its photographic material is remapped to a reference-inspired bright pink palette. Tissue detail, rounded-edge shading, the grounding gradient, 80% tentacle opacity and existing motion remain. The border mixes larger rocks with small infill stones, varied widths/heights and less even spacing. Blender contains the same material map and stone meshes.
+Confirmed and corrected avoidable render work: native-sized Performance canvas, no empty receiver draws, cropped shadow regions, and equivalent fish-sway math with cached common terms. High retains its canvas size, body sections, heading interpolation, textures and animation. No fish navigation or collision behavior changed.
 
-Validation: 48 Python package, geometry, material and release checks; a targeted native collision check covering physical and interpolated fish poses; matching source/ZIP release checks; browser screenshot with all assets loaded and no page errors. No fish movement code changed. The screenshot is a desktop development preview; actual Roku hardware was not measured.
+Validation: compilation; 49 Python checks; native profiling arithmetic and canvas dimensions; 864 original/optimized transform comparisons; upright fish and presentation; body sway; draw ordering; wave/pacing and turn regressions; HD/FHD subpixel pan precision; matching source/ZIP release checks; browser preview. All 96 baseline shadow frames reconstruct with zero alpha or visible-colour error.
 
-The earlier movement investigation remains in [three-minute-before.txt](three-minute-before.txt) and [movement-followup.txt](movement-followup.txt).
+The measured source-area and call-count results are in [performance-audit.json](performance-audit.json). These are not device FPS measurements. The Roku Ultra needs to run this build and provide its native U/D/S/E timings to establish the dominant remaining bottleneck. [PERFORMANCE.md](PERFORMANCE.md) explains the findings, diagnostics and short on-device check.

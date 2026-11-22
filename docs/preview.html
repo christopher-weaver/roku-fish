@@ -69,7 +69,7 @@ try{
  staged.forEach(drawFish);
  if(enabled&&(event===0||event===1||staged.length)){const sx=formation.width/formation.frameWidth,sy=formation.height/formation.frameHeight;for(const rect of formation.frontRects[view])c.drawImage(atlas,x+rect.x,y+rect.y,rect.w,rect.h,formation.x-offset+rect.x*sx,formation.y-36+rect.y*sy,rect.w*sx,rect.h*sy)}
  }
- if(formation.surfaceShadow){const q=formation.surfaceShadow,phase=displayTime%8*4;for(let pass=0;pass<2;pass++){const i=(Math.floor(phase)+pass)%32;c.globalAlpha=(pass?phase%1:1-phase%1)*.65*(.35+.65*day);c.drawImage(assets[q.image.split('/').pop()],i%q.columns*q.width,Math.floor(i/q.columns)*q.height,q.width,q.height,-f.camera,-36,2048,1152)}c.globalAlpha=1}
+ if(formation.surfaceShadow){const q=formation.surfaceShadow,phase=displayTime%8*4;for(let pass=0;pass<2;pass++){const i=(Math.floor(phase)+pass)%32;c.globalAlpha=(pass?phase%1:1-phase%1)*.65*(.35+.65*day);c.drawImage(assets[q.image.split('/').pop()],i%q.columns*q.width,Math.floor(i/q.columns)*q.height,q.width,q.height,(q.x??0)-f.camera,(q.y??0)-36,q.width*q.scale,q.height*q.scale)}c.globalAlpha=1}
  if(formation.id==='connected-reef'){const ef=eelConfig.frames[eelPose(displayTime)];c.save();c.filter=`brightness(${1-(1-surfaceShade(773,858,displayTime))*.30*(.35+.65*day)})`;c.drawImage(assets['cave-eel-3d.webp'],ef.x,ef.y,ef.w,ef.h,eelConfig.x-f.camera,eelConfig.y-36,ef.w,ef.h);c.restore()}}
 
  let wave=displayTime%waveConfig.period*waveConfig.frames/waveConfig.period,sg=waveConfig.sand;

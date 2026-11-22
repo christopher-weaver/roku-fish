@@ -224,20 +224,15 @@
     "height": 232,
     "sha256": "f0a74bd69a61c5fa4559492ecea15610aa788ac7634bcd52fb07c8630b144904"
   },
-  "shadow-anemone-base-rocks.webp": {
-    "width": 1024,
-    "height": 288,
-    "sha256": "49c30997cf8c41c611547ad75d1777804b9c308607770d0281b4b2a169568283"
-  },
   "shadow-connected-reef.webp": {
-    "width": 1024,
-    "height": 288,
-    "sha256": "a1b33204c884a473468a80a48b968cdc2745c6fa7956dd5275debbaa8864bdbc"
+    "width": 1008,
+    "height": 192,
+    "sha256": "0b422dd999d65c73dd7f07793d6df85b362ecd047969e887f48e137f7e773ca1"
   },
   "shadow-foreground-reef.webp": {
-    "width": 1024,
-    "height": 288,
-    "sha256": "c3542ce68d1b9174ab718abc564531192b7260d49d348a3767c06d1710bba23f"
+    "width": 944,
+    "height": 112,
+    "sha256": "ce226e1513b75a28baae0f50feaba294065b34384042e549ec4d110712ffe4cd"
   },
   "splash-fhd.jpg": {
     "width": 1920,

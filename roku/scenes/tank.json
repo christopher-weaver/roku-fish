@@ -110,12 +110,12 @@
       ],
       "surfaceShadow": {
         "image": "pkg:/images/shadow-connected-reef.webp",
-        "width": 128,
-        "height": 72,
+        "width": 126,
+        "height": 48,
         "columns": 8,
         "scale": 16,
-        "x": 0,
-        "y": 0,
+        "x": 16,
+        "y": 208,
         "frames": 32
       }
     },
@@ -149,12 +149,12 @@
       ],
       "surfaceShadow": {
         "image": "pkg:/images/shadow-foreground-reef.webp",
-        "width": 128,
-        "height": 72,
+        "width": 118,
+        "height": 28,
         "columns": 8,
         "scale": 16,
-        "x": 0,
-        "y": 0,
+        "x": 144,
+        "y": 576,
         "frames": 32
       }
     },
@@ -208,17 +208,7 @@
       "meshTriangles": 742,
       "meshObjects": [
         "anemone-base-rocks"
-      ],
-      "surfaceShadow": {
-        "image": "pkg:/images/shadow-anemone-base-rocks.webp",
-        "width": 128,
-        "height": 72,
-        "columns": 8,
-        "scale": 16,
-        "x": 0,
-        "y": 0,
-        "frames": 32
-      }
+      ]
     },
     {
       "id": "clam",

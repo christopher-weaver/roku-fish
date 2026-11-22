@@ -141,3 +141,8 @@ jobs:
         run: |
           node tests/roku_runner.cjs --root roku roku/source/math.brs tests/appendage_smoothness.brs
           node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs roku/source/effects.brs roku/source/renderer.brs tests/clam_contents.brs
+
+      - name: Check native canvas sizing, diagnostics and unchanged body transforms
+        run: |
+          node tests/roku_runner.cjs --root roku roku/source/math.brs tests/frame_profile.brs
+          node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/renderer.brs tests/wave_equivalence.brs

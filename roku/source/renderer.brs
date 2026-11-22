@@ -7,14 +7,17 @@ function ReefRenderer(screen as object, settings as object) as object
     r.font = fonts.GetDefaultFont(Int(24 * outputScale),false,false)
     ' Render once into an opaque overscan canvas, then interpolate two adjacent
     ' integer screen positions. No oversized anchors or scale-rounding pan jumps.
-    canvas = CreateObject("roBitmap",{width:2048,height:1080,alphaenable:true})
+    layout=ReefCanvasLayout(screen.GetWidth(),screen.GetHeight())
+    r.canvasWidth=0 : r.canvasHeight=0
+    canvas = CreateObject("roBitmap",{width:layout.width,height:layout.height,alphaenable:true})
     if canvas <> invalid
-        r.frame = CreateObject("roRegion",canvas,0,0,2048,1080)
+        r.frame = CreateObject("roRegion",canvas,0,0,layout.width,layout.height)
         r.frame.SetScaleMode(1)
-        r.screen = canvas : r.scale = 1#
+        r.screen = canvas : r.scale = layout.scale
+        r.canvasWidth=layout.width : r.canvasHeight=layout.height
     end if
     r.fractionalFish = ReefFractionalFishProbe(r.screen,r.rotation)
-    print "Deep Reef opaque pan canvas=";(r.frame<>invalid);" fractional fish=";r.fractionalFish
+    print "Deep Reef canvas=";r.canvasWidth;"x";r.canvasHeight;" output=";screen.GetWidth();"x";screen.GetHeight();" fractional fish=";r.fractionalFish
     return r
 end function
 
@@ -54,6 +57,7 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     red=Int(red*light) : green=Int(green*light) : blue=Int(blue*light)
     angle = pose.pitch*57.29578
     if Cos(pose.heading)<0 then angle=0#-angle
+    r.waveBaseCos=Cos(angle/57.295779513#) : r.waveBaseSin=Sin(angle/57.295779513#)
     r.wavePhase=pose.phase : r.waveHeading=pose.heading
     effort=.6
     if f.speed<>invalid then effort=ReefClamp(f.speed/f.sp.speed,0#,1#)
@@ -92,7 +96,8 @@ sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,posit
         if warp<>invalid
             r.poseWarp=warp
             if r.warpPoint=invalid then r.warpPoint={}
-            dx=warp.dx*sx : dy=warp.dy*sy : co=Cos(angle/57.295779513#) : sn=Sin(angle/57.295779513#)
+            dx=warp.dx*sx : dy=warp.dy*sy : co=r.waveBaseCos : sn=r.waveBaseSin
+            if co=invalid then co=Cos(angle/57.295779513#) : sn=Sin(angle/57.295779513#)
             r.warpPoint.x=p.x+co*dx+sn*dy : r.warpPoint.y=p.y+co*dy-sn*dx
             drawPoint=r.warpPoint : sx=sx*warp.sx : sy=sy*warp.sy
         end if
@@ -119,12 +124,14 @@ end sub
 sub ReefDrawWaveRegion(r as object,p as object,sp as object,sx as double,sy as double,angle as double,region as object,pivot as double,tint as integer)
     length=r.partLength : sign=1#
     if Cos(r.waveHeading)<0 then sign=0#-1#
-    u=.5-sign*pivot/length
-    displacement=ReefBodyWave(u,r.wavePhase,r.waveAmplitude)
-    slope=ReefBodyWaveSlope(u,r.wavePhase,r.waveAmplitude)*(0#-sign)/length
-    bend=0#-Atn(slope) : c=Cos(bend) : sn=Sin(bend)
+    u=ReefClamp(.5-sign*pivot/length,0#,1#)
+    phase=r.wavePhase-u*6.283185307# : waveSin=Sin(phase) : waveCos=Cos(phase)
+    displacement=r.waveAmplitude*u*u*waveSin
+    slope=r.waveAmplitude*(2#*u*waveSin-6.283185307#*u*u*waveCos)*(0#-sign)/length
+    bend=0#-Atn(slope) : c=1#/Sqr(1#+slope*slope) : sn=(0#-slope)*c
     dx=pivot*(1#-c) : dy=displacement+sn*pivot
-    base=angle/57.295779513# : co=Cos(base) : si=Sin(base)
+    co=r.waveBaseCos : si=r.waveBaseSin
+    if co=invalid then base=angle/57.295779513# : co=Cos(base) : si=Sin(base)
     ReefDrawFishRegion(r,p.x+co*dx+si*dy,p.y+co*dy-si*dx,sx,sy,ReefClamp(angle+bend*57.295779513#,-12.6,12.6),region,tint)
 end sub
 
@@ -231,7 +238,7 @@ sub ReefDrawSurfaceShadow(r as object,s as object,a as object,index as integer,f
     for pass=0 to 1
         weight=1-wave.blend : phase=wave.first
         if pass=1 then weight=wave.blend : phase=wave.second
-        ReefDraw(r,0#-s.camera,0#-36#,cfg.scale,cfg.scale,a.surfaceShadows[index][phase],ReefRGBA(255,255,255,Int(weight*255*.65*(.35+.65*s.lighting[0]))))
+        ReefDraw(r,cfg.x-s.camera,cfg.y-36#,cfg.scale,cfg.scale,a.surfaceShadows[index][phase],ReefRGBA(255,255,255,Int(weight*255*.65*(.35+.65*s.lighting[0]))))
     end for
 end sub
 
@@ -335,24 +342,20 @@ sub ReefPresent(r as object,s as object)
         phase = ReefPixelPhase(0#-s.camera*r.outputScale)
         screen.SetAlphaEnable(false)
         screen.Clear(&h182A42FF)
-        if r.outputScale=1
-            screen.DrawObject(phase.first,0,r.frame,&hFFFFFFFF)
-        else
-            screen.DrawScaledObject(phase.first,0,r.outputScale,r.outputScale,r.frame,&hFFFFFFFF)
-        end if
+        ' The canvas is already in output pixels; never rescale it a second time.
+        screen.DrawObject(phase.first,0,r.frame,&hFFFFFFFF)
         if phase.blend>0.001
             screen.SetAlphaEnable(true)
             color=ReefRGBA(255,255,255,Int(phase.blend*255+0.5))
-            if r.outputScale=1
-                screen.DrawObject(phase.first+1,0,r.frame,color)
-            else
-                screen.DrawScaledObject(phase.first+1,0,r.outputScale,r.outputScale,r.frame,color)
-            end if
+            screen.DrawObject(phase.first+1,0,r.frame,color)
         end if
     end if
     screen.SetAlphaEnable(true)
     if s.settings.clock="On" then screen.DrawText(s.clockText,Int(1660*r.outputScale),Int(970*r.outputScale),&hF6DFD4B0,r.font)
-    if s.settings.fps="On" then screen.DrawText(Int(s.fps).ToStr()+" FPS",Int(110*r.outputScale),Int(95*r.outputScale),&hF6DFD4D0,r.font)
+    if s.settings.fps="On"
+        screen.DrawText(Int(s.fps).ToStr()+" FPS",Int(110*r.outputScale),Int(95*r.outputScale),&hF6DFD4D0,r.font)
+        if s.perfText<>invalid then screen.DrawText(s.perfText,Int(110*r.outputScale),Int(125*r.outputScale),&hF6DFD4D0,r.font)
+    end if
 end sub
 
 sub ReefDrawClamContents(r as object,s as object,a as object)

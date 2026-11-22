@@ -1,0 +1,1 @@
+PASS  864  optimized S-curve transforms preserve original rounded positions and angles

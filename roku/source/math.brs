@@ -250,3 +250,28 @@ function ReefSmoothPosition(a as double,b as double,va as double,vb as double,u 
     value=value+(u3-2#*u2+u)*va/30#+(u3-u2)*vb/30#
     return ReefClamp(value,ReefMin(a,b),ReefMax(a,b))
 end function
+
+' Match the offscreen canvas to the selected output resolution.
+function ReefCanvasLayout(width as integer,height as integer) as object
+    scale=width/1920#
+    return {scale:scale,width:Int(2048#*scale+.5),height:height}
+end function
+
+function ReefNewFrameProfile() as object
+    return {frames:0,updateMs:0#,drawMs:0#,waitMs:0#,swapMs:0#,eventsMs:0#,ticks:0#,maxUpdateMs:0#,maxDrawMs:0#,maxSwapMs:0#,maxEventsMs:0#,maxFrameMs:0#,memoryEvents:0}
+end function
+
+sub ReefProfileFrame(p as object,updateMs as double,drawMs as double,waitMs as double,swapMs as double,eventsMs as double,totalMs as double,ticks as integer)
+    p.frames=p.frames+1 : p.updateMs=p.updateMs+updateMs : p.drawMs=p.drawMs+drawMs
+    p.waitMs=p.waitMs+waitMs : p.swapMs=p.swapMs+swapMs : p.eventsMs=p.eventsMs+eventsMs : p.ticks=p.ticks+ticks
+    p.maxUpdateMs=ReefMax(p.maxUpdateMs,updateMs) : p.maxDrawMs=ReefMax(p.maxDrawMs,drawMs)
+    p.maxSwapMs=ReefMax(p.maxSwapMs,swapMs) : p.maxEventsMs=ReefMax(p.maxEventsMs,eventsMs) : p.maxFrameMs=ReefMax(p.maxFrameMs,totalMs)
+end sub
+
+function ReefProfileMs(value as double,count as integer) as double
+    return Int(value/ReefMax(1#,count)*100#+.5)/100#
+end function
+
+function ReefProfileSummary(p as object,s as object,r as object) as object
+    return {fps:s.fps,mode:s.settings.quality,fish:s.fish.Count(),target_fps:s.renderFps,canvas_width:r.canvasWidth,canvas_height:r.canvasHeight,output_scale:r.outputScale,update_ms:ReefProfileMs(p.updateMs,p.frames),draw_ms:ReefProfileMs(p.drawMs,p.frames),wait_ms:ReefProfileMs(p.waitMs,p.frames),swap_ms:ReefProfileMs(p.swapMs,p.frames),events_ms:ReefProfileMs(p.eventsMs,p.frames),ticks_per_frame:ReefProfileMs(p.ticks,p.frames),max_update_ms:p.maxUpdateMs,max_draw_ms:p.maxDrawMs,max_swap_ms:p.maxSwapMs,max_events_ms:p.maxEventsMs,max_frame_ms:p.maxFrameMs,memory_events:p.memoryEvents,fractional_fish:r.fractionalFish}
+end function

@@ -1,0 +1,1 @@
+PASS native-sized HD/FHD canvases, stage averages/peaks, catch-up tick counts and memory-event diagnostics
