@@ -197,3 +197,7 @@ Colors the anemone bright pink using a reference-inspired palette while retainin
 ## Version 1.0.26
 
 Fixes the long-standing full-resolution offscreen canvas in Performance mode, removes empty shadow passes, and crops receiver maps without changing visible shadow pixels. Reduces repeated fish-bending trigonometry while preserving the eight-section curve and body-view blending. Adds native update/draw/swap/event timings to the FPS display and developer console. See [the performance investigation](docs/PERFORMANCE.md) for measured workload reductions and the remaining device-validation step. Updated source and sideload ZIP remain tracked on GitHub.
+
+## Version 1.0.27
+
+Responds to the Roku Ultra's U101/D31 timing evidence by reducing update CPU work: exact indexed reef queries, shared sweep geometry, cached body envelopes and early fish-pair rejection. The same two-second production fixture retains every collision check and all eight fish trajectories while making 75% fewer BrightScript helper calls and 92% fewer occupancy string searches. Fixed 30 Hz motion, fish detail and density are retained. The updated ZIP is included; [the investigation](docs/PERFORMANCE.md) distinguishes measured work reductions from the pending native FPS recheck.

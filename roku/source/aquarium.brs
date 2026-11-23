@@ -4,6 +4,7 @@ function ReefWorld(settings as object, species as object, occupancy as dynamic, 
     s.cfg = ParseJson(ReadAsciiFile("pkg:/scenes/tank.json"))
     if s.cfg = invalid then s.cfg = {speciesOrder: species.Keys(), populations: {Low:6,Medium:8,High:10}, occlusionDepths:[0.48,0.78], dawn:7#,dusk:18.5}
     s.camera = ReefCamera(0#, settings.camera, s.cfg.camera)
+    ReefCollisionInit(s)
     s.navigation = ParseJson(ReadAsciiFile("pkg:/scenes/navigation.json"))
     names = []
     for speciesIndex=0 to s.cfg.speciesOrder.Count()-1

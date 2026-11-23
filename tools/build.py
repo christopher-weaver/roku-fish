@@ -90,6 +90,8 @@ def validate():
     return {'images':len(catalog),'species':len(species),'all_variant_texture_mib':round(total_texture/1048576,2)}
 
 def build(increment=False):
+    from collision_index import write_index
+    write_index()
     if increment:
         p=ROKU/'manifest';text=p.read_text();text=re.sub(r'(?m)^build_version=(\d+)',lambda m:'build_version='+str(int(m[1])+1),text);p.write_text(text,newline='\n')
     report=validate();dist=ROOT/'dist';dist.mkdir(exist_ok=True)

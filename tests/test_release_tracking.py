@@ -17,7 +17,7 @@ class ReleaseTrackingChecks(unittest.TestCase):
         for name in ('roku', 'dist'):
             shutil.copytree(ROOT / name, self.root / name)
         (self.root / 'tools').mkdir()
-        for name in ('build.py', 'check_release.py'):
+        for name in ('build.py', 'check_release.py', 'collision_index.py'):
             shutil.copy2(ROOT / 'tools' / name, self.root / 'tools' / name)
         self.git('init', '--quiet')
         self.git('add', 'dist/deep-reef-screensaver.zip', 'dist/build-report.json')

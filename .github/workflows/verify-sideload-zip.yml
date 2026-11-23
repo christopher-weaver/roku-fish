@@ -146,3 +146,8 @@ jobs:
         run: |
           node tests/roku_runner.cjs --root roku roku/source/math.brs tests/frame_profile.brs
           node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/renderer.brs tests/wave_equivalence.brs
+
+      - name: Check exact CPU collision optimizations and reference fish trajectories
+        run: |
+          node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs roku/source/effects.brs tests/collision-reference.brs tests/collision_equivalence.brs
+          node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs roku/source/effects.brs tests/cpu_workload.brs

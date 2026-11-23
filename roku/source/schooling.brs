@@ -1,6 +1,10 @@
 ' Conservative yaw-independent body/tail/fin envelopes in world coordinates.
 ' These cylinders also remain safe during rotation and display interpolation.
-function ReefFishRadius(f as object) as double
+function ReefFishBounds(f as object) as object
+    bounds=f.bodyBounds
+    if bounds<>invalid
+        if bounds.sizeKey=f.size and bounds.species=f.sp.image then return bounds
+    end if
     size=1#
     if f.size<>invalid then size=f.size
     width=f.sp.length*.52*size : height=f.sp.length*.3*size
@@ -8,18 +12,20 @@ function ReefFishRadius(f as object) as double
         width=f.sp.collisionHalfWidth*f.sp.length/f.sp.renderLength*size
         height=f.sp.collisionHalfHeight*f.sp.length/f.sp.renderLength*size
     end if
-    return width+height*.22+6#
+    ' Assign a fresh object: a clam baby initially shallow-copies its parent.
+    bounds={sizeKey:f.size,species:f.sp.image,radius:width+height*.22+6#,height:height+width*.22+6#}
+    f.bodyBounds=bounds
+    return bounds
+end function
+
+function ReefFishRadius(f as object) as double
+    bounds=ReefFishBounds(f)
+    return bounds.radius
 end function
 
 function ReefFishHeight(f as object) as double
-    size=1#
-    if f.size<>invalid then size=f.size
-    width=f.sp.length*.52*size : height=f.sp.length*.3*size
-    if f.sp.collisionHalfHeight<>invalid and f.sp.renderLength<>invalid
-        height=f.sp.collisionHalfHeight*f.sp.length/f.sp.renderLength*size
-        width=f.sp.collisionHalfWidth*f.sp.length/f.sp.renderLength*size
-    end if
-    return height+width*.22+6#
+    bounds=ReefFishBounds(f)
+    return bounds.height
 end function
 
 ' Continuous swept cylinder test: a crossing cannot tunnel between fixed ticks.
@@ -28,18 +34,40 @@ function ReefFishPairBlocked(f as object, fromPose as object, toPose as object, 
     if swept and other.previousX<>invalid then ox=other.previousX : oy=other.previousY : oz=other.previousZ
     px=fromPose.x-ox : py=fromPose.y-oy : pz=(fromPose.z-oz)*800#
     vx=toPose.x-other.x-px : vy=toPose.y-other.y-py : vz=(toPose.z-other.z)*800#-pz
-    radius=ReefFishRadius(f)+ReefFishRadius(other)+4#
-    height=ReefFishHeight(f)+ReefFishHeight(other)+4#
+    own=f.bodyBounds
+    if own=invalid
+        own=ReefFishBounds(f)
+    else if own.sizeKey<>f.size or own.species<>f.sp.image
+        own=ReefFishBounds(f)
+    end if
+    neighbor=other.bodyBounds
+    if neighbor=invalid
+        neighbor=ReefFishBounds(other)
+    else if neighbor.sizeKey<>other.size or neighbor.species<>other.sp.image
+        neighbor=ReefFishBounds(other)
+    end if
+    radius=own.radius+neighbor.radius+4# : height=own.height+neighbor.height+4#
+    ' Exact broad phase: a linear relative sweep wholly outside a slab cannot hit.
+    if px>=radius and px+vx>=radius then return false
+    if px<=0#-radius and px+vx<=0#-radius then return false
+    if pz>=radius and pz+vz>=radius then return false
+    if pz<=0#-radius and pz+vz<=0#-radius then return false
     low=0# : high=1#
     if Abs(vy)<0.0000001
         if Abs(py)>=height then return false
     else
         a=(0#-height-py)/vy : b=(height-py)/vy
-        low=ReefMax(0#,ReefMin(a,b)) : high=ReefMin(1#,ReefMax(a,b))
+        if a>b then swap=a : a=b : b=swap
+        if a>low then low=a
+        if b<high then high=b
         if low>high then return false
     end if
     speed=vx*vx+vz*vz : t=low
-    if speed>0.0000001 then t=ReefClamp(-(px*vx+pz*vz)/speed,low,high)
+    if speed>0.0000001
+        t=0#-(px*vx+pz*vz)/speed
+        if t<low then t=low
+        if t>high then t=high
+    end if
     dx=px+vx*t : dz=pz+vz*t
     return dx*dx+dz*dz<radius*radius
 end function
@@ -80,12 +108,19 @@ end function
 ' Predictive separation for every species; alignment/cohesion only for chromis.
 function ReefNeighbors(s as object, f as object) as object
     steer={x:0#,y:0#,z:0#,hx:0#,hz:0#,cx:0#,cy:0#,cz:0#,count:0,alarm:false,traffic:0#}
+    own=ReefFishBounds(f)
     for neighborIndex=0 to s.fish.Count()-1
         other=s.fish[neighborIndex]
         if other.id<>f.id
             dx=f.x-other.x : dy=f.y-other.y : dz=(f.z-other.z)*800#
-            radius=ReefFishRadius(f)+ReefFishRadius(other)+4#
-            height=ReefFishHeight(f)+ReefFishHeight(other)+4#
+            neighbor=other.bodyBounds
+            if neighbor=invalid
+                neighbor=ReefFishBounds(other)
+            else if neighbor.sizeKey<>other.size or neighbor.species<>other.sp.image
+                neighbor=ReefFishBounds(other)
+            end if
+            radius=own.radius+neighbor.radius+4#
+            height=own.height+neighbor.height+4#
             vx=0# : vy=0# : vz=0#
             if f.vx<>invalid and other.vx<>invalid then vx=f.vx-other.vx : vy=f.vy-other.vy : vz=(f.vz-other.vz)*800#
             speed=vx*vx+vz*vz : ahead=0#

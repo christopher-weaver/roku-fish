@@ -13,7 +13,8 @@ sub ReefEffectsStep(s as object, dt as double)
     for each e in s.effects
         e.previousX = e.x : e.previousY = e.y
         e.recycled = false
-        e.phase = ReefWrap(e.phase + dt * 0.4, 6.283185307)
+        e.phase = e.phase + dt * 0.4
+        if e.phase>=6.283185307 then e.phase=e.phase-6.283185307
         e.x = e.x + (2 + e.z * 5 + Sin(e.phase) * 2) * dt
         if e.bubble
             e.age = e.age + dt

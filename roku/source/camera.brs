@@ -47,52 +47,131 @@ function ReefSolid(s as object, x as double, y as double) as boolean
     return Mid(line, col + 1, 1) = "#"
 end function
 
+ ' Load the immutable row unions once; custom/test grids retain the exact fallback.
+sub ReefCollisionInit(s as object)
+    if s.occupancy=invalid then return
+    if s.occupancy.planes=invalid then return
+    table=ParseJson(ReadAsciiFile("pkg:/scenes/collision-index.json"))
+    if table=invalid then return
+    if table.cell<>s.occupancy.cell or table.planes.Count()<>s.occupancy.planes.Count() then return
+    for i=0 to table.planes.Count()-1
+        plane=s.occupancy.planes[i] : entry=table.planes[i]
+        plane.rowIndex=invalid
+        matches=entry.id=plane.id and entry.levels[0].Count()=plane.rows.Count()
+        if matches
+            for row=0 to plane.rows.Count()-1
+                if table.masks[entry.levels[0][row]]<>plane.rows[row] then matches=false : exit for
+            end for
+        end if
+        if matches then plane.rowIndex={masks:table.masks,levels:entry.levels,levelByHeight:table.levelByHeight,spanByHeight:table.spanByHeight}
+    end for
+end sub
+
 ' Fish footprints include every yaw, tail and fin pose plus the maximum pitch.
 ' Test the swept rectangle, not just the center at a depth-plane crossing.
 function ReefCoralBlocked(s as object, f as object, fromPose as object, toPose as object) as boolean
-    if ReefMin(fromPose.z,toPose.z)<.04 or ReefMax(fromPose.z,toPose.z)>.985 then return true
-    if ReefMin(fromPose.x,toPose.x)<85# or ReefMax(fromPose.x,toPose.x)>1963# then return true
-    if ReefSurfaceBlocked(s,f,fromPose,toPose) then return true
-    if ReefFloorBlocked(s,f,fromPose,toPose) then return true
-    if s.occupancy = invalid then return false
-    if ReefCaveBlocked(s,f,fromPose,toPose) then return true
-    planes = s.occupancy.planes
-    if planes = invalid then return false
-    radius = f.sp.bodyThickness * f.sp.length * f.size / 1728# + 0.012
-    lo=ReefMin(fromPose.z,toPose.z)-radius : hi=ReefMax(fromPose.z,toPose.z)+radius
-    for planeIndex = 0 to planes.Count() - 1
-        plane = planes[planeIndex]
-        if hi >= plane.z - plane.halfDepth and lo <= plane.z + plane.halfDepth
-            s.collisionFirst=ReefProjection(fromPose,0#,s.collisionFirst)
-            s.collisionLast=ReefProjection(toPose,0#,s.collisionLast)
-            first=s.collisionFirst : last=s.collisionLast
-            scale = ReefMax(first.scale, last.scale) * f.sp.length / f.sp.renderLength * f.size
-            hw = (f.sp.collisionHalfWidth + f.sp.collisionHalfHeight * 0.22) * scale + 8
-            hh = (f.sp.collisionHalfHeight + f.sp.collisionHalfWidth * 0.22) * scale + 8
-            ' Reef coordinates are screen + camera, while fish have depth parallax.
-            ' Reserve the whole camera sweep, so panning cannot push a fish into rock.
-            parallax = 1#
-            if plane.parallax <> invalid then parallax = plane.parallax
-            firstPan = ReefMin(8 * (parallax - first.scale), 120 * (parallax - first.scale))
-            lastPan = ReefMin(8 * (parallax - last.scale), 120 * (parallax - last.scale))
-            x0 = ReefMin(first.x + firstPan, last.x + lastPan) + 64 * (1 - parallax) - hw
-            firstPan = ReefMax(8 * (parallax - first.scale), 120 * (parallax - first.scale))
-            lastPan = ReefMax(8 * (parallax - last.scale), 120 * (parallax - last.scale))
-            x1 = ReefMax(first.x + firstPan, last.x + lastPan) + 64 * (1 - parallax) + hw
-            y0 = ReefMin(first.y, last.y) + 36 - hh
-            y1 = ReefMax(first.y, last.y) + 36 + hh
-            if ReefSolidRect(plane.rows, s.occupancy.cell, x0, y0, x1, y1) then return true
+    ' Compute the swept extents once. This is the hottest simulation path.
+    z0=fromPose.z : z1=toPose.z
+    if z0>z1 then swap=z0 : z0=z1 : z1=swap
+    x0=fromPose.x : x1=toPose.x
+    if x0>x1 then swap=x0 : x0=x1 : x1=swap
+    if z0<.04 or z1>.985 or x0<85# or x1>1963# then return true
+    scale=(.70+.30*z1)*f.sp.length/f.sp.renderLength*f.size
+    hw=(f.sp.collisionHalfWidth+f.sp.collisionHalfHeight*.22)*scale
+    hh=(f.sp.collisionHalfHeight+f.sp.collisionHalfWidth*.22)*scale
+    radius=f.sp.bodyThickness*f.sp.length*f.size/1728#+.012
+    clearanceHeight=hh+12#
+    if s.cfg<>invalid
+        if s.cfg.waterline<>invalid
+            top=fromPose.y+(1#-fromPose.z)*30#-clearanceHeight
+            if top<s.cfg.waterline.clearanceY then return true
+            top=toPose.y+(1#-toPose.z)*30#-clearanceHeight
+            if top<s.cfg.waterline.clearanceY then return true
+        end if
+        if s.cfg.floor<>invalid
+            floor=s.cfg.floor
+            ceiling=floor.baseY+floor.slope*(fromPose.z-radius)-floor.ridgeClearance-clearanceHeight
+            if fromPose.y>ceiling then return true
+            ceiling=floor.baseY+floor.slope*(toPose.z-radius)-floor.ridgeClearance-clearanceHeight
+            if toPose.y>ceiling then return true
+        end if
+    end if
+    if s.occupancy=invalid then return false
+    y0=fromPose.y : y1=toPose.y
+    if y0>y1 then swap=y0 : y0=y1 : y1=swap
+    lo=z0-radius : hi=z1+radius
+    volumes=s.occupancy.volumes
+    if volumes<>invalid
+        for volumeIndex=0 to volumes.Count()-1
+            v=volumes[volumeIndex]
+            ' Reject distant caves before running the exact segment/slab test.
+            if hi>=v.z-v.halfDepth and lo<=v.z+v.halfDepth
+                if x1+hw+26#>=v.x-v.halfWidth and x0-hw-26#<=v.x+v.halfWidth
+                    if y1+hh+12#>=v.y-v.halfHeight and y0-hh-12#<=v.y+v.halfHeight
+                        if ReefCaveBlocked(s,f,fromPose,toPose) then return true
+                    end if
+                end if
+            end if
+        end for
+    end if
+    planes=s.occupancy.planes
+    if planes=invalid then return false
+    ' Projection and the common parallax rectangle are shared by all planes.
+    firstScale=.70+.30*fromPose.z : lastScale=.70+.30*toPose.z
+    firstY=fromPose.y+(1#-fromPose.z)*30#
+    lastY=toPose.y+(1#-toPose.z)*30#
+    y0=firstY : y1=lastY
+    if y0>y1 then swap=y0 : y0=y1 : y1=swap
+    y0=y0+36#-(hh+8#) : y1=y1+36#+(hh+8#)
+    planeWidth=hw+8#
+    previousParallax=-999#
+    for planeIndex=0 to planes.Count()-1
+        plane=planes[planeIndex]
+        if hi>=plane.z-plane.halfDepth and lo<=plane.z+plane.halfDepth
+            parallax=1#
+            if plane.parallax<>invalid then parallax=plane.parallax
+            if parallax<>previousParallax
+                firstPan=8#*(parallax-firstScale) : lastPan=8#*(parallax-lastScale)
+                if parallax<firstScale then firstPan=120#*(parallax-firstScale)
+                if parallax<lastScale then lastPan=120#*(parallax-lastScale)
+                x0=fromPose.x+firstPan : value=toPose.x+lastPan
+                if value<x0 then x0=value
+                firstPan=120#*(parallax-firstScale) : lastPan=120#*(parallax-lastScale)
+                if parallax<firstScale then firstPan=8#*(parallax-firstScale)
+                if parallax<lastScale then lastPan=8#*(parallax-lastScale)
+                x1=fromPose.x+firstPan : value=toPose.x+lastPan
+                if value>x1 then x1=value
+                x0=x0+64#*(1#-parallax)-planeWidth
+                x1=x1+64#*(1#-parallax)+planeWidth
+                previousParallax=parallax
+            end if
+            if ReefSolidRect(plane.rows,s.occupancy.cell,x0,y0,x1,y1,plane.rowIndex) then return true
         end if
     end for
     return false
 end function
 
-function ReefSolidRect(rows as object, cell as integer, x0 as double, y0 as double, x1 as double, y1 as double) as boolean
-    top = Int(ReefClamp(Int(y0 / cell), 0, rows.Count() - 1))
-    bottom = Int(ReefClamp(Int(y1 / cell), 0, rows.Count() - 1))
-    left = Int(ReefClamp(Int(x0 / cell), 0, Len(rows[0]) - 1))
-    right = Int(ReefClamp(Int(x1 / cell), 0, Len(rows[0]) - 1))
-    if x1 < 0 or y1 < 0 or x0 >= Len(rows[0]) * cell or y0 >= rows.Count() * cell then return false
+function ReefSolidRect(rows as object, cell as integer, x0 as double, y0 as double, x1 as double, y1 as double, index=invalid as dynamic) as boolean
+    width=Len(rows[0]) : height=rows.Count()
+    if x1<0 or y1<0 or x0>=width*cell or y0>=height*cell then return false
+    top=Int(y0/cell) : bottom=Int(y1/cell)
+    left=Int(x0/cell) : right=Int(x1/cell)
+    if top<0 then top=0
+    if bottom>=height then bottom=height-1
+    if left<0 then left=0
+    if right>=width then right=width-1
+    if index<>invalid
+        height=bottom-top+1 : level=index.levelByHeight[height]
+        bands=index.levels[level] : masks=index.masks
+        found=Instr(left+1,masks[bands[top]],"#")
+        if found>0 and found<=right+1 then return true
+        last=bottom-index.spanByHeight[height]+1
+        if last<>top
+            found=Instr(left+1,masks[bands[last]],"#")
+            if found>0 and found<=right+1 then return true
+        end if
+        return false
+    end if
     for rowIndex = top to bottom
         found = Instr(left + 1, rows[rowIndex], "#")
         if found > 0 and found <= right + 1 then return true
