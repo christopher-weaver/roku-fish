@@ -35,7 +35,7 @@ FIN_RIGS.update({
 # remains on the body even where it extends behind the tail attachment.
 TAIL_RIGS={name:(.24,0,1)for name,*_ in SPECIES}
 TAIL_RIGS.update(moorish_idol=(.27,.42,.91),blue_tang=(.25,0,1),
- copperband_butterflyfish=(.21,.32,.78),banggai_cardinalfish=(.35,.23,.76),
+ copperband_butterflyfish=(.15,.32,.78),banggai_cardinalfish=(.35,.23,.76),
  mandarin_dragonet=(.29,.32,.91))
 YAW_COUNT=64;UNIQUE_VIEWS=YAW_COUNT//2+1;BODY_BENDS=list(np.linspace(-.19,.19,4));FIN_ANGLES=list(np.linspace(0,.8,5))
 VS='''#version 330

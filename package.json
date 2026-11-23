@@ -1,6 +1,6 @@
 {
   "name": "deep-reef-screensaver",
-  "version": "1.0.30",
+  "version": "1.0.31",
   "private": true,
   "scripts": {
     "check": "bsc --project bsconfig.json",

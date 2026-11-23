@@ -4,7 +4,7 @@ No runtime body slices. Pixel colors/alpha come directly from the approved rest
 atlases; each column moves as a whole, and native opacity interpolates the poses.
 Requires Pillow, numpy and scipy; compressed output can vary with libwebp version.
 """
-import json,math,hashlib,shutil
+import json,math,hashlib,shutil,argparse
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -14,7 +14,11 @@ REST=root/'assets/source/fish-rest'
 out=root/'work/whole-swim-regenerated';out.mkdir(parents=True,exist_ok=True)
 rest=json.loads((REST/'species.json').read_text())
 spec=json.loads((root/'roku/scenes/species.json').read_text());catalog={};total=0
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--species',nargs='+',choices=list(spec))
+args=parser.parse_args()
 for name,sp in spec.items():
+ if args.species is not None and name not in args.species:continue
  src=Image.open(REST/(name+'.webp')).convert('RGBA');unique={};pieces=[];frames=[];bycoords={}
  for i,f in enumerate(rest[name]['frames']):
   key=(f['x'],f['y'])

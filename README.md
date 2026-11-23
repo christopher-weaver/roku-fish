@@ -213,3 +213,7 @@ Replaces segmented fish bodies with complete curved/neutral/inverse-curved image
 ## Version 1.0.30
 
 Attaches each tail at its actual shared mesh joint, preserves neck thickness while the tip animates, and paints the tail root beneath the body. Fixes crop-driven root drift and matches the body's rounded origin on integer-only graphics backends. No extra draw calls or texture changes. Checks cover ten species, eight headings, eight swim phases, HD/FHD and both placement paths. The ZIP is updated and tracked; [joint validation and matching close-ups](docs/tail-attachment-audit.json).
+
+## Version 1.0.31
+
+The copperband butterflyfish's tail bend now sits farther back on its narrow tail stalk, behind the dorsal and anal fins. Its body/tail mesh partition, rendered views and shared attachment were rebuilt together. This keeps the rear fins on the body and retains the continuous tail join without adding runtime work. To rebake this species from the existing approved mesh and textures, run `python tools/rebind_tail.py copperband_butterflyfish` with the artwork dependencies installed.
