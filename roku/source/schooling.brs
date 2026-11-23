@@ -124,7 +124,11 @@ function ReefNeighbors(s as object, f as object) as object
             vx=0# : vy=0# : vz=0#
             if f.vx<>invalid and other.vx<>invalid then vx=f.vx-other.vx : vy=f.vy-other.vy : vz=(f.vz-other.vz)*800#
             speed=vx*vx+vz*vz : ahead=0#
-            if speed>0.001 then ahead=ReefClamp(-(dx*vx+dz*vz)/speed,0,6#)
+            if speed>.001
+                ahead=0#-(dx*vx+dz*vz)/speed
+                if ahead<0# then ahead=0#
+                if ahead>6# then ahead=6#
+            end if
             cx=dx+vx*ahead : cz=dz+vz*ahead : cy=dy+vy*ahead
             closest=Sqr(cx*cx+cz*cz)
             if closest<radius*1.65 and Abs(cy)<height*1.25

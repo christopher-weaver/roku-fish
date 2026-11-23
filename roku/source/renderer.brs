@@ -45,8 +45,9 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     f.renderView = ReefFishView(pose.heading,f.sp,f.renderView)
     view = f.renderView
     f.bodyView=ReefBodyView(pose.heading,f.sp,f.bodyView)
-    bodyPosition = (Sin(pose.phase)+1)*0.5*(f.sp.poseCount-1)
-    tailPosition = (Sin(pose.phase)+1)*0.5*(f.sp.tailPoseCount-1)
+    r.waveSinPhase=Sin(pose.phase) : r.waveCosPhase=Cos(pose.phase)
+    bodyPosition = (r.waveSinPhase+1)*0.5*(f.sp.poseCount-1)
+    tailPosition = (r.waveSinPhase+1)*0.5*(f.sp.tailPoseCount-1)
     finPosition = (Sin(pose.finPhase)+1)*0.5*(f.sp.finPoseCount-1)
     scale = p.scale*f.sp.length/f.sp.renderLength*f.size
     haze = 1-pose.z
@@ -56,12 +57,13 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     light=1#-(1#-light)*.30*(.35+.65*s.lighting[0])
     red=Int(red*light) : green=Int(green*light) : blue=Int(blue*light)
     angle = pose.pitch*57.29578
-    if Cos(pose.heading)<0 then angle=0#-angle
+    headingCos=Cos(pose.heading) : r.waveSign=1#
+    if headingCos<0 then angle=0#-angle : r.waveSign=0#-1#
     r.waveBaseCos=Cos(angle/57.295779513#) : r.waveBaseSin=Sin(angle/57.295779513#)
     r.wavePhase=pose.phase : r.waveHeading=pose.heading
     effort=.6
     if f.speed<>invalid then effort=ReefClamp(f.speed/f.sp.speed,0#,1#)
-    r.waveAmplitude=f.sp.length*f.size*p.scale*.012*(.25+.75*effort)*Abs(Cos(pose.heading))
+    r.waveAmplitude=f.sp.length*f.size*p.scale*.012*(.25+.75*effort)*Abs(headingCos)
     if frames[0].bands<>invalid and f.bodyView.first<>invalid
         ' Neighboring real 3D views share the same projected width and center.
         ' An opaque base avoids see-through bodies; only body pixels blend.
@@ -105,46 +107,77 @@ sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,posit
     if region.bands<>invalid and r.waveAmplitude>.15
         for band=0 to region.bands.Count()-1
             strip=region.bands[band]
-            ReefDrawWaveRegion(r,p,sp,sx,scale,angle,strip,strip.centerX*sx,tint)
+            factors=strip.waveForward
+            if r.waveSign<0 then factors=strip.waveReverse
+            ReefDrawWaveRegion(r,p,sp,sx,scale,angle,strip,strip.centerX*sx,tint,factors)
         end for
     else if r.waveAmplitude>.15
         ' Fin and caudal patches remain whole and follow the tangent at their
         ' attachment. The body uses overlapping smooth tangent sections.
         joint=0.20
         if count=sp.tailPoseCount then joint=0.76
-        sign=1#
-        if Cos(r.waveHeading)<0 then sign=0#-1#
+        sign=r.waveSign
+        if sign=invalid
+            sign=1#
+            if Cos(r.waveHeading)<0 then sign=0#-1#
+        end if
         pivot=(.5-joint)*r.partLength*sign
-        ReefDrawWaveRegion(r,drawPoint,sp,sx,sy,angle,region,pivot,tint)
+        if r.finWaveFactors=invalid then r.finWaveFactors=ReefWaveFactors(.20) : r.tailWaveFactors=ReefWaveFactors(.76)
+        factors=r.finWaveFactors
+        if count=sp.tailPoseCount then factors=r.tailWaveFactors
+        ReefDrawWaveRegion(r,drawPoint,sp,sx,sy,angle,region,pivot,tint,factors)
     else
         ReefDrawFishRegion(r,drawPoint.x,drawPoint.y,sx,sy,angle,region,tint)
     end if
 end sub
 
-sub ReefDrawWaveRegion(r as object,p as object,sp as object,sx as double,sy as double,angle as double,region as object,pivot as double,tint as integer)
-    length=r.partLength : sign=1#
-    if Cos(r.waveHeading)<0 then sign=0#-1#
-    u=ReefClamp(.5-sign*pivot/length,0#,1#)
-    phase=r.wavePhase-u*6.283185307# : waveSin=Sin(phase) : waveCos=Cos(phase)
+sub ReefDrawWaveRegion(r as object,p as object,sp as object,sx as double,sy as double,angle as double,region as object,pivot as double,tint as integer,factors=invalid as dynamic)
+    length=r.partLength : sign=r.waveSign
+    if sign=invalid
+        sign=1#
+        if Cos(r.waveHeading)<0 then sign=0#-1#
+    end if
+    if factors<>invalid and r.waveSinPhase<>invalid
+        u=factors.u
+        waveSin=r.waveSinPhase*factors.cosOffset-r.waveCosPhase*factors.sinOffset
+        waveCos=r.waveCosPhase*factors.cosOffset+r.waveSinPhase*factors.sinOffset
+    else
+        u=ReefClamp(.5-sign*pivot/length,0#,1#)
+        phase=r.wavePhase-u*6.283185307# : waveSin=Sin(phase) : waveCos=Cos(phase)
+    end if
     displacement=r.waveAmplitude*u*u*waveSin
     slope=r.waveAmplitude*(2#*u*waveSin-6.283185307#*u*u*waveCos)*(0#-sign)/length
     bend=0#-Atn(slope) : c=1#/Sqr(1#+slope*slope) : sn=(0#-slope)*c
+    drawAngle=angle+bend*57.295779513# : unclampedAngle=drawAngle
+    if drawAngle< -12.6 then drawAngle=-12.6
+    if drawAngle>12.6 then drawAngle=12.6
+    if drawAngle<>unclampedAngle
+        ' The pivot must use the rotation actually submitted to the screen.
+        ' Otherwise a pitched/clamped section slides away from its neighbors.
+        relative=(drawAngle-angle)/57.295779513#
+        c=Cos(relative) : sn=Sin(relative)
+    end if
     dx=pivot*(1#-c) : dy=displacement+sn*pivot
     co=r.waveBaseCos : si=r.waveBaseSin
     if co=invalid then base=angle/57.295779513# : co=Cos(base) : si=Sin(base)
-    ReefDrawFishRegion(r,p.x+co*dx+si*dy,p.y+co*dy-si*dx,sx,sy,ReefClamp(angle+bend*57.295779513#,-12.6,12.6),region,tint)
+    ReefDrawFishRegion(r,p.x+co*dx+si*dy,p.y+co*dy-si*dx,sx,sy,drawAngle,region,tint)
 end sub
 
 sub ReefDrawFishRegion(r as object, x as double, y as double, sx as double, sy as double, angle as double, region as object, tint as integer)
     x = x + r.canvasOffset
     if not r.rotation then angle = 0#
-    if region.offsetX<>invalid
+    c=invalid : sn=invalid
+    if r.fractionalFish
+        angle=Int(angle*256#+.5)/256#
         c=Cos(angle/57.295779513#) : sn=Sin(angle/57.295779513#)
+    end if
+    if region.offsetX<>invalid
+        if c=invalid then c=Cos(angle/57.295779513#) : sn=Sin(angle/57.295779513#)
         x=x+c*sx*region.offsetX+sn*sy*region.offsetY
         y=y+c*sy*region.offsetY-sn*sx*region.offsetX
     end if
     if r.fractionalFish
-        transform = ReefFishTransform(x*r.scale,y*r.scale,sx*r.scale,sy*r.scale,angle,r.placement)
+        transform = ReefFishTransform(x*r.scale,y*r.scale,sx*r.scale,sy*r.scale,angle,r.placement,c,sn)
         if r.rotation
             r.screen.DrawTransformedObject(transform.x,transform.y,transform.angle,transform.sx,transform.sy,region.fractional,tint)
         else

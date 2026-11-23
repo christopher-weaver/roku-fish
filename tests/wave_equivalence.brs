@@ -14,19 +14,24 @@ sub Main()
                     u=.5-sign*pivot/r.partLength
                     d=ReefBodyWave(u,r.wavePhase,r.waveAmplitude)
                     slope=ReefBodyWaveSlope(u,r.wavePhase,r.waveAmplitude)*(0#-sign)/r.partLength
-                    bend=0#-Atn(slope) : c=Cos(bend) : sn=Sin(bend)
+                    bend=0#-Atn(slope)
+                    expectedAngle=ReefClamp(angle+bend*57.295779513#,-12.6,12.6)
+                    relative=(expectedAngle-angle)/57.295779513#
+                    c=Cos(relative) : sn=Sin(relative)
                     dx=pivot*(1#-c) : dy=d+sn*pivot
                     base=angle/57.295779513# : co=Cos(base) : si=Sin(base)
                     expectedX=Int(p.x+co*dx+si*dy+.5) : expectedY=Int(p.y+co*dy-si*dx+.5)
                     expectedAngle=ReefClamp(angle+bend*57.295779513#,-12.6,12.6)
-                    ReefDrawWaveRegion(r,p,sp,1#,1#,angle,region,pivot,&hFFFFFFFF)
+                    r.waveSinPhase=Sin(r.wavePhase) : r.waveCosPhase=Cos(r.wavePhase)
+                    factors=ReefWaveFactors(u)
+                    ReefDrawWaveRegion(r,p,sp,1#,1#,angle,region,pivot,&hFFFFFFFF,factors)
                     if screen.x<>expectedX or screen.y<>expectedY or Abs(screen.angle-expectedAngle)>.00001 then print "FAIL optimized body transform differs" : return
                     checks=checks+1
                 end for
             end for
         end for
     end for
-    print "PASS ";checks;" optimized S-curve transforms preserve original rounded positions and angles"
+    print "PASS ";checks;" cached S-curve transforms preserve attached pivots at ordinary and clamped pitch angles"
 end sub
 function WaveCapture(x as integer,y as integer,angle as float,sx as float,sy as float,source as dynamic,tint as integer) as boolean
     m.x=x : m.y=y : m.angle=angle : return true

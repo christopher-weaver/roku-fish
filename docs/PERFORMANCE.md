@@ -1,8 +1,22 @@
-# FPS investigation — 1.0.27
+# FPS investigation — 1.0.28
 
-The Roku Ultra reports **U 101 / D 31 / S 0 / E 0 ms**, at normal/Medium fish density, with the same performance in High and Performance modes. Update plus draw is approximately 132 ms/frame, consistent with 7–8 FPS. This identifies CPU simulation/update work as the dominant measured stage. Draw submission is also substantial; the negligible swap/event readings do not point to a long swap wait or explicit event/GC work. These averages cannot exclude internal automatic garbage collection or occasional stalls.
+## Latest Roku measurement and v28 changes
 
-## CPU fixes in this release
+After v27 the user reports **11 FPS, U44 / D30 / S0 / E0 ms**, improved from U101 / D31. Updating is still the largest stage, and drawing remains significant. These are user-supplied averages; the new release has not yet been timed on the Ultra.
+
+Version 1.0.28 removes another layer of physics helper dispatch without changing the 30 Hz step, steering limits, swept safety checks or reference end poses. Hot-path clamps use local comparisons with the same limits; the speed-factor local explicitly retains double precision. In the same 60-tick/eight-fish fixture, helper calls fall **26,268 → 17,136 (35%)**, and total observed calls fall **56,048 → 46,916 (16%)**. All 1,645 reef sweeps and 3,360 fish-pair sweeps remain.
+
+Drawing caches immutable section phase offsets when the atlases load, shares the fish's phase/direction terms, and reuses the quantized rotation basis for half-pixel anchor compensation and fractional placement. In the same 120-frame production renderer fixture, **Sin/Cos calls fall 17,113 → 5,957 (65%)**, total calls fall 26%, and all **2,160 transform draws** remain. This includes identical fixture setup/assertions. The eight body sections, two-view rotation blend and separate fin/tail motion remain. Cached constants are allocated at load time, not on each displayed frame.
+
+The segment fix has two parts. A pitched section previously clamped its submitted angle while placing its pivot with the unclamped angle; both now use the actual submitted rotation. A dedicated 864-case regression fails against v27 and passes with the correction. The source overlap also grows with section height, and pivots stay at their nominal section centers. Dense independent checks of captured native crops/transforms cover **11,481,120 seam-neighborhood points**, reserving two output pixels for filtering/placement error at HD/FHD. V27 lacks that margin at 1,497,365 points; v28 has no deficient samples. The margin test is geometric evidence, not a claim that every old deficient sample was a visible GPU hole.
+
+[swim-performance-audit.json](swim-performance-audit.json) records the source counts and limitations. The renderer was also rasterized from its production transform captures for a visual check. No artwork, fish count, simulation rate or heading-blend detail was reduced. Install v28 and report FPS plus U/D/S/E after ten seconds in High/normal density; a full `Deep Reef PERF` line additionally supplies the ticks/frame count. Resulting device FPS remains pending.
+
+## Earlier v26 hardware baseline and v27 update fixes
+
+The earlier Roku Ultra baseline reports **U 101 / D 31 / S 0 / E 0 ms**, at normal/Medium fish density, with the same performance in High and Performance modes. Update plus draw is approximately 132 ms/frame, consistent with 7–8 FPS. This identifies CPU simulation/update work as the dominant measured stage. Draw submission is also substantial; the negligible swap/event readings do not point to a long swap wait or explicit event/GC work. These averages cannot exclude internal automatic garbage collection or occasional stalls.
+
+## CPU fixes introduced in v27
 
 - **Exact indexed reef queries.** Previously every rectangle walked occupancy rows and searched each string. An offline sparse table now ORs consecutive rows in power-of-two bands. Any rectangle is covered exactly by at most two overlapping bands, so its result takes at most two native string searches. Shared mask strings keep the index about 166 KB uncompressed, with only a few KB added to the ZIP. It is loaded once, validated against the actual grid, and reused. Custom grids retain the original exact row-scan fallback. The build regenerates the index from current occupancy data.
 - **Shared swept geometry.** A reef sweep computes world bounds, depth radius, body envelope and projected rectangle once, sharing them across the floor, surface and depth planes. All formations with matching parallax share a rectangle. Distant cave volumes are rejected before invoking the exact segment/slab test. This removes thousands of repeated helper calls and duplicate projections while retaining conservative body/tail/fin clearance.
@@ -30,7 +44,7 @@ All eight reference x/y/z/heading trajectories are retained within 1e-7 design u
 
 Independent frozen v26 collision guards match 1,260 indexed rectangles, 600 swept reef paths and 1,200 swept/static fish-pair paths. Another 600 size/species changes validate cache refresh. The offline index is also checked against every rectangle on an irregular small grid and every query height in the shipping grids. Native movement, traffic, route recovery, floor/cave/surface clearance, clam births, turns, pan, appendage animation, settings and package checks exercise the same production code.
 
-Install the tracked **1.0.27** ZIP, select **High / normal density / FPS On**, and report the FPS and U/D/S/E after about ten seconds. No long soak is required. There is no configured connection to the actual Roku in this workspace, so the resulting device FPS still needs that sample. The previous drawing optimizations remain in place, and D=31 ms is still a separate remaining cost.
+Install the tracked **1.0.28** ZIP, select **High / normal density / FPS On**, and report the FPS and U/D/S/E after about ten seconds. No long soak is required. There is no configured connection to the actual Roku in this workspace, so the resulting device FPS still needs that sample. The previous drawing optimizations remain in place, and D=31 ms is still a separate remaining cost.
 
 ## Diagnostic meanings
 

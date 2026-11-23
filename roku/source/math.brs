@@ -82,10 +82,13 @@ end function
 
 ' Floating scales carry the small remainder lost by integer draw coordinates.
 ' A shorter anchor bounds rotated float32 error and shape stretch for fish.
-function ReefFishTransform(x as double, y as double, sx as double, sy as double, angle as double, result = invalid as dynamic) as object
+function ReefFishTransform(x as double, y as double, sx as double, sy as double, angle as double, result = invalid as dynamic, cachedCos=invalid as dynamic, cachedSin=invalid as dynamic) as object
     anchor = 4096#
-    angle = Int(angle * 256 + 0.5) / 256#
-    c = Cos(angle / 57.295779513#) : sn = Sin(angle / 57.295779513#)
+    c=cachedCos : sn=cachedSin
+    if c=invalid
+        angle=Int(angle*256+.5)/256#
+        c=Cos(angle/57.295779513#) : sn=Sin(angle/57.295779513#)
+    end if
     px = Int(x - anchor * (c * sx + sn * sy))
     py = Int(y - anchor * (c * sy - sn * sx))
     dx = x - px - anchor * (c * sx + sn * sy)
@@ -274,4 +277,15 @@ end function
 
 function ReefProfileSummary(p as object,s as object,r as object) as object
     return {fps:s.fps,mode:s.settings.quality,fish:s.fish.Count(),target_fps:s.renderFps,canvas_width:r.canvasWidth,canvas_height:r.canvasHeight,output_scale:r.outputScale,update_ms:ReefProfileMs(p.updateMs,p.frames),draw_ms:ReefProfileMs(p.drawMs,p.frames),wait_ms:ReefProfileMs(p.waitMs,p.frames),swap_ms:ReefProfileMs(p.swapMs,p.frames),events_ms:ReefProfileMs(p.eventsMs,p.frames),ticks_per_frame:ReefProfileMs(p.ticks,p.frames),max_update_ms:p.maxUpdateMs,max_draw_ms:p.maxDrawMs,max_swap_ms:p.maxSwapMs,max_events_ms:p.maxEventsMs,max_frame_ms:p.maxFrameMs,memory_events:p.memoryEvents,fractional_fish:r.fractionalFish}
+end function
+
+' Immutable local-coordinate terms shared by every frame of a body section.
+function ReefWaveFactors(u as double) as object
+    u=ReefClamp(u,0#,1#)
+    return {u:u,uu:u*u,sinOffset:Sin(u*6.283185307#),cosOffset:Cos(u*6.283185307#)}
+end function
+
+' Cover the relative rotation of tall adjacent sections, plus filter rounding.
+function ReefBandOverlap(height as integer) as integer
+    return Int(height*.08+3.999999)
 end function

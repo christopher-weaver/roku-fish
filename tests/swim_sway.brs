@@ -3,16 +3,17 @@ sub Main()
     body=[] : tails=[] : fins=[]
     strips=[]
     for i=0 to 7
-        strips.Push({normal:"body",fractional:"body",centerX:(i-3.5)*sp.frameW/8#})
+        center=(i-3.5)*sp.frameW/8#
+        strips.Push({normal:"body",fractional:"body",offsetX:.5,offsetY:.5,centerX:center,waveForward:ReefWaveFactors(.5-center/(sp.frameW*.9)),waveReverse:ReefWaveFactors(.5+center/(sp.frameW*.9))})
     end for
     for i=0 to sp.frames.Count()-1
         body.Push({normal:"body",fractional:"body",bands:strips})
     end for
     for i=0 to sp.tailFrames.Count()-1
-        tails.Push({normal:"tail",fractional:"tail"})
+        tails.Push({normal:"tail",fractional:"tail",offsetX:.5,offsetY:.5})
     end for
     for i=0 to sp.finFrames.Count()-1
-        fins.Push({normal:"fin",fractional:"fin"})
+        fins.Push({normal:"fin",fractional:"fin",offsetX:.5,offsetY:.5})
     end for
     screen={angles:[],sources:[],opacity:[],DrawTransformedObject:SwimCapture}
     r={screen:screen,scale:1#,canvasOffset:0#,rotation:true,fractionalFish:true,placement:{}}

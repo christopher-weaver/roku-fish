@@ -64,7 +64,10 @@ sub ReefFishStep(s as object, f as object, dt as double)
     avoiding = ReefCoralBlocked(s, f, f, probe)
     pressure = 0#
     if avoiding then pressure = 1#
-    f.avoidance = f.avoidance + (pressure - f.avoidance) * ReefClamp(dt * 2, 0, 1)
+    blend=dt*2#
+    if blend<0# then blend=0#
+    if blend>1# then blend=1#
+    f.avoidance = f.avoidance + (pressure - f.avoidance) * blend
     ' Follow clearance-tested routes around each formation instead of always
     ' repelling from two depth planes and forcing every fish upward.
     if avoiding and not maneuver
@@ -87,15 +90,27 @@ sub ReefFishStep(s as object, f as object, dt as double)
     turn = ReefAngleDelta(f.heading, desired)
     ' Damped steering with bounded angular acceleration and jerk.
     ' An opposite goal cannot instantly reverse the turn direction.
-    targetYawVelocity = ReefClamp(turn * .85, -f.turnRate, f.turnRate)
-    desiredYawAcceleration = ReefClamp((targetYawVelocity - f.yawVelocity) * 2.6, -0.32, 0.32)
-    f.yawAcceleration = f.yawAcceleration + ReefClamp(desiredYawAcceleration - f.yawAcceleration, -.4 * dt, .4 * dt)
-    f.yawVelocity = ReefClamp(f.yawVelocity + f.yawAcceleration * dt, -f.turnRate, f.turnRate)
+    targetYawVelocity=turn*.85
+    if targetYawVelocity<0#-f.turnRate then targetYawVelocity=0#-f.turnRate
+    if targetYawVelocity>f.turnRate then targetYawVelocity=f.turnRate
+    desiredYawAcceleration=(targetYawVelocity-f.yawVelocity)*2.6
+    if desiredYawAcceleration<-.32 then desiredYawAcceleration=-.32
+    if desiredYawAcceleration>.32 then desiredYawAcceleration=.32
+    change=desiredYawAcceleration-f.yawAcceleration : limit=.4*dt
+    if change<0#-limit then change=0#-limit
+    if change>limit then change=limit
+    f.yawAcceleration=f.yawAcceleration+change
+    f.yawVelocity=f.yawVelocity+f.yawAcceleration*dt
+    if f.yawVelocity<0#-f.turnRate then f.yawVelocity=0#-f.turnRate
+    if f.yawVelocity>f.turnRate then f.yawVelocity=f.turnRate
     f.heading = ReefWrap(f.heading + f.yawVelocity * dt, 6.283185307)
     desiredSpeed = f.sp.speed * s.motion
     if f.state = "Hovering" then desiredSpeed = desiredSpeed * 0.12
     horizontalDistance = Sqr(dx * dx + dz * dz)
-    desiredSpeed = desiredSpeed * ReefClamp(horizontalDistance / (Abs(dy) * 1.3 + 40), 0.35, 1)
+    speedFactor#=horizontalDistance/(Abs(dy)*1.3+40)
+    if speedFactor#<.35 then speedFactor#=.35
+    if speedFactor#>1# then speedFactor#=1#
+    desiredSpeed=desiredSpeed*speedFactor#
     desiredSpeed = desiredSpeed * (1 - 0.18 * ReefEase((Abs(turn) - 0.6) / 1.2))
     if neighbors.alarm then desiredSpeed = desiredSpeed * 1.18
     ' Never exceed the configured acceleration, even when night / settings change.
@@ -106,18 +121,32 @@ sub ReefFishStep(s as object, f as object, dt as double)
     ' still stops an actual collision; distant coral must not pin speed at zero.
     desiredSpeed = desiredSpeed * (1 - .35*f.avoidance)
     goalDistance=Sqr((f.tx-f.x)^2+(f.ty-f.y)^2+((f.tz-f.z)*800#)^2)
-    if f.route.Count()>0 then desiredSpeed=desiredSpeed*ReefClamp(goalDistance/145#,.60,1#)
+    if f.route.Count()>0
+        speedFactor#=goalDistance/145#
+        if speedFactor#<.60 then speedFactor#=.60
+        if speedFactor#>1# then speedFactor#=1#
+        desiredSpeed=desiredSpeed*speedFactor#
+    end if
     desiredSpeed=desiredSpeed*(1-0.55*neighbors.traffic)
     if maneuver then desiredSpeed=f.sp.speed*.4
     f.targetSpeed = desiredSpeed
-    desiredAcceleration = ReefClamp((desiredSpeed - f.speed) * 2, -f.acceleration, f.acceleration)
-    f.speedAcceleration = f.speedAcceleration + ReefClamp(desiredAcceleration - f.speedAcceleration, -38 * dt, 38 * dt)
-    f.speed = ReefClamp(f.speed + f.speedAcceleration * dt, 0, f.sp.speed * 1.3 * 1.18)
+    desiredAcceleration=(desiredSpeed-f.speed)*2#
+    if desiredAcceleration<0#-f.acceleration then desiredAcceleration=0#-f.acceleration
+    if desiredAcceleration>f.acceleration then desiredAcceleration=f.acceleration
+    change=desiredAcceleration-f.speedAcceleration : limit=38#*dt
+    if change<0#-limit then change=0#-limit
+    if change>limit then change=limit
+    f.speedAcceleration=f.speedAcceleration+change
+    f.speed=f.speed+f.speedAcceleration*dt : limit=f.sp.speed*1.3*1.18
+    if f.speed<0# then f.speed=0#
+    if f.speed>limit then f.speed=limit
     motionSpeed=f.speed
     if maneuver then motionSpeed=ReefMin(motionSpeed,f.sp.speed*.4)
     f.desiredVx = Cos(motionHeading) * motionSpeed
     f.desiredVz = Sin(motionHeading) * motionSpeed / 800
-    f.desiredVy = ReefClamp(dy * 0.15, -f.sp.speed * s.motion * (0.33+0.40*neighbors.traffic), f.sp.speed * s.motion * (0.33+0.40*neighbors.traffic))
+    f.desiredVy=dy*.15 : limit=f.sp.speed*s.motion*(.33+.40*neighbors.traffic)
+    if f.desiredVy<0#-limit then f.desiredVy=0#-limit
+    if f.desiredVy>limit then f.desiredVy=limit
     if maneuver
         ' Follow the entire checked 3D segment, slowing before the endpoint.
         ' A nearly vertical leg must not resume forward thrust beside its goal.
@@ -134,7 +163,10 @@ sub ReefFishStep(s as object, f as object, dt as double)
     changeLength=Sqr(changeX*changeX+changeZ*changeZ) : mix=1#
     if changeLength>.00001 then mix=ReefMin(1#,f.acceleration*dt/changeLength)
     f.vx=f.vx+changeX*mix : f.vz=f.vz+changeZ*mix/800#
-    f.vy = f.vy + ReefClamp(f.desiredVy - f.vy, -8 * dt, 8 * dt)
+    change=f.desiredVy-f.vy : limit=8#*dt
+    if change<0#-limit then change=0#-limit
+    if change>limit then change=limit
+    f.vy=f.vy+change
     candidate=f.candidate
     candidate.x=f.x+f.vx*dt : candidate.y=f.y+f.vy*dt : candidate.z=f.z+f.vz*dt
     if ReefCoralBlocked(s, f, f, candidate)
@@ -170,7 +202,10 @@ sub ReefFishStep(s as object, f as object, dt as double)
     end if
     ReefCheckProgress(s,f,dt)
     ' Emergency wall brake is continuous (no wrapping / teleporting).
-    f.pitch = f.pitch + (ReefClamp(-f.vy / 35, -0.22, 0.22) - f.pitch) * dt * 2
+    targetPitch=0#-f.vy/35#
+    if targetPitch<-.22 then targetPitch=-.22
+    if targetPitch>.22 then targetPitch=.22
+    f.pitch=f.pitch+(targetPitch-f.pitch)*dt*2#
     f.phase = ReefWrap(f.phase + dt * f.sp.beat * 6.283185307 * (0.3 + f.speed / f.sp.speed * 0.7), 6.283185307)
     finBeat = 1.5
     if f.sp.finBeat <> invalid then finBeat = f.sp.finBeat

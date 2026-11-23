@@ -201,3 +201,7 @@ Fixes the long-standing full-resolution offscreen canvas in Performance mode, re
 ## Version 1.0.27
 
 Responds to the Roku Ultra's U101/D31 timing evidence by reducing update CPU work: exact indexed reef queries, shared sweep geometry, cached body envelopes and early fish-pair rejection. The same two-second production fixture retains every collision check and all eight fish trajectories while making 75% fewer BrightScript helper calls and 92% fewer occupancy string searches. Fixed 30 Hz motion, fish detail and density are retained. The updated ZIP is included; [the investigation](docs/PERFORMANCE.md) distinguishes measured work reductions from the pending native FPS recheck.
+
+## Version 1.0.28
+
+Further reduces update and fish-rendering math after the Ultra's 11 FPS / U44 / D30 result. Keeps the 30 Hz simulation and reference fish motion while removing 35% of the remaining update helper calls; the production draw fixture uses 65% fewer Sin/Cos calls with unchanged draw count and heading blending. Fixes body-section pivot placement at the pitch limit and adds height-based, filter-safe overlap to prevent swim-wiggle gaps. The sideload ZIP is updated and tracked; [the investigation](docs/PERFORMANCE.md) documents validation and the pending device FPS sample.

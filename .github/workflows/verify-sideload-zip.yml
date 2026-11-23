@@ -151,3 +151,16 @@ jobs:
         run: |
           node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs roku/source/effects.brs tests/collision-reference.brs tests/collision_equivalence.brs
           node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/settings-model.brs roku/source/aquarium.brs roku/source/fish.brs roku/source/schooling.brs roku/source/effects.brs tests/cpu_workload.brs
+
+      - name: Check filtered joins between swimming body sections
+        run: |
+          python -m pip install numpy==2.2.6
+          BRS_BIN=node_modules/.bin/brs python - <<'PYTHON'
+          import sys
+          sys.path.insert(0,'tools')
+          from test import brs_run
+          from swim_seam_check import validate
+          report=validate(brs_run('swim_seams','work/swim-seams-production.txt'))
+          print(report)
+          assert report['unprotected']==0
+          PYTHON
