@@ -12,7 +12,7 @@ class PackageChecks(unittest.TestCase):
         with zipfile.ZipFile(p)as z:
             self.assertIn('manifest',z.namelist());self.assertIsNone(z.testzip())
             self.assertTrue(all(not n.startswith(('roku/','assets/','tests/','tools/'))for n in z.namelist()))
-    def test_archive_budget(self):self.assertLessEqual((ROOT/'dist/deep-reef-screensaver.zip').stat().st_size,4_000_000)
+    def test_archive_budget(self):self.assertLessEqual((ROOT/'dist/deep-reef-screensaver.zip').stat().st_size,4*1024*1024)
     def test_no_lfs_placeholders(self):
         for p in (ROOT/'roku/images').iterdir():self.assertNotIn(b'version https://git-lfs',p.read_bytes()[:150])
     def test_independent_tail_poses_and_full_turn(self):
@@ -20,7 +20,8 @@ class PackageChecks(unittest.TestCase):
         for sp in species.values():
             self.assertEqual(len(sp['frames']),sp.get('bodyYawCount',sp['yawCount'])*sp['poseCount'])
             self.assertEqual({f['pose']for f in sp['frames']},set(range(sp['poseCount'])))
-            self.assertEqual(sp['poseCount'],1)
+            self.assertEqual(sp['poseCount'],3)
+            self.assertEqual(sp['bodyRenderMode'],'whole-swim')
             self.assertGreaterEqual(sp['tailPoseCount'],4)
             self.assertEqual(len({f['yaw']for f in sp['frames']}),sp.get('bodyYawCount',sp['yawCount']))
             from PIL import Image,ImageChops
@@ -224,8 +225,10 @@ class PackageChecks(unittest.TestCase):
             self.assertEqual(sp['yawCount'],64)
             self.assertEqual(len(sp['viewWidths']),64)
             self.assertFalse(any(f['flipX']for f in sp['frames']))
-            self.assertEqual(len({(f['x'],f['y'])for f in sp['frames']}),57)
-            self.assertEqual(sp['poseCount'],1)
+            for pose in range(sp['poseCount']):
+                self.assertEqual(len({(f['x'],f['y'])for f in sp['frames'][pose::sp['poseCount']]}),57)
+            self.assertEqual(sp['poseCount'],3)
+            self.assertEqual(sp['bodyRenderMode'],'whole-swim')
             self.assertEqual(sp['tailPoseCount'],4)
             self.assertEqual(sp['finPoseCount'],5)
     def test_precomputed_routes_and_coral_renders(self):

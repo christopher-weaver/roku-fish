@@ -5,45 +5,45 @@
     {
       "lighting": "Daylight",
       "sample_pixel": [
-        140,
-        137,
-        61,
+        168,
+        155,
+        45,
         255
       ]
     },
     {
       "lighting": "Dusk",
       "sample_pixel": [
-        115,
-        104,
-        64,
+        133,
+        116,
+        53,
         255
       ]
     },
     {
       "lighting": "Moonlight",
       "sample_pixel": [
-        73,
-        75,
-        60,
+        87,
+        84,
+        52,
         255
       ]
     },
     {
       "lighting": "Night",
       "sample_pixel": [
-        34,
         40,
-        58,
+        44,
+        55,
         255
       ]
     },
     {
       "lighting": "Sunset",
       "sample_pixel": [
-        155,
-        132,
-        67,
+        179,
+        147,
+        54,
         255
       ]
     },

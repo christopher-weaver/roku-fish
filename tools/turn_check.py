@@ -28,7 +28,8 @@ def check_adaptive_turns():
     r=ROOT;sps=json.loads((r/'roku/scenes/species.json').read_text());out={}
     for name,sp in sps.items():
      atlas=Image.open(r/'roku'/sp['image'][5:]).convert('RGBA');angles=sp['bodyAngles'];cache={}
-     for i,f in enumerate(sp['frames']):
+     for i in range(sp['bodyYawCount']):
+      f=sp['frames'][i*sp['poseCount']+sp['poseCount']//2]
       im=Image.new('RGBA',(sp['frameW'],sp['frameH']));im.alpha_composite(atlas.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h'])),(round(sp['frameW']/2-f['anchorX']),round(sp['frameH']/2-f['anchorY'])));cache[i]=im
      coarse=[i for i,a in enumerate(angles)if abs(math.degrees(a)/5.625-round(math.degrees(a)/5.625))<1e-6]
      def render(a,indices):

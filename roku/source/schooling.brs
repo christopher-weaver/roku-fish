@@ -14,6 +14,12 @@ function ReefFishBounds(f as object) as object
     end if
     ' Assign a fresh object: a clam baby initially shallow-copies its parent.
     bounds={sizeKey:f.size,species:f.sp.image,radius:width+height*.22+6#,height:height+width*.22+6#}
+    if f.sp.renderLength<>invalid and f.sp.collisionHalfWidth<>invalid
+        ratio=f.sp.length*1#/f.sp.renderLength*size
+        bounds.coralWidth=(f.sp.collisionHalfWidth+f.sp.collisionHalfHeight*.22)*ratio
+        bounds.coralHeight=(f.sp.collisionHalfHeight+f.sp.collisionHalfWidth*.22)*ratio
+        bounds.depthRadius=f.sp.bodyThickness*f.sp.length*size/1728#+.012
+    end if
     f.bodyBounds=bounds
     return bounds
 end function
@@ -29,22 +35,25 @@ function ReefFishHeight(f as object) as double
 end function
 
 ' Continuous swept cylinder test: a crossing cannot tunnel between fixed ticks.
-function ReefFishPairBlocked(f as object, fromPose as object, toPose as object, other as object, swept = true as boolean) as boolean
+function ReefFishPairBlocked(f as object, fromPose as object, toPose as object, other as object, swept = true as boolean, knownBounds=false as boolean) as boolean
     ox=other.x : oy=other.y : oz=other.z
     if swept and other.previousX<>invalid then ox=other.previousX : oy=other.previousY : oz=other.previousZ
     px=fromPose.x-ox : py=fromPose.y-oy : pz=(fromPose.z-oz)*800#
     vx=toPose.x-other.x-px : vy=toPose.y-other.y-py : vz=(toPose.z-other.z)*800#-pz
-    own=f.bodyBounds
-    if own=invalid
-        own=ReefFishBounds(f)
-    else if own.sizeKey<>f.size or own.species<>f.sp.image
-        own=ReefFishBounds(f)
-    end if
-    neighbor=other.bodyBounds
-    if neighbor=invalid
-        neighbor=ReefFishBounds(other)
-    else if neighbor.sizeKey<>other.size or neighbor.species<>other.sp.image
-        neighbor=ReefFishBounds(other)
+    own=f.bodyBounds : neighbor=other.bodyBounds
+    if not knownBounds
+        own=f.bodyBounds
+        if own=invalid
+            own=ReefFishBounds(f)
+        else if own.sizeKey<>f.size or own.species<>f.sp.image
+            own=ReefFishBounds(f)
+        end if
+        neighbor=other.bodyBounds
+        if neighbor=invalid
+            neighbor=ReefFishBounds(other)
+        else if neighbor.sizeKey<>other.size or neighbor.species<>other.sp.image
+            neighbor=ReefFishBounds(other)
+        end if
     end if
     radius=own.radius+neighbor.radius+4# : height=own.height+neighbor.height+4#
     ' Exact broad phase: a linear relative sweep wholly outside a slab cannot hit.
@@ -76,7 +85,7 @@ function ReefFishBlocked(s as object, f as object, fromPose as object, toPose as
     for neighborIndex=0 to s.fish.Count()-1
         other=s.fish[neighborIndex]
         if other.id<>f.id
-            if ReefFishPairBlocked(f,fromPose,toPose,other,swept) then return true
+            if ReefFishPairBlocked(f,fromPose,toPose,other,swept,s.physicsBoundsReady=true) then return true
         end if
     end for
     return false
@@ -108,16 +117,19 @@ end function
 ' Predictive separation for every species; alignment/cohesion only for chromis.
 function ReefNeighbors(s as object, f as object) as object
     steer={x:0#,y:0#,z:0#,hx:0#,hz:0#,cx:0#,cy:0#,cz:0#,count:0,alarm:false,traffic:0#}
-    own=ReefFishBounds(f)
+    ready=s.physicsBoundsReady=true : own=f.bodyBounds
+    if not ready then own=ReefFishBounds(f)
     for neighborIndex=0 to s.fish.Count()-1
         other=s.fish[neighborIndex]
         if other.id<>f.id
             dx=f.x-other.x : dy=f.y-other.y : dz=(f.z-other.z)*800#
             neighbor=other.bodyBounds
-            if neighbor=invalid
-                neighbor=ReefFishBounds(other)
-            else if neighbor.sizeKey<>other.size or neighbor.species<>other.sp.image
-                neighbor=ReefFishBounds(other)
+            if not ready
+                if neighbor=invalid
+                    neighbor=ReefFishBounds(other)
+                else if neighbor.sizeKey<>other.size or neighbor.species<>other.sp.image
+                    neighbor=ReefFishBounds(other)
+                end if
             end if
             radius=own.radius+neighbor.radius+4#
             height=own.height+neighbor.height+4#

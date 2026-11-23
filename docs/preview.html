@@ -34,16 +34,17 @@ try{
  const power=mode.value==='Night'?.06:mode.value==='Moonlight'?.12:mode.value==='Dusk'?.52:1,shade=1-(1-surfaceShade(f.x,f.sy+36,currentTime))*.30*(.35+.65*power);c.filter=`brightness(${(.82+.18*f.z)*shade})`;
  for(const part of ['body','tail','fin']){
   const count=part==='body'?sp.poseCount:part==='tail'?sp.tailPoseCount:sp.finPoseCount,phase=part==='fin'?f.finPhase:f.phase,position=(Math.sin(phase)+1)*.5*(count-1),pose=Math.round(position),baseView=Math.round(pos)%sp.yawCount,selection=part==='body'?bodyView(f.heading,sp):{index:baseView,width,sourceWidth:sp.viewWidths[baseView]},atlas=assets[(part==='body'?sp.image:part==='tail'?sp.tailImage:sp.finImage).split('/').pop()],frames=part==='body'?sp.frames:part==='tail'?sp.tailFrames:sp.finFrames,ts=part==='fin'?(sp.finTextureScale??1):1;
-  const samples=part==='body'?[{...selection,index:selection.first,sourceWidth:sp.bodyViewWidths[selection.first],opacity:1},{...selection,index:selection.second,sourceWidth:sp.bodyViewWidths[selection.second],opacity:selection.blend}]:[{...selection,opacity:1}];
+  const first=Math.floor(position),second=Math.min(first+1,count-1),p=position-first;
+  const source=(index,sourcePose,opacity)=>({...selection,index,sourcePose,sourceWidth:sp.bodyViewWidths[index],opacity});
+  const samples=part==='body'?[source(selection.first,first,1),source(selection.first,second,p),source(selection.second,first,selection.blend*(1-p)/Math.max(1e-9,1-selection.blend*p)),source(selection.second,second,selection.blend*p)]:[{...selection,sourcePose:pose,opacity:1}];
   for(const sample of samples){
-   const fr=frames[sample.index*count+pose],ws=sample.width/sample.sourceWidth,length=sp.frameW*.9*scale*ws,sign=Math.cos(f.heading)>=0?1:-1,effort=Math.min(1,(f.speed??sp.speed*.6)/sp.speed),amp=sp.length*f.size*f.scale*.012*(.25+.75*effort)*Math.abs(Math.cos(f.heading));
+   if(sample.opacity<=0)continue;
+   const fr=frames[sample.index*count+sample.sourcePose],ws=sample.width/sample.sourceWidth,length=sp.frameW*.9*scale*ws,sign=Math.cos(f.heading)>=0?1:-1,amp=sp.length*f.size*f.scale*sp.bodySwimAmplitude*Math.abs(Math.cos(f.heading));
    let sx=scale*ts*ws,sy=scale*ts,shiftX=0,shiftY=0;
-   if(count>1){const first=Math.floor(position),second=Math.min(first+1,count-1),u=position-first,a=frames[sample.index*count+first],b=frames[sample.index*count+second];if(Math.min(a.w,b.w,fr.w,a.h,b.h,fr.h)>=6){const scaleX=(a.w+(b.w-a.w)*u)/fr.w,scaleY=(a.h+(b.h-a.h)*u)/fr.h;shiftX=(fr.anchorX*scaleX-(a.anchorX+(b.anchorX-a.anchorX)*u))*sx;shiftY=(fr.anchorY*scaleY-(a.anchorY+(b.anchorY-a.anchorY)*u))*sy;sx*=scaleX;sy*=scaleY}}
-   c.save();c.globalAlpha=sample.opacity;c.translate(shiftX,shiftY);const bands=part==='body'?8:1;
-   for(let band=0;band<bands;band++){
-    const left=bands===1?0:Math.max(0,Math.floor(fr.w*band/bands)-2),right=bands===1?fr.w:Math.min(fr.w,Math.floor(fr.w*(band+1)/bands)+2),pivot=bands===1?(.5-(part==='tail'?.76:.20))*length*sign:((left+right)*.5-fr.anchorX)*sx,u=Math.max(0,Math.min(1,.5-sign*pivot/length)),a=f.phase-u*2*Math.PI,d=amp*u*u*Math.sin(a),slope=amp*(2*u*Math.sin(a)-2*Math.PI*u*u*Math.cos(a))*(-sign)/length,bend=-Math.atan(slope),dx=pivot*(1-Math.cos(bend)),dy=d+Math.sin(bend)*pivot;
-    c.save();c.translate(dx,dy);c.rotate(-(Math.max(-.22,Math.min(.22,baseAngle+bend))-baseAngle));c.drawImage(atlas,fr.x+left,fr.y,right-left,fr.h,(left-fr.anchorX)*sx,-fr.anchorY*sy,(right-left)*sx,fr.h*sy);c.restore();
-   }c.restore();
+   if(part==='body'){c.save();c.globalAlpha=sample.opacity;c.drawImage(atlas,fr.x,fr.y,fr.w,fr.h,-fr.anchorX*sx,-fr.anchorY*sy,fr.w*sx,fr.h*sy);c.restore();continue}
+   const a=frames[sample.index*count+first],b=frames[sample.index*count+second];if(Math.min(a.w,b.w,fr.w,a.h,b.h,fr.h)>=6){const scaleX=(a.w+(b.w-a.w)*p)/fr.w,scaleY=(a.h+(b.h-a.h)*p)/fr.h;shiftX=(fr.anchorX*scaleX-(a.anchorX+(b.anchorX-a.anchorX)*p))*sx;shiftY=(fr.anchorY*scaleY-(a.anchorY+(b.anchorY-a.anchorY)*p))*sy;sx*=scaleX;sy*=scaleY}
+   const pivot=(.5-(part==='tail'?.76:.20))*length*sign,u=Math.max(0,Math.min(1,.5-sign*pivot/length)),waveSin=-Math.sin(f.phase)*Math.sin(u*2*Math.PI),waveCos=Math.sin(f.phase)*Math.cos(u*2*Math.PI),d=amp*u*u*waveSin,slope=amp*(2*u*waveSin-2*Math.PI*u*u*waveCos)*(-sign)/length,bend=-Math.atan(slope),relative=Math.max(-.22,Math.min(.22,baseAngle+bend))-baseAngle,dx=pivot*(1-Math.cos(relative)),dy=d+Math.sin(relative)*pivot;
+   c.save();c.globalAlpha=sample.opacity;c.translate(shiftX+dx,shiftY+dy);c.rotate(-relative);c.drawImage(atlas,fr.x,fr.y,fr.w,fr.h,-fr.anchorX*sx,-fr.anchorY*sy,fr.w*sx,fr.h*sy);c.restore();
   }
  }c.restore();
  }

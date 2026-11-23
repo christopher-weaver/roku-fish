@@ -64,22 +64,35 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     effort=.6
     if f.speed<>invalid then effort=ReefClamp(f.speed/f.sp.speed,0#,1#)
     r.waveAmplitude=f.sp.length*f.size*p.scale*.012*(.25+.75*effort)*Abs(headingCos)
-    if frames[0].bands<>invalid and f.bodyView.first<>invalid
-        ' Neighboring real 3D views share the same projected width and center.
-        ' An opaque base avoids see-through bodies; only body pixels blend.
-        body=f.bodyView : nearest=body.index : sourceWidth=body.sourceWidth
-        body.index=body.first : body.sourceWidth=f.sp.bodyViewWidths[body.first]
-        ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,body,scale,angle,red,green,blue)
-        if body.blend>.001
-            body.index=body.second : body.sourceWidth=f.sp.bodyViewWidths[body.second]
-            ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,body,scale,angle,red,green,blue,Int(255*body.blend+.5))
-        end if
-        body.index=nearest : body.sourceWidth=sourceWidth
+    r.waveStanding=f.sp.bodyRenderMode="whole-swim"
+    if r.waveStanding
+        r.waveAmplitude=f.sp.length*f.size*p.scale*f.sp.bodySwimAmplitude*Abs(headingCos)
+        ReefDrawWholeBody(r,p,f.sp,frames,bodyPosition,f.bodyView,scale,angle,red,green,blue)
     else
-    ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,f.bodyView,scale,angle,red,green,blue)
+        ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,f.bodyView,scale,angle,red,green,blue)
     end if
     if a.tails[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.tails[f.name],tailPosition,f.sp.tailPoseCount,view,scale,angle,red,green,blue)
     if a.fins[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.fins[f.name],finPosition,f.sp.finPoseCount,view,scale*f.sp.finTextureScale,angle,red,green,blue)
+end sub
+
+ ' Bilinear phase/yaw weights, normalized for source-over with an opaque base.
+sub ReefDrawWholeBody(r as object,p as object,sp as object,frames as object,position as double,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer)
+    first=Int(position) : second=first+1
+    if second>=sp.poseCount then second=first
+    phase=position-first : yaw=view.blend
+    savedIndex=view.index : savedWidth=view.sourceWidth
+    view.index=view.first : view.sourceWidth=sp.bodyViewWidths[view.first]
+    ReefDrawFishPart(r,p,sp,frames,first,sp.poseCount,view,scale,angle,red,green,blue)
+    opacity=Int(255#*phase+.5)
+    if opacity>0 and second<>first then ReefDrawFishPart(r,p,sp,frames,second,sp.poseCount,view,scale,angle,red,green,blue,opacity)
+    view.index=view.second : view.sourceWidth=sp.bodyViewWidths[view.second]
+    denominator=1#-yaw*phase
+    opacity=0
+    if denominator>.0000001 then opacity=Int(255#*yaw*(1#-phase)/denominator+.5)
+    if opacity>0 then ReefDrawFishPart(r,p,sp,frames,first,sp.poseCount,view,scale,angle,red,green,blue,opacity)
+    opacity=Int(255#*yaw*phase+.5)
+    if opacity>0 then ReefDrawFishPart(r,p,sp,frames,second,sp.poseCount,view,scale,angle,red,green,blue,opacity)
+    view.index=savedIndex : view.sourceWidth=savedWidth
 end sub
 
 sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,position as double,count as integer,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer,opacity=255 as integer)
@@ -93,7 +106,7 @@ sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,posit
     r.partLength=sp.frameW*.9*sx
     if count=sp.finPoseCount then r.partLength=r.partLength/sp.finTextureScale
     sy=scale : drawPoint=p
-    if count>1 and region.anchorX<>invalid
+    if count>1 and region.anchorX<>invalid and region.wholeSwim<>true
         warp=ReefAppendageEnvelope(frames,yaw*count,position,count,poseIndex,r.poseWarp)
         if warp<>invalid
             r.poseWarp=warp
@@ -104,13 +117,9 @@ sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,posit
             drawPoint=r.warpPoint : sx=sx*warp.sx : sy=sy*warp.sy
         end if
     end if
-    if region.bands<>invalid and r.waveAmplitude>.15
-        for band=0 to region.bands.Count()-1
-            strip=region.bands[band]
-            factors=strip.waveForward
-            if r.waveSign<0 then factors=strip.waveReverse
-            ReefDrawWaveRegion(r,p,sp,sx,scale,angle,strip,strip.centerX*sx,tint,factors)
-        end for
+    if region.wholeSwim=true
+        ' A complete curved body is one region: there are no interior slice edges.
+        ReefDrawFishRegion(r,p.x,p.y,sx,sy,angle,region,tint)
     else if r.waveAmplitude>.15
         ' Fin and caudal patches remain whole and follow the tangent at their
         ' attachment. The body uses overlapping smooth tangent sections.
@@ -144,6 +153,15 @@ sub ReefDrawWaveRegion(r as object,p as object,sp as object,sx as double,sy as d
     else
         u=ReefClamp(.5-sign*pivot/length,0#,1#)
         phase=r.wavePhase-u*6.283185307# : waveSin=Sin(phase) : waveCos=Cos(phase)
+    end if
+    if r.waveStanding=true
+        if factors<>invalid
+            waveSin=0#-r.waveSinPhase*factors.sinOffset
+            waveCos=r.waveSinPhase*factors.cosOffset
+        else
+            waveSin=0#-r.waveSinPhase*Sin(u*6.283185307#)
+            waveCos=r.waveSinPhase*Cos(u*6.283185307#)
+        end if
     end if
     displacement=r.waveAmplitude*u*u*waveSin
     slope=r.waveAmplitude*(2#*u*waveSin-6.283185307#*u*u*waveCos)*(0#-sign)/length

@@ -16,7 +16,7 @@ sub Main()
         ReefSavePose(f)
         body=[] : fins=[] : tails=[]
         for j=0 to f.sp.frames.Count()-1
-            body.Push({normal:"body:"+f.name})
+            body.Push({wholeSwim:true,normal:"body:"+f.name})
         end for
         for j=0 to f.sp.finFrames.Count()-1
             fins.Push({normal:"fin:"+f.name})
@@ -61,15 +61,15 @@ sub Main()
     if order["body:"+s.fish[2].name]<=order["reef:sea-anemone"] then print "FAIL front fish ordering" : return
     for i=0 to 2
         name=s.fish[i].name
-        if count["body:"+name]<>1 or count["fin:"+name]<>1 or count["tail:"+name]<>1 then print "FAIL body or fin view blend" : return
+        if count["body:"+name]<1 or count["body:"+name]>4 or count["fin:"+name]<>1 or count["tail:"+name]<>1 then print "FAIL body or fin view blend" : return
     end for
     if count["reef:sea-fan"]<>1 or count["reef:sea-anemone"]<>1 then print "FAIL marine object fragmented" : return
     if count.DoesExist("net") then print "FAIL water darkening overlay" : return
     if count["shadow:connected-reef"]<>2 or count["shadow:foreground-reef"]<>2 then print "FAIL surface shadow drawing" : return
     if order["shadow:connected-reef"]>=order["body:"+s.fish[1].name] then print "FAIL surface/actor shadow order" : return
     if order["eel"]<=order["shadow:connected-reef"] or order["eel"]>=order["body:"+s.fish[1].name] then print "FAIL joint cave actor depth order" : return
-    if blends<>0 or reflected<>0 then print "FAIL blend alpha or reflection ";blends;reflected : return
-    print "PASS production renderer interleaves rear, middle and front fish with connected reef layers and rendered marine life; exactly one opaque body, one separate tail and one fin per fish, positive scales only"
+    if blends<1 or reflected<>0 then print "FAIL blend alpha or reflection ";blends;reflected : return
+    print "PASS production renderer interleaves rear, middle and front fish with connected reef layers and rendered marine life; one complete body blend, one separate tail and one fin per fish, positive scales only"
 end sub
 sub RenderAlpha(enabled as boolean)
 end sub

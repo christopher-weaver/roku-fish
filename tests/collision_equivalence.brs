@@ -38,5 +38,9 @@ sub Main()
     occ.planes[0].rowIndex=invalid
     ReefCollisionInit(s)
     if occ.planes[0].rowIndex<>invalid then print "FAIL mismatched grid index" : return
+    light={fish:[{id:0,x:500#,y:400#,z:.5,heading:0#,schooling:true,sp:{length:90}},{id:1,x:700#,y:410#,z:.5,heading:0#,schooling:true,sp:{length:90}}]}
+    steer=ReefNeighbors(light,light.fish[0])
+    if steer.count<>1 then print "FAIL geometry-free schooling bounds" : return
+    if ReefCoralBlocked(light,light.fish[0],{x:84#,y:400#,z:.5},light.fish[0])<>true then print "FAIL geometry-free tank limits" : return
     print "PASS exact collision optimization: 1260 rectangles, 600 swept reef paths, 1200 swept/static fish paths, 600 cache invalidations, custom-grid fallback"
 end sub

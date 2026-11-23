@@ -1,6 +1,23 @@
-# FPS investigation — 1.0.28
+# FPS investigation — 1.0.29
 
-## Latest Roku measurement and v28 changes
+## V29: complete body images and shared anatomy caches
+
+The latest user measurement after v28 is **15 FPS, U36 / D29 / S0 / E0 ms**. The earlier 11 FPS / U44 / D30 result improved, but the user still sees splits. The v28 geometric overlap checks therefore did not establish that the on-device artifact was resolved.
+
+V29 removes the body-slice renderer. Every species now has complete curved, neutral and inverse-curved body images for all **112** mesh-view angles. Opacity blends interpolate swim pose and heading, with a complete opaque base and normalized source-over weights. Tail and pectoral poses remain independent and attach to the same subtle body flex. All body images rotate together at the fish's pitch; there are no interior strip edges, overlap joins or independent section rotations. The images retain the approved texture resolution and exact visible source colors.
+
+The 120-frame native fixture submits **707 transforms instead of 2,160 (67% fewer)**. A body needs at most four complete-image submissions instead of sixteen slice submissions. Source trigonometry also drops from 5,524 to 2,618 calls in that renderer-only fixture. The callbacks are host graphics stubs; these are work counts, not a Roku FPS prediction.
+
+The physics update validates constant anatomy once for each fish at the start of a fixed tick. Projected coral extents/depth radii are cached, and pair/neighbor checks reuse the validated bounds during that tick. Standalone queries, resized fish, species changes and newborns retain validation. The same two-second/eight-fish fixture makes **462,656 object field reads instead of 530,121 (13% fewer)**, retaining every simulation tick, collision check and reference end pose. The simulation remains at 30 Hz.
+
+An independent pixel check covers **1,710 mesh-view/body-pose combinations**. Each image column retains its entire source alpha profile and every visible RGBA value, including any legitimate source gaps; no new internal gaps or color changes appear. Neutral images keep their source alignment. Native tests verify complete-body submissions, common pitch, opaque base and the normalized two-axis blend weights. The obsolete strip-margin fixture has been removed. These checks are stronger than the earlier overlap test, though the actual Roku filtering/FPS still requires the user's sample.
+
+Prebaking trades texture space for less script/driver work: the estimate for all variants rises from 128.43 to 172.23 MiB. The runtime loads only the present species and chosen scene, and creates substantially fewer body regions. The package stays below **4 MiB (4,194,304 bytes)**; this replaces the older conservative 4,000,000-byte guard. All atlas pages remain within 2048×2048. `assets/source/fish-rest` preserves the original neutral mesh views and metadata; `tools/whole_swim.py` regenerates the complete-body images without editing their source colors.
+
+See [continuous-body-audit.json](continuous-body-audit.json) for counts and limitations. After installing v29, report FPS and U/D/S/E in High/normal density after about ten seconds, along with whether the splits remain. A full `Deep Reef PERF` line adds ticks/frame and memory events. No extended soak is required.
+
+## V28 changes and earlier measurements
+
 
 After v27 the user reports **11 FPS, U44 / D30 / S0 / E0 ms**, improved from U101 / D31. Updating is still the largest stage, and drawing remains significant. These are user-supplied averages; the new release has not yet been timed on the Ultra.
 
@@ -10,7 +27,7 @@ Drawing caches immutable section phase offsets when the atlases load, shares the
 
 The segment fix has two parts. A pitched section previously clamped its submitted angle while placing its pivot with the unclamped angle; both now use the actual submitted rotation. A dedicated 864-case regression fails against v27 and passes with the correction. The source overlap also grows with section height, and pivots stay at their nominal section centers. Dense independent checks of captured native crops/transforms cover **11,481,120 seam-neighborhood points**, reserving two output pixels for filtering/placement error at HD/FHD. V27 lacks that margin at 1,497,365 points; v28 has no deficient samples. The margin test is geometric evidence, not a claim that every old deficient sample was a visible GPU hole.
 
-[swim-performance-audit.json](swim-performance-audit.json) records the source counts and limitations. The renderer was also rasterized from its production transform captures for a visual check. No artwork, fish count, simulation rate or heading-blend detail was reduced. Install v28 and report FPS plus U/D/S/E after ten seconds in High/normal density; a full `Deep Reef PERF` line additionally supplies the ticks/frame count. Resulting device FPS remains pending.
+[swim-performance-audit.json](swim-performance-audit.json) records the source counts and limitations. The renderer was also rasterized from its production transform captures for a visual check. No artwork, fish count, simulation rate or heading-blend detail was reduced. The subsequent user measurement was 15 FPS / U36 / D29, with splits still visible; v29 replaces this body renderer.
 
 ## Earlier v26 hardware baseline and v27 update fixes
 
@@ -44,7 +61,7 @@ All eight reference x/y/z/heading trajectories are retained within 1e-7 design u
 
 Independent frozen v26 collision guards match 1,260 indexed rectangles, 600 swept reef paths and 1,200 swept/static fish-pair paths. Another 600 size/species changes validate cache refresh. The offline index is also checked against every rectangle on an irregular small grid and every query height in the shipping grids. Native movement, traffic, route recovery, floor/cave/surface clearance, clam births, turns, pan, appendage animation, settings and package checks exercise the same production code.
 
-Install the tracked **1.0.28** ZIP, select **High / normal density / FPS On**, and report the FPS and U/D/S/E after about ten seconds. No long soak is required. There is no configured connection to the actual Roku in this workspace, so the resulting device FPS still needs that sample. The previous drawing optimizations remain in place, and D=31 ms is still a separate remaining cost.
+Install the tracked **1.0.29** ZIP, select **High / normal density / FPS On**, and report the FPS and U/D/S/E after about ten seconds. No long soak is required. There is no configured connection to the actual Roku in this workspace, so the resulting device FPS still needs that sample. The previous drawing optimizations remain in place, and D=31 ms is still a separate remaining cost.
 
 ## Diagnostic meanings
 

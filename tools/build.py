@@ -105,7 +105,7 @@ def build(increment=False):
             info=zipfile.ZipInfo(rel.as_posix(),(2026,1,1,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o100644<<16
             z.writestr(info,p.read_bytes())
     size=path.stat().st_size
-    if size>4_000_000:raise ValueError(f'Package is {size:,} bytes; exceeds conservative 4 MB limit. Run tools/optimize.py.')
+    if size>4*1024*1024:raise ValueError(f'Package is {size:,} bytes; exceeds 4 MiB (4,194,304-byte) limit. Run tools/optimize.py.')
     with zipfile.ZipFile(path)as z:
         if 'manifest' not in z.namelist() or z.testzip():raise ValueError('ZIP integrity or root manifest failed')
     report.update(package_bytes=size,sha256=hashlib.sha256(path.read_bytes()).hexdigest())

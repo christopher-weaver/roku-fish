@@ -1,1 +1,1 @@
-PASS  864  cached S-curve transforms preserve attached pivots at ordinary and clamped pitch angles
+PASS  1728  traveling/standing S-curve attachment transforms preserve pivots at ordinary and clamped pitch angles

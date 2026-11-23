@@ -76,10 +76,17 @@ function ReefCoralBlocked(s as object, f as object, fromPose as object, toPose a
     x0=fromPose.x : x1=toPose.x
     if x0>x1 then swap=x0 : x0=x1 : x1=swap
     if z0<.04 or z1>.985 or x0<85# or x1>1963# then return true
-    scale=(.70+.30*z1)*f.sp.length/f.sp.renderLength*f.size
-    hw=(f.sp.collisionHalfWidth+f.sp.collisionHalfHeight*.22)*scale
-    hh=(f.sp.collisionHalfHeight+f.sp.collisionHalfWidth*.22)*scale
-    radius=f.sp.bodyThickness*f.sp.length*f.size/1728#+.012
+    bounds=f.bodyBounds
+    if s.physicsBoundsReady<>true
+        ' Geometry-free schooling queries need no texture/anatomy metadata.
+        if s.cfg=invalid and s.occupancy=invalid then return false
+        bounds=ReefFishBounds(f)
+    end if
+    depthScale=.70+.30*z1
+    ' Constant anatomy is validated once per physics tick, including baby sizes.
+    hw=bounds.coralWidth*depthScale+.000000001#
+    hh=bounds.coralHeight*depthScale+.000000001#
+    radius=bounds.depthRadius
     clearanceHeight=hh+12#
     if s.cfg<>invalid
         if s.cfg.waterline<>invalid

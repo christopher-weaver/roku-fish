@@ -17,10 +17,6 @@ def brs_run(test,log):
     (work/'settings-test.brs').write_text(settings)
     extra=['roku/components/ReefSettings.brs'] if test=='settings_ui' else ['roku/source/renderer.brs'] if test in ['render_depth','upright_present','swim_sway','clam_night_surface','clam_contents','wave_equivalence'] else []
     if test=='collision_equivalence':extra+=['tests/collision-reference.brs']
-    if test=='swim_seams':
-        assets=(ROOT/'roku/source/assets.brs').read_text().replace('CreateObject("roRegion",','SeamRegion(')
-        (work/'assets-seam-test.brs').write_text(assets)
-        extra+=['roku/source/renderer.brs','work/assets-seam-test.brs']
     args=['node','tests/roku_runner.cjs','--root','roku']+[f'roku/source/{s}.brs'for s in SOURCES]+['work/settings-test.brs','tests/registry-stub.brs',f'tests/{test}.brs']+extra
     result=subprocess.run(args,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=dict(os.environ,BRS_BIN=binary('brs')))
     (ROOT/log).write_text(result.stdout)
@@ -44,12 +40,6 @@ if __name__=='__main__':
         print(brs_run('clam_night_surface','docs/clam-night-surface-results.txt'))
         print(brs_run('appendage_smoothness','docs/appendage-smoothness-results.txt'))
         print(brs_run('swim_sway','docs/swim-sway-results.txt'))
-        from swim_seam_check import validate as validate_seams
-        import json
-        seam_report=validate_seams(brs_run('swim_seams','work/swim-seams-production.txt'))
-        if seam_report['unprotected']:raise RuntimeError('Unprotected body section joins: '+str(seam_report))
-        (ROOT/'docs/swim-seam-results.json').write_text(json.dumps(seam_report,indent=2)+'\n')
-        print('PASS native body section coverage: '+str(seam_report))
         print(brs_run('cpu_workload','docs/cpu-workload-results.txt'))
         print(brs_run('collision_equivalence','docs/collision-equivalence-results.txt'))
         print(brs_run('frame_profile','docs/frame-profile-results.txt'))

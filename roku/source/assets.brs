@@ -86,7 +86,7 @@ function ReefLoadAssets(s as object) as object
         name=s.fish[fishIndex].name
         sp = s.species[name]
         b = ReefBitmap(sp.image)
-        if b <> invalid then a.fish[name] = ReefFishFrames(b,sp.frames,s.settings.quality,8,sp.frameW*.9)
+        if b <> invalid then a.fish[name] = ReefFishFrames(b,sp.frames,s.settings.quality,sp.bodyRenderMode="whole-swim")
         b = ReefBitmap(sp.tailImage)
         if b <> invalid then a.tails[name] = ReefFishFrames(b,sp.tailFrames,s.settings.quality)
         b = ReefBitmap(sp.finImage)
@@ -107,7 +107,7 @@ function ReefLayer(bitmap as dynamic, x = 0 as integer, y = 0 as integer, width 
 end function
 
 
-function ReefFishFrames(bitmap as object, metadata as object, quality as string,bands=0 as integer,waveLength=0# as double) as object
+function ReefFishFrames(bitmap as object, metadata as object, quality as string,wholeSwim=false as boolean) as object
     frames = [] : cache = {}
     for index = 0 to metadata.Count()-1
         frame = metadata[index]
@@ -119,27 +119,8 @@ function ReefFishFrames(bitmap as object, metadata as object, quality as string,
             fractional = CreateObject("roRegion",bitmap,frame.x,frame.y,frame.w,frame.h)
             fractional.SetPretranslation(4096-Int(frame.anchorX),4096-Int(frame.anchorY))
             fractional.SetScaleMode(1)
-            cache[key] = {width:frame.w,height:frame.h,anchorX:frame.anchorX,anchorY:frame.anchorY,normal:reg,fractional:fractional,offsetX:Int(frame.anchorX)-frame.anchorX,offsetY:Int(frame.anchorY)-frame.anchorY}
-            if bands>0
-                strips=[] : overlap=ReefBandOverlap(frame.h)
-                for band=0 to bands-1
-                    left=Int(frame.w*band/bands) : right=Int(frame.w*(band+1)/bands)
-                    center=(left+right)*.5-frame.anchorX
-                    left=ReefMax(0,left-overlap) : right=ReefMin(frame.w,right+overlap)
-                    ax=frame.anchorX-left
-                    normal=CreateObject("roRegion",bitmap,frame.x+left,frame.y,right-left,frame.h)
-                    normal.SetPretranslation(0-Int(ax),0-Int(frame.anchorY)) : normal.SetScaleMode(1)
-                    fractional=CreateObject("roRegion",bitmap,frame.x+left,frame.y,right-left,frame.h)
-                    fractional.SetPretranslation(4096-Int(ax),4096-Int(frame.anchorY)) : fractional.SetScaleMode(1)
-                    strip={normal:normal,fractional:fractional,offsetX:Int(ax)-ax,offsetY:Int(frame.anchorY)-frame.anchorY,centerX:center}
-                    if waveLength>0#
-                        strip.waveForward=ReefWaveFactors(.5-center/waveLength)
-                        strip.waveReverse=ReefWaveFactors(.5+center/waveLength)
-                    end if
-                    strips.Push(strip)
-                end for
-                cache[key].bands=strips
-            end if
+            cache[key] = {wholeSwim:wholeSwim,width:frame.w,height:frame.h,anchorX:frame.anchorX,anchorY:frame.anchorY,normal:reg,fractional:fractional,offsetX:Int(frame.anchorX)-frame.anchorX,offsetY:Int(frame.anchorY)-frame.anchorY}
+
         end if
         frames.Push(cache[key])
     end for

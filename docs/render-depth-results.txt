@@ -1,1 +1,1 @@
-PASS production renderer interleaves rear, middle and front fish with connected reef layers and rendered marine life; exactly one opaque body, one separate tail and one fin per fish, positive scales only
+PASS production renderer interleaves rear, middle and front fish with connected reef layers and rendered marine life; one complete body blend, one separate tail and one fin per fish, positive scales only

@@ -205,3 +205,7 @@ Responds to the Roku Ultra's U101/D31 timing evidence by reducing update CPU wor
 ## Version 1.0.28
 
 Further reduces update and fish-rendering math after the Ultra's 11 FPS / U44 / D30 result. Keeps the 30 Hz simulation and reference fish motion while removing 35% of the remaining update helper calls; the production draw fixture uses 65% fewer Sin/Cos calls with unchanged draw count and heading blending. Fixes body-section pivot placement at the pitch limit and adds height-based, filter-safe overlap to prevent swim-wiggle gaps. The sideload ZIP is updated and tracked; [the investigation](docs/PERFORMANCE.md) documents validation and the pending device FPS sample.
+
+## Version 1.0.29
+
+Replaces segmented fish bodies with complete curved/neutral/inverse-curved images for all 112 turning views, removing internal slice joins. Keeps exact visible texture colors, independent fins/tails, and continuous pose/yaw blending. The native 120-frame fixture drops from 2,160 to 707 transforms. Shared anatomy caches reduce update field reads by 13% without changing the reference fish positions or collision checks. The updated ZIP uses the 4 MiB package ceiling and remains tracked on GitHub. [Performance details and validation](docs/PERFORMANCE.md).

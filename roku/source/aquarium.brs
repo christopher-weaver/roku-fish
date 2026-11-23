@@ -85,10 +85,13 @@ sub ReefStep(s as object, elapsed as double)
     for fishIndex = 0 to s.fish.Count() - 1
         f = s.fish[fishIndex]
         ReefSavePose(f)
+        ReefFishBounds(f)
     end for
+    s.physicsBoundsReady=true
     for fishIndex = 0 to s.fish.Count() - 1
         ReefFishStep(s, s.fish[fishIndex], dt)
     end for
+    s.physicsBoundsReady=false
     ReefEffectsStep(s, dt)
     ReefClamStep(s)
 end sub

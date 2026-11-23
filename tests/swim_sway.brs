@@ -1,13 +1,9 @@
 sub Main()
     sp=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))["yellow_tang"]
     body=[] : tails=[] : fins=[]
-    strips=[]
-    for i=0 to 7
-        center=(i-3.5)*sp.frameW/8#
-        strips.Push({normal:"body",fractional:"body",offsetX:.5,offsetY:.5,centerX:center,waveForward:ReefWaveFactors(.5-center/(sp.frameW*.9)),waveReverse:ReefWaveFactors(.5+center/(sp.frameW*.9))})
-    end for
     for i=0 to sp.frames.Count()-1
-        body.Push({normal:"body",fractional:"body",bands:strips})
+        source="body:"+i.ToStr()
+        body.Push({wholeSwim:true,normal:source,fractional:source,offsetX:.5,offsetY:.5})
     end for
     for i=0 to sp.tailFrames.Count()-1
         tails.Push({normal:"tail",fractional:"tail",offsetX:.5,offsetY:.5})
@@ -19,33 +15,55 @@ sub Main()
     r={screen:screen,scale:1#,canvasOffset:0#,rotation:true,fractionalFish:true,placement:{}}
     s={camera:64#,displayTime:0#,lighting:[1#,0#,0#,0#],settings:{lighting:"Sunset"}}
     a={fish:{yellow_tang:body},tails:{yellow_tang:tails},fins:{yellow_tang:fins}}
-    f={name:"yellow_tang",sp:sp,size:1#,speed:sp.speed,renderPose:{x:900#,y:400#,z:.7,heading:.35,pitch:0#,phase:0#,finPhase:0#}}
-    previous=invalid : varied=false
+    f={name:"yellow_tang",sp:sp,size:1#,speed:sp.speed,renderPose:{x:900#,y:400#,z:.7,heading:.35,pitch:.12,phase:0#,finPhase:0#}}
+    draws=0 : partial=0
     for tick=0 to 119
         f.renderPose.phase=tick*6.283185307/60#
         screen.angles=[] : screen.sources=[] : screen.opacity=[] : ReefDrawFish(r,s,a,f)
-        if screen.angles.Count()<>18 then print "FAIL missing body curve or appendage" : return
-        if screen.sources[16]<>"tail" or screen.sources[17]<>"fin" then print "FAIL duplicate appendages in yaw blend" : return
-        if screen.opacity[0]<>255 or screen.opacity[8]<=0 or screen.opacity[8]>=255 then print "FAIL opaque body base/yaw interpolation" : return
-        if Abs(screen.angles[1]-screen.angles[6])>.5 then varied=true
-        for band=0 to 17
-            if Abs(screen.angles[band])>12.601 then print "FAIL bend exceeds pitch clearance" : return
-            if previous<>invalid
-                if Abs(screen.angles[band]-previous[band])>.9 then print "FAIL body curve jumps" : return
-            end if
+        count=screen.sources.Count() : draws=draws+count
+        if count<4 or count>6 then print "FAIL whole body draw budget" : return
+        if screen.sources[count-2]<>"tail" or screen.sources[count-1]<>"fin" then print "FAIL duplicate appendages" : return
+        if screen.opacity[0]<>255 then print "FAIL missing opaque body base" : return
+        for i=0 to count-3
+            if Left(screen.sources[i],5)<>"body:" then print "FAIL fragmented body" : return
+            if screen.angles[i]<>screen.angles[0] then print "FAIL body slices rotate independently" : return
+            if screen.opacity[i]>0 and screen.opacity[i]<255 then partial=partial+1
         end for
-        previous=screen.angles
-        if f.swimPose.heading<>.35 or f.swimPose.y<>400# then print "FAIL body curve changes physical pose" : return
+        ' Verify the actual source-over weights, including byte alpha rounding.
+        weights={}
+        for i=0 to count-3
+            alpha=screen.opacity[i]/255#
+            for each key in weights.Keys()
+                weights[key]=weights[key]*(1#-alpha)
+            end for
+            key=screen.sources[i]
+            if weights[key]=invalid then weights[key]=0#
+            weights[key]=weights[key]+alpha
+        end for
+        position=(Sin(f.swimPose.phase)+1#)*.5*(sp.poseCount-1)
+        first=Int(position) : second=first+1
+        if second>=sp.poseCount then second=first
+        phase=position-first : yaw=f.bodyView.blend
+        ids=[f.bodyView.first*sp.poseCount+first,f.bodyView.first*sp.poseCount+second,f.bodyView.second*sp.poseCount+first,f.bodyView.second*sp.poseCount+second]
+        values=[(1#-yaw)*(1#-phase),(1#-yaw)*phase,yaw*(1#-phase),yaw*phase]
+        wanted={}
+        for i=0 to 3
+            key="body:"+ids[i].ToStr()
+            if wanted[key]=invalid then wanted[key]=0#
+            wanted[key]=wanted[key]+values[i]
+        end for
+        for each key in wanted.Keys()
+            actual=0#
+            if weights[key]<>invalid then actual=weights[key]
+            if Abs(actual-wanted[key])>.012 then print "FAIL nonlinear phase/yaw weights" : return
+        end for
+        for i=0 to count-1
+            if Abs(screen.angles[i])>12.601 then print "FAIL pitch clearance" : return
+        end for
+        if f.swimPose.heading<>.35 or f.swimPose.y<>400# then print "FAIL changed physical pose" : return
     end for
-    if not varied then print "FAIL fish is still a rigid rocking card" : return
-    if Abs(ReefBodyWave(0#,.4,4#))>.000001 then print "FAIL head not anchored" : return
-    if ReefBodyWave(.25,0#,4#)*ReefBodyWave(.75,0#,4#)>=0# then print "FAIL no S curve" : return
-    if Abs(ReefBodyWave(.6,.7,4#)+ReefBodyWave(.6,.7+3.141592654#,4#))>.000001 then print "FAIL no inverse S curve" : return
-    for i=1 to 99
-        u=i/100# : slope=(ReefBodyWave(u+.001,.7,4#)-ReefBodyWave(u-.001,.7,4#))/.002
-        if Abs(slope-ReefBodyWaveSlope(u,.7,4#))>.02 then print "FAIL detached tangent" : return
-    end for
-    print "PASS anchored head, traveling S/inverse-S body curve, smooth independent section tangents and attached fin/tail motion within the collision envelope"
+    if partial=0 then print "FAIL missing smooth yaw/phase blends" : return
+    print "PASS 120 frames use ";draws;" transforms: complete S/inverse-S body poses, shared pitch, opaque base, smooth yaw/phase blends, one attached tail and fin; no body slices"
 end sub
 function SwimCapture(x as integer,y as integer,angle as float,sx as float,sy as float,source as dynamic,tint as integer) as boolean
     m.angles.Push(angle) : m.sources.Push(source) : m.opacity.Push(tint and 255)

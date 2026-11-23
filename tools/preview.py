@@ -36,10 +36,16 @@ def fish(canvas,f,mode,t=0):
             upper=sp['bodyAngles'][hi]if hi else 2*math.pi;u=(heading-sp['bodyAngles'][lo])/(upper-sp['bodyAngles'][lo])
             view=lo if u<.5 else hi;part_width=sp['bodyViewWidths'][lo]*(1-u)+sp['bodyViewWidths'][hi]*u;source_width=sp['bodyViewWidths'][view]
         atlas=asset(sp['image'if part=='body'else 'tailImage'if part=='tail'else 'finImage'].split('/')[-1])
-        samples=[(view,1.)]
-        if part=='body' and 'bodyAngles'in sp:samples=[(lo,1.),(hi,u)]
-        for source_view,opacity in samples:
-            fr=sp['frames'if part=='body'else 'tailFrames'if part=='tail'else 'finFrames'][source_view*count+pose]
+        samples=[(view,pose,1.)]
+        if part=='body' and 'bodyAngles'in sp:
+            if sp.get('bodyRenderMode')=='whole-swim':
+                first=int(pose_value);second=min(first+1,count-1);p=pose_value-first
+                denominator=max(1e-9,1-u*p)
+                samples=[(lo,first,1.),(lo,second,p),(hi,first,u*(1-p)/denominator),(hi,second,u*p)]
+            else:samples=[(lo,pose,1.),(hi,pose,u)]
+        for source_view,source_pose,opacity in samples:
+            if opacity<=0:continue
+            fr=sp['frames'if part=='body'else 'tailFrames'if part=='tail'else 'finFrames'][source_view*count+source_pose]
             layer=Image.new('RGBA',im.size);piece=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
             texture_scale=sp.get('finTextureScale',1)if part=='fin'else 1
             anchor_x,anchor_y=fr['anchorX'],fr['anchorY']
@@ -61,7 +67,8 @@ def fish(canvas,f,mode,t=0):
     tint=tuple(int(c*shade)for c in tint)
     im=ImageChops.multiply(im,Image.new('RGBA',im.size,(*tint,255)))
     sc=f['scale']*sp['length']/sp['renderLength']*f['size'];im=im.resize((max(1,round(im.width*sc)),max(1,round(im.height*sc))),Image.Resampling.LANCZOS)
-    yy,xx=np.mgrid[:im.height,:im.width];length=sp['frameW']*.9*sc;sign=1 if math.cos(f['heading'])>=0 else -1;u=np.clip(.5-sign*(xx-im.width/2)/length,0,1);effort=min(1,f.get('speed',sp['speed']*.6)/sp['speed']);amp=sp['length']*f['size']*f['scale']*.012*(.25+.75*effort)*abs(math.cos(f['heading']));bend=amp*u*u*np.sin(f['phase']-u*2*math.pi);pixels=np.asarray(im);im=Image.fromarray(np.stack([map_coordinates(pixels[:,:,c],[yy-bend,xx],order=1,mode='constant',cval=0)for c in range(4)],axis=2))
+    if sp.get('bodyRenderMode')!='whole-swim':
+        yy,xx=np.mgrid[:im.height,:im.width];length=sp['frameW']*.9*sc;sign=1 if math.cos(f['heading'])>=0 else -1;u=np.clip(.5-sign*(xx-im.width/2)/length,0,1);effort=min(1,f.get('speed',sp['speed']*.6)/sp['speed']);amp=sp['length']*f['size']*f['scale']*.012*(.25+.75*effort)*abs(math.cos(f['heading']));bend=amp*u*u*np.sin(f['phase']-u*2*math.pi);pixels=np.asarray(im);im=Image.fromarray(np.stack([map_coordinates(pixels[:,:,c],[yy-bend,xx],order=1,mode='constant',cval=0)for c in range(4)],axis=2))
     angle=f['pitch']*57.29578*(-1 if math.cos(f['heading'])<0 else 1)
     im=im.rotate(angle,resample=Image.Resampling.BICUBIC,expand=True)
     paste(canvas,im,f['sx']-im.width/2,f['sy']-im.height/2)
