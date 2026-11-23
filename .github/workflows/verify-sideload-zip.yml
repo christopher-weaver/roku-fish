@@ -157,3 +157,20 @@ jobs:
           python -m pip install numpy==2.2.6 Pillow==11.3.0
           python -m unittest discover -s tests -p 'test_whole_swim.py' -v
           node tests/roku_runner.cjs --root roku roku/source/math.brs roku/source/camera.brs roku/source/renderer.brs tests/swim_sway.brs
+
+      - name: Check model-specific caudal attachment and native join coverage
+        run: |
+          python -m unittest discover -s tests -p 'test_tail_rig.py' -v
+          BRS_BIN=node_modules/.bin/brs python - <<'PYTHON'
+          import sys
+          sys.path.insert(0,'tools')
+          from test import brs_run
+          from tail_check import validate
+          brs_run('tail_attachment','work/tail-joints-current.txt')
+          report=validate('work/tail-joints-current.txt')
+          print(report)
+          assert report['max_fractional_root_error_pixels']<.02
+          assert report['max_integer_root_error_pixels']<.75
+          assert not report['side_view_collars_without_overlap']
+          assert not report['tail_not_before_body_cases']
+          PYTHON

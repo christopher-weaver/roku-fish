@@ -16,22 +16,23 @@ sub Main()
     s={camera:64#,displayTime:0#,lighting:[1#,0#,0#,0#],settings:{lighting:"Sunset"}}
     a={fish:{yellow_tang:body},tails:{yellow_tang:tails},fins:{yellow_tang:fins}}
     f={name:"yellow_tang",sp:sp,size:1#,speed:sp.speed,renderPose:{x:900#,y:400#,z:.7,heading:.35,pitch:.12,phase:0#,finPhase:0#}}
+    ReefTailRigInit(sp)
     draws=0 : partial=0
     for tick=0 to 119
         f.renderPose.phase=tick*6.283185307/60#
         screen.angles=[] : screen.sources=[] : screen.opacity=[] : ReefDrawFish(r,s,a,f)
         count=screen.sources.Count() : draws=draws+count
         if count<4 or count>6 then print "FAIL whole body draw budget" : return
-        if screen.sources[count-2]<>"tail" or screen.sources[count-1]<>"fin" then print "FAIL duplicate appendages" : return
-        if screen.opacity[0]<>255 then print "FAIL missing opaque body base" : return
-        for i=0 to count-3
+        if screen.sources[0]<>"tail" or screen.sources[count-1]<>"fin" then print "FAIL duplicate appendages" : return
+        if screen.opacity[1]<>255 then print "FAIL missing opaque body base" : return
+        for i=1 to count-2
             if Left(screen.sources[i],5)<>"body:" then print "FAIL fragmented body" : return
-            if screen.angles[i]<>screen.angles[0] then print "FAIL body slices rotate independently" : return
+            if screen.angles[i]<>screen.angles[1] then print "FAIL body slices rotate independently" : return
             if screen.opacity[i]>0 and screen.opacity[i]<255 then partial=partial+1
         end for
         ' Verify the actual source-over weights, including byte alpha rounding.
         weights={}
-        for i=0 to count-3
+        for i=1 to count-2
             alpha=screen.opacity[i]/255#
             for each key in weights.Keys()
                 weights[key]=weights[key]*(1#-alpha)

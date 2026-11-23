@@ -28,11 +28,17 @@ try{
  function eelPose(t){const q=(t+15)%31,ease=v=>{v=Math.max(0,Math.min(1,v));return v*v*v*(v*(v*6-15)+10)};let peek=q>=7&&q<14?ease((q-7)/7):q>=14&&q<20?1:q>=20&&q<28?1-ease((q-20)/8):0;if(peek<.999999)return Math.round(peek*64);const pulse=(a,b)=>{let u=(q-a)/(b-a);return u<=0||u>=1?0:ease(1-Math.abs(2*u-1))};const funny=Math.floor((t+15)/31)%2===0?Math.round(pulse(17.2,19.6)*16):0;return funny?80+funny:64+Math.round(pulse(14.5,16.9)*16)}
  function clamOpening(t){const q=(t+7)%47,ease=v=>{v=Math.max(0,Math.min(1,v));return v*v*v*(v*(v*6-15)+10)};return q<8||q>=27?0:q<13?ease((q-8)/5):q<22?1:1-ease((q-22)/5)}
  function surfaceShade(x,y,t){const d=Math.max(.135,(y+180)/1332),u=(x-1024)/(240*d),v=-3.3/d,p=t%8*2*Math.PI/8,a=Math.sin(2*Math.PI*u+.85*Math.sin(2*Math.PI*v+p)+p),b=Math.sin(2*Math.PI*v+.70*Math.sin(2*Math.PI*u-p)-p);return 1-72*(.6*Math.exp(-a*a/.34)+.4*Math.exp(-b*b/.55))/255}
+ function tailPoint(sp,index){
+ sp._tailPoints??=[];if(sp._tailPoints[index])return sp._tailPoints[index];
+ const root=sp.tailRig.body,a=sp.bodyAngles[index],co=Math.cos(a),sn=Math.sin(a),x=(root[0]*co-root[2]*sn)*sp.frameW*.45,y=-root[1]*sp.frameH*.45,fr=sp.frames[index*3+1],pixel=fr.anchorX+x,left=Math.floor(pixel),blend=pixel-left;let positive=0,negative=0,uRoot=.5;
+ for(let col=0;col<2;col++){const u=Math.max(0,Math.min(1,.5-(co>=0?1:-1)*(left+col-fr.anchorX)/(sp.frameW*.9))),d=sp.renderLength*sp.bodySwimAmplitude*Math.abs(co)*u*u*Math.sin(-u*2*Math.PI),w=col?blend:1-blend;positive-=Math.floor(.5-d)*w;negative-=Math.floor(.5+d)*w;if(!col)uRoot=u}
+ return sp._tailPoints[index]={x:x/sp.bodyViewWidths[index],y,positive,negative,u:uRoot};
+ }
  function drawFish(f){
  const sp=species[f.name],pos=((f.heading%(2*Math.PI)+2*Math.PI)%(2*Math.PI))*sp.yawCount/(2*Math.PI),lo=Math.floor(pos),blend=pos-lo,width=sp.viewWidths[lo]*(1-blend)+sp.viewWidths[(lo+1)%sp.yawCount]*blend,scale=f.scale*sp.length/sp.renderLength*f.size,baseAngle=f.pitch*(Math.cos(f.heading)<0?-1:1);
  c.save();c.translate(f.sx,f.sy);c.rotate(-baseAngle);
  const power=mode.value==='Night'?.06:mode.value==='Moonlight'?.12:mode.value==='Dusk'?.52:1,shade=1-(1-surfaceShade(f.x,f.sy+36,currentTime))*.30*(.35+.65*power);c.filter=`brightness(${(.82+.18*f.z)*shade})`;
- for(const part of ['body','tail','fin']){
+ for(const part of ['tail','body','fin']){
   const count=part==='body'?sp.poseCount:part==='tail'?sp.tailPoseCount:sp.finPoseCount,phase=part==='fin'?f.finPhase:f.phase,position=(Math.sin(phase)+1)*.5*(count-1),pose=Math.round(position),baseView=Math.round(pos)%sp.yawCount,selection=part==='body'?bodyView(f.heading,sp):{index:baseView,width,sourceWidth:sp.viewWidths[baseView]},atlas=assets[(part==='body'?sp.image:part==='tail'?sp.tailImage:sp.finImage).split('/').pop()],frames=part==='body'?sp.frames:part==='tail'?sp.tailFrames:sp.finFrames,ts=part==='fin'?(sp.finTextureScale??1):1;
   const first=Math.floor(position),second=Math.min(first+1,count-1),p=position-first;
   const source=(index,sourcePose,opacity)=>({...selection,index,sourcePose,sourceWidth:sp.bodyViewWidths[index],opacity});
@@ -42,6 +48,12 @@ try{
    const fr=frames[sample.index*count+sample.sourcePose],ws=sample.width/sample.sourceWidth,length=sp.frameW*.9*scale*ws,sign=Math.cos(f.heading)>=0?1:-1,amp=sp.length*f.size*f.scale*sp.bodySwimAmplitude*Math.abs(Math.cos(f.heading));
    let sx=scale*ts*ws,sy=scale*ts,shiftX=0,shiftY=0;
    if(part==='body'){c.save();c.globalAlpha=sample.opacity;c.drawImage(atlas,fr.x,fr.y,fr.w,fr.h,-fr.anchorX*sx,-fr.anchorY*sy,fr.w*sx,fr.h*sy);c.restore();continue}
+   if(part==='tail'&&sp.tailRig){
+    const body=bodyView(f.heading,sp),a=tailPoint(sp,body.first),b=tailPoint(sp,body.second),q=Math.sin(f.phase),shift=v=>q>=0?v.positive*q:-v.negative*q,tx=scale*body.width*(a.x+(b.x-a.x)*body.blend)+sp.tailRig.overlap*scale*Math.cos(f.heading),ty=scale*(a.y+(b.y-a.y)*body.blend+shift(a)+(shift(b)-shift(a))*body.blend),u=a.u+(b.u-a.u)*body.blend;
+    sx*=((frames[sample.index*count+first].w+(frames[sample.index*count+second].w-frames[sample.index*count+first].w)*p)/fr.w);
+    const sourcePose=fr.yaw>180?count-1-pose:pose,sourceAngle=(fr.yaw>180?360-fr.yaw:fr.yaw)*Math.PI/180,v=sp.tailRig.posesXZ[sourcePose],rx=(v[0]*Math.cos(sourceAngle)-v[1]*Math.sin(sourceAngle))*sp.frameW*.45,ry=-sp.tailRig.body[1]*sp.frameH*.45,waveSin=-q*Math.sin(u*2*Math.PI),waveCos=q*Math.cos(u*2*Math.PI),slope=amp*(2*u*waveSin-2*Math.PI*u*u*waveCos)*(-sign)/(sp.frameW*.9*scale*body.width/body.sourceWidth),relative=Math.max(-12.6*Math.PI/180,Math.min(12.6*Math.PI/180,baseAngle-Math.atan(slope)))-baseAngle;
+    c.save();c.globalAlpha=1;c.translate(tx,ty);c.rotate(-relative);c.drawImage(atlas,fr.x,fr.y,fr.w,fr.h,(-fr.anchorX-rx)*sx,(-fr.anchorY-ry)*sy,fr.w*sx,fr.h*sy);c.restore();continue;
+   }
    const a=frames[sample.index*count+first],b=frames[sample.index*count+second];if(Math.min(a.w,b.w,fr.w,a.h,b.h,fr.h)>=6){const scaleX=(a.w+(b.w-a.w)*p)/fr.w,scaleY=(a.h+(b.h-a.h)*p)/fr.h;shiftX=(fr.anchorX*scaleX-(a.anchorX+(b.anchorX-a.anchorX)*p))*sx;shiftY=(fr.anchorY*scaleY-(a.anchorY+(b.anchorY-a.anchorY)*p))*sy;sx*=scaleX;sy*=scaleY}
    const pivot=(.5-(part==='tail'?.76:.20))*length*sign,u=Math.max(0,Math.min(1,.5-sign*pivot/length)),waveSin=-Math.sin(f.phase)*Math.sin(u*2*Math.PI),waveCos=Math.sin(f.phase)*Math.cos(u*2*Math.PI),d=amp*u*u*waveSin,slope=amp*(2*u*waveSin-2*Math.PI*u*u*waveCos)*(-sign)/length,bend=-Math.atan(slope),relative=Math.max(-.22,Math.min(.22,baseAngle+bend))-baseAngle,dx=pivot*(1-Math.cos(relative)),dy=d+Math.sin(relative)*pivot;
    c.save();c.globalAlpha=sample.opacity;c.translate(shiftX+dx,shiftY+dy);c.rotate(-relative);c.drawImage(atlas,fr.x,fr.y,fr.w,fr.h,-fr.anchorX*sx,-fr.anchorY*sy,fr.w*sx,fr.h*sy);c.restore();

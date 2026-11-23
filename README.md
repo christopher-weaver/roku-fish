@@ -209,3 +209,7 @@ Further reduces update and fish-rendering math after the Ultra's 11 FPS / U44 / 
 ## Version 1.0.29
 
 Replaces segmented fish bodies with complete curved/neutral/inverse-curved images for all 112 turning views, removing internal slice joins. Keeps exact visible texture colors, independent fins/tails, and continuous pose/yaw blending. The native 120-frame fixture drops from 2,160 to 707 transforms. Shared anatomy caches reduce update field reads by 13% without changing the reference fish positions or collision checks. The updated ZIP uses the 4 MiB package ceiling and remains tracked on GitHub. [Performance details and validation](docs/PERFORMANCE.md).
+
+## Version 1.0.30
+
+Attaches each tail at its actual shared mesh joint, preserves neck thickness while the tip animates, and paints the tail root beneath the body. Fixes crop-driven root drift and matches the body's rounded origin on integer-only graphics backends. No extra draw calls or texture changes. Checks cover ten species, eight headings, eight swim phases, HD/FHD and both placement paths. The ZIP is updated and tracked; [joint validation and matching close-ups](docs/tail-attachment-audit.json).

@@ -1,0 +1,9 @@
+{
+  "cases": 2560,
+  "max_root_error_pixels": 0.695813,
+  "max_fractional_root_error_pixels": 0.016702,
+  "max_integer_root_error_pixels": 0.695813,
+  "side_view_collars_without_overlap": 0,
+  "tail_not_before_body_cases": 0,
+  "failing_collars": []
+}

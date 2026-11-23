@@ -10697,7 +10697,33 @@
       137
     ],
     "bodyRenderMode": "whole-swim",
-    "bodySwimAmplitude": 0.009
+    "bodySwimAmplitude": 0.009,
+    "tailRig": {
+      "body": [
+        -0.51934015,
+        0.00011938,
+        0.0
+      ],
+      "posesXZ": [
+        [
+          -0.51934015,
+          0.0
+        ],
+        [
+          -0.51934015,
+          0.0
+        ],
+        [
+          -0.51934015,
+          0.0
+        ],
+        [
+          -0.51934015,
+          0.0
+        ]
+      ],
+      "overlap": 3
+    }
   },
   "yellow_tang": {
     "label": "Yellow tang",
@@ -21397,7 +21423,33 @@
       148
     ],
     "bodyRenderMode": "whole-swim",
-    "bodySwimAmplitude": 0.009
+    "bodySwimAmplitude": 0.009,
+    "tailRig": {
+      "body": [
+        -0.51941092,
+        0.01445446,
+        0.0
+      ],
+      "posesXZ": [
+        [
+          -0.51941092,
+          0.0
+        ],
+        [
+          -0.51941092,
+          0.0
+        ],
+        [
+          -0.51941092,
+          0.0
+        ],
+        [
+          -0.51941092,
+          0.0
+        ]
+      ],
+      "overlap": 3
+    }
   },
   "royal_gramma": {
     "label": "Royal gramma",
@@ -32097,7 +32149,33 @@
       140
     ],
     "bodyRenderMode": "whole-swim",
-    "bodySwimAmplitude": 0.009
+    "bodySwimAmplitude": 0.009,
+    "tailRig": {
+      "body": [
+        -0.51914966,
+        0.0,
+        0.0
+      ],
+      "posesXZ": [
+        [
+          -0.51914966,
+          0.0
+        ],
+        [
+          -0.51914966,
+          0.0
+        ],
+        [
+          -0.51914966,
+          0.0
+        ],
+        [
+          -0.51914966,
+          0.0
+        ]
+      ],
+      "overlap": 3
+    }
   },
   "emperor_angelfish": {
     "label": "Emperor angelfish",
@@ -42797,7 +42875,33 @@
       148
     ],
     "bodyRenderMode": "whole-swim",
-    "bodySwimAmplitude": 0.009
+    "bodySwimAmplitude": 0.009,
+    "tailRig": {
+      "body": [
+        -0.51961738,
+        -0.0096095,
+        0.0
+      ],
+      "posesXZ": [
+        [
+          -0.51961738,
+          -1e-08
+        ],
+        [
+          -0.51961738,
+          -0.0
+        ],
+        [
+          -0.51961738,
+          0.0
+        ],
+        [
+          -0.51961738,
+          1e-08
+        ]
+      ],
+      "overlap": 3
+    }
   },
   "moorish_idol": {
     "label": "Moorish idol",
@@ -53497,7 +53601,33 @@
       180
     ],
     "bodyRenderMode": "whole-swim",
-    "bodySwimAmplitude": 0.009
+    "bodySwimAmplitude": 0.009,
+    "tailRig": {
+      "body": [
+        -0.49930665,
+        -0.04017435,
+        2.005e-05
+      ],
+      "posesXZ": [
+        [
+          -0.49925642,
+          -0.00147713
+        ],
+        [
+          -0.49930107,
+          -0.00047901
+        ],
+        [
+          -0.49930107,
+          0.00051912
+        ],
+        [
+          -0.49925642,
+          0.00151724
+        ]
+      ],
+      "overlap": 3
+    }
   },
   "green_chromis": {
     "label": "Blue-green chromis",
@@ -64197,7 +64327,33 @@
       137
     ],
     "bodyRenderMode": "whole-swim",
-    "bodySwimAmplitude": 0.009
+    "bodySwimAmplitude": 0.009,
+    "tailRig": {
+      "body": [
+        -0.51958227,
+        0.01201672,
+        0.0
+      ],
+      "posesXZ": [
+        [
+          -0.51958227,
+          0.0
+        ],
+        [
+          -0.51958227,
+          0.0
+        ],
+        [
+          -0.51958227,
+          0.0
+        ],
+        [
+          -0.51958227,
+          0.0
+        ]
+      ],
+      "overlap": 3
+    }
   },
   "blue_tang": {
     "label": "Regal blue tang",
@@ -74897,7 +75053,33 @@
       168
     ],
     "bodyRenderMode": "whole-swim",
-    "bodySwimAmplitude": 0.009
+    "bodySwimAmplitude": 0.009,
+    "tailRig": {
+      "body": [
+        -0.4987921,
+        -0.04575548,
+        0.0
+      ],
+      "posesXZ": [
+        [
+          -0.4987921,
+          -1e-08
+        ],
+        [
+          -0.4987921,
+          -0.0
+        ],
+        [
+          -0.4987921,
+          0.0
+        ],
+        [
+          -0.4987921,
+          1e-08
+        ]
+      ],
+      "overlap": 3
+    }
   },
   "copperband_butterflyfish": {
     "label": "Copperband butterflyfish",
@@ -85597,7 +85779,33 @@
       211
     ],
     "bodyRenderMode": "whole-swim",
-    "bodySwimAmplitude": 0.009
+    "bodySwimAmplitude": 0.009,
+    "tailRig": {
+      "body": [
+        -0.60292678,
+        -0.06059088,
+        0.0
+      ],
+      "posesXZ": [
+        [
+          -0.60288652,
+          -0.00090206
+        ],
+        [
+          -0.6029223,
+          -0.00030069
+        ],
+        [
+          -0.6029223,
+          0.00030069
+        ],
+        [
+          -0.60288652,
+          0.00090206
+        ]
+      ],
+      "overlap": 3
+    }
   },
   "banggai_cardinalfish": {
     "label": "Banggai cardinalfish",
@@ -96297,7 +96505,33 @@
       168
     ],
     "bodyRenderMode": "whole-swim",
-    "bodySwimAmplitude": 0.009
+    "bodySwimAmplitude": 0.009,
+    "tailRig": {
+      "body": [
+        -0.29999721,
+        0.03114069,
+        0.0
+      ],
+      "posesXZ": [
+        [
+          -0.29999721,
+          -1e-08
+        ],
+        [
+          -0.29999721,
+          -0.0
+        ],
+        [
+          -0.29999721,
+          0.0
+        ],
+        [
+          -0.29999721,
+          1e-08
+        ]
+      ],
+      "overlap": 3
+    }
   },
   "mandarin_dragonet": {
     "label": "Mandarin dragonet",
@@ -106997,6 +107231,32 @@
       160
     ],
     "bodyRenderMode": "whole-swim",
-    "bodySwimAmplitude": 0.009
+    "bodySwimAmplitude": 0.009,
+    "tailRig": {
+      "body": [
+        -0.42045864,
+        -0.01534072,
+        0.0
+      ],
+      "posesXZ": [
+        [
+          -0.42045864,
+          -6e-08
+        ],
+        [
+          -0.42045864,
+          -2e-08
+        ],
+        [
+          -0.42045864,
+          2e-08
+        ],
+        [
+          -0.42045864,
+          6e-08
+        ]
+      ],
+      "overlap": 3
+    }
   }
 }

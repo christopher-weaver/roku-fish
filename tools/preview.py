@@ -26,7 +26,7 @@ def fish(canvas,f,mode,t=0):
     lo=int(position)%sp['yawCount'];blend=position-int(position)
     width=sp['viewWidths'][lo]*(1-blend)+sp['viewWidths'][(lo+1)%sp['yawCount']]*blend
     im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
-    for part in ['body','tail','fin']:
+    for part in ['tail','body','fin']:
         count=sp['poseCount']if part=='body'else sp['tailPoseCount']if part=='tail'else sp['finPoseCount']
         phase=f['phase']if part!='fin'else f.get('finPhase',f['phase']*.6)
         pose_value=(math.sin(phase)+1)*.5*(count-1);pose=int(pose_value+.5)
@@ -36,6 +36,20 @@ def fish(canvas,f,mode,t=0):
             upper=sp['bodyAngles'][hi]if hi else 2*math.pi;u=(heading-sp['bodyAngles'][lo])/(upper-sp['bodyAngles'][lo])
             view=lo if u<.5 else hi;part_width=sp['bodyViewWidths'][lo]*(1-u)+sp['bodyViewWidths'][hi]*u;source_width=sp['bodyViewWidths'][view]
         atlas=asset(sp['image'if part=='body'else 'tailImage'if part=='tail'else 'finImage'].split('/')[-1])
+        if part=='tail' and sp.get('tailRig'):
+            from tail_check import targets,source_root
+            angle=f['heading']%(2*math.pi);angles=sp['bodyAngles'];bl=bisect.bisect_right(angles,angle)-1;bh=(bl+1)%len(angles);upper=angles[bh]if bh else 2*math.pi;by=(angle-angles[bl])/(upper-angles[bl]);near=bl if by<.5 else bh
+            bv={'first':bl,'second':bh,'blend':by,'width':sp['bodyViewWidths'][bl]*(1-by)+sp['bodyViewWidths'][bh]*by,'sourceWidth':sp['bodyViewWidths'][near]}
+            info={'name':f['name'],'body':bv,'view':{'index':view},'fishScale':1.,'heading':f['heading'],'phase':f['phase'],'pitch':0.,'scale':1.,'canvas':0.,'p':{'x':sp['frameW']/2,'y':sp['frameH']/2}}
+            tx,ty=targets(info,sp['tailRig']['overlap']);rx,ry=source_root(info)
+            fr=sp['tailFrames'][view*count+pose];fa=sp['tailFrames'][view*count+int(pose_value)];fb=sp['tailFrames'][view*count+min(int(pose_value)+1,count-1)];blend_pose=pose_value-int(pose_value)
+            sx=part_width/source_width*(fa['w']+(fb['w']-fa['w'])*blend_pose)/fr['w'];sy=1.
+            co=math.cos(f['heading']);root=sp['tailRig']['body'];u=max(0,min(1,.5-(1 if co>=0 else -1)*(root[0]*co-root[2]*math.sin(f['heading']))*.5));amp=sp['renderLength']*sp['bodySwimAmplitude']*abs(co);q=math.sin(f['phase']);ws=-q*math.sin(u*2*math.pi);wc=q*math.cos(u*2*math.pi);slope=amp*(2*u*ws-2*math.pi*u*u*wc)*(-1 if co>=0 else 1)/(sp['frameW']*.9*bv['width']/bv['sourceWidth'])
+            base=f['pitch']*(1 if co>=0 else -1);bend=max(-math.radians(12.6),min(math.radians(12.6),base-math.atan(slope)))-base;c=math.cos(bend);sn=math.sin(bend)
+            piece=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
+            matrix=(c/sx,-sn/sx,fr['anchorX']+rx+(-c*tx+sn*ty)/sx,sn/sy,c/sy,fr['anchorY']+ry+(-sn*tx-c*ty)/sy)
+            im.alpha_composite(piece.transform(im.size,Image.Transform.AFFINE,matrix,Image.Resampling.BILINEAR))
+            continue
         samples=[(view,pose,1.)]
         if part=='body' and 'bodyAngles'in sp:
             if sp.get('bodyRenderMode')=='whole-swim':

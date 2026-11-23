@@ -1,0 +1,31 @@
+{
+  "release": "1.0.30",
+  "scope": "Production BrightScript region/transform captures, independently checked with shared mesh joint projections and decoded source-image alpha. Host evidence, not a Roku GPU screenshot or measured device FPS.",
+  "before_fractional": {
+    "cases": 1280,
+    "max_root_error_pixels": 2.156544,
+    "max_fractional_root_error_pixels": 2.156544,
+    "max_integer_root_error_pixels": 0.0,
+    "side_view_collars_without_overlap": 0,
+    "tail_not_before_body_cases": 1280,
+    "failing_collars": []
+  },
+  "after_fractional_and_integer": {
+    "cases": 2560,
+    "max_root_error_pixels": 0.695813,
+    "max_fractional_root_error_pixels": 0.016702,
+    "max_integer_root_error_pixels": 0.695813,
+    "side_view_collars_without_overlap": 0,
+    "tail_not_before_body_cases": 0,
+    "failing_collars": []
+  },
+  "draw_budget": "One tail submission, followed by complete body poses, then one pectoral submission; unchanged maximum six fish transforms/frame.",
+  "root_data": "tools/tail_rig.py extracts shared body/caudal vertices from each existing mesh and their four baked bend poses. Projected points are cached at asset load.",
+  "fix": [
+    "Anchor the tail to its actual model joint after width interpolation.",
+    "Keep neck height fixed rather than resizing it from a changing crop.",
+    "Reserve a small underlap and paint the body over the root.",
+    "Use the body's rounded origin on integer-only graphics backends."
+  ],
+  "limitations": "Actual on-device filtering and appearance still need confirmation."
+}

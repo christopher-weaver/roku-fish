@@ -17,6 +17,10 @@ def brs_run(test,log):
     (work/'settings-test.brs').write_text(settings)
     extra=['roku/components/ReefSettings.brs'] if test=='settings_ui' else ['roku/source/renderer.brs'] if test in ['render_depth','upright_present','swim_sway','clam_night_surface','clam_contents','wave_equivalence'] else []
     if test=='collision_equivalence':extra+=['tests/collision-reference.brs']
+    if test=='tail_attachment':
+        assets=(ROOT/'roku/source/assets.brs').read_text().replace('CreateObject("roRegion",','JointRegion(')
+        (work/'assets-joint-test.brs').write_text(assets)
+        extra+=['roku/source/renderer.brs','work/assets-joint-test.brs']
     args=['node','tests/roku_runner.cjs','--root','roku']+[f'roku/source/{s}.brs'for s in SOURCES]+['work/settings-test.brs','tests/registry-stub.brs',f'tests/{test}.brs']+extra
     result=subprocess.run(args,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=dict(os.environ,BRS_BIN=binary('brs')))
     (ROOT/log).write_text(result.stdout)
@@ -40,6 +44,13 @@ if __name__=='__main__':
         print(brs_run('clam_night_surface','docs/clam-night-surface-results.txt'))
         print(brs_run('appendage_smoothness','docs/appendage-smoothness-results.txt'))
         print(brs_run('swim_sway','docs/swim-sway-results.txt'))
+        from tail_check import validate as validate_tail
+        import json
+        brs_run('tail_attachment','work/tail-joints-current.txt')
+        joint=validate_tail(ROOT/'work/tail-joints-current.txt')
+        if joint['max_fractional_root_error_pixels']>.02 or joint['max_integer_root_error_pixels']>.75 or joint['side_view_collars_without_overlap']or joint['tail_not_before_body_cases']:raise RuntimeError(str(joint))
+        (ROOT/'docs/tail-attachment-results.json').write_text(json.dumps(joint,indent=2)+'\n')
+        print('PASS shared mesh tail attachment: '+str(joint))
         print(brs_run('cpu_workload','docs/cpu-workload-results.txt'))
         print(brs_run('collision_equivalence','docs/collision-equivalence-results.txt'))
         print(brs_run('frame_profile','docs/frame-profile-results.txt'))

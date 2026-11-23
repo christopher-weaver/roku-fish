@@ -1,6 +1,6 @@
-[[90m07:59:50:890 PM[39m] Using config file: "bsconfig.json"
-[[90m07:59:50:892 PM[39m] Loading 0 plugins for cwd "/workspace/roku-fish" []
-[[90m07:59:50:897 PM[39m] Parsing files
-[[90m07:59:51:102 PM[39m] Parsing files finished. ([34m205.317ms[39m)
-[[90m07:59:51:103 PM[39m] Validating project
-[[90m07:59:51:144 PM[39m] Validating project finished. ([34m41.364ms[39m)
+[[90m01:45:26:431 AM[39m] Using config file: "bsconfig.json"
+[[90m01:45:26:433 AM[39m] Loading 0 plugins for cwd "/workspace/roku-fish" []
+[[90m01:45:26:438 AM[39m] Parsing files
+[[90m01:45:26:672 AM[39m] Parsing files finished. ([34m233.170ms[39m)
+[[90m01:45:26:673 AM[39m] Validating project
+[[90m01:45:26:718 AM[39m] Validating project finished. ([34m45.530ms[39m)

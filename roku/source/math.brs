@@ -289,3 +289,38 @@ end function
 function ReefBandOverlap(height as integer) as integer
     return Int(height*.08+3.999999)
 end function
+
+' Model-space shared vertices bind the caudal image to the complete body poses.
+' Build projected points once; never allocate bitmaps or per-frame joint tables.
+sub ReefTailRigInit(sp as object)
+    if sp.tailRig=invalid or sp.tailBodyPoints<>invalid then return
+    root=sp.tailRig.body : sp.tailBodyPoints=[] : sp.tailSourcePoints=[]
+    for i=0 to sp.bodyAngles.Count()-1
+        angle=sp.bodyAngles[i] : co=Cos(angle) : sn=Sin(angle)
+        x=(root[0]*co-root[2]*sn)*sp.frameW*.45
+        y=0#-root[1]*sp.frameH*.45
+        frame=sp.frames[i*sp.poseCount+1]
+        pixel=frame.anchorX+x : left=Int(pixel) : blend=pixel-left
+        positive=0# : negative=0# : uRoot=.5
+        for column=0 to 1
+            localX=left+column-frame.anchorX : sign=1#
+            if co<0# then sign=0#-1#
+            u=ReefClamp(.5-sign*localX/(sp.frameW*.9),0#,1#)
+            d=sp.renderLength*sp.bodySwimAmplitude*Abs(co)*u*u*Sin(0#-u*6.283185307#)
+            weight=1#-blend
+            if column=1 then weight=blend
+            positive=positive-Int(.5-d)*weight
+            negative=negative-Int(.5+d)*weight
+            if column=0 then uRoot=u
+        end for
+        sp.tailBodyPoints.Push({x:x/sp.bodyViewWidths[i],y:y,positive:positive,negative:negative,u:uRoot})
+    end for
+    count=sp.tailPoseCount
+    for index=0 to sp.tailFrames.Count()-1
+        frame=sp.tailFrames[index] : angle=frame.yaw/57.295779513# : pose=frame.pose
+        ' Reverse-side slots share an upright rendered view and reversed bend.
+        if frame.yaw>180# then angle=6.283185307#-angle : pose=count-1-pose
+        v=sp.tailRig.posesXZ[pose]
+        sp.tailSourcePoints.Push({x:(v[0]*Cos(angle)-v[1]*Sin(angle))*sp.frameW*.45,y:0#-root[1]*sp.frameH*.45})
+    end for
+end sub

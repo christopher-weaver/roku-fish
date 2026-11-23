@@ -57,7 +57,7 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     light=1#-(1#-light)*.30*(.35+.65*s.lighting[0])
     red=Int(red*light) : green=Int(green*light) : blue=Int(blue*light)
     angle = pose.pitch*57.29578
-    headingCos=Cos(pose.heading) : r.waveSign=1#
+    headingCos=Cos(pose.heading) : r.waveHeadingCos=headingCos : r.waveSign=1#
     if headingCos<0 then angle=0#-angle : r.waveSign=0#-1#
     r.waveBaseCos=Cos(angle/57.295779513#) : r.waveBaseSin=Sin(angle/57.295779513#)
     r.wavePhase=pose.phase : r.waveHeading=pose.heading
@@ -67,11 +67,12 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     r.waveStanding=f.sp.bodyRenderMode="whole-swim"
     if r.waveStanding
         r.waveAmplitude=f.sp.length*f.size*p.scale*f.sp.bodySwimAmplitude*Abs(headingCos)
+        if a.tails[f.name]<>invalid then ReefDrawBoundTail(r,p,f.sp,a.tails[f.name],tailPosition,view,f.bodyView,scale,angle,red,green,blue)
         ReefDrawWholeBody(r,p,f.sp,frames,bodyPosition,f.bodyView,scale,angle,red,green,blue)
     else
         ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,f.bodyView,scale,angle,red,green,blue)
     end if
-    if a.tails[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.tails[f.name],tailPosition,f.sp.tailPoseCount,view,scale,angle,red,green,blue)
+    if not r.waveStanding and a.tails[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.tails[f.name],tailPosition,f.sp.tailPoseCount,view,scale,angle,red,green,blue)
     if a.fins[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.fins[f.name],finPosition,f.sp.finPoseCount,view,scale*f.sp.finTextureScale,angle,red,green,blue)
 end sub
 
@@ -93,6 +94,47 @@ sub ReefDrawWholeBody(r as object,p as object,sp as object,frames as object,posi
     opacity=Int(255#*yaw*phase+.5)
     if opacity>0 then ReefDrawFishPart(r,p,sp,frames,second,sp.poseCount,view,scale,angle,red,green,blue,opacity)
     view.index=savedIndex : view.sourceWidth=savedWidth
+end sub
+
+ ' The caudal root stays fixed while its texture envelope changes at the tip.
+sub ReefDrawBoundTail(r as object,p as object,sp as object,frames as object,position as double,view as object,body as object,scale as double,angle as double,red as integer,green as integer,blue as integer)
+    ReefTailRigInit(sp)
+    pose=Int(position+.5) : index=view.index*sp.tailPoseCount+pose
+    region=frames[index] : source=sp.tailSourcePoints[index]
+    sx=scale*view.width/view.sourceWidth : sy=scale
+    if region.anchorX<>invalid
+        warp=ReefAppendageEnvelope(frames,view.index*sp.tailPoseCount,position,sp.tailPoseCount,pose,r.poseWarp)
+        if warp<>invalid then r.poseWarp=warp : sx=sx*warp.sx
+    end if
+    ' Do not scale the neck vertically from a changing crop rectangle.
+    a=sp.tailBodyPoints[body.first] : b=sp.tailBodyPoints[body.second]
+    shiftA=a.positive*r.waveSinPhase : shiftB=b.positive*r.waveSinPhase
+    if r.waveSinPhase<0# then shiftA=0#-a.negative*r.waveSinPhase : shiftB=0#-b.negative*r.waveSinPhase
+    tx=scale*body.width*(a.x+(b.x-a.x)*body.blend)
+    ty=scale*(a.y+(b.y-a.y)*body.blend+shiftA+(shiftB-shiftA)*body.blend)
+    ' A small model-axis underlap is hidden by the body painted afterwards.
+    tx=tx+sp.tailRig.overlap*scale*r.waveHeadingCos
+    u=a.u+(b.u-a.u)*body.blend
+    waveSin=0#-r.waveSinPhase*Sin(u*6.283185307#)
+    waveCos=r.waveSinPhase*Cos(u*6.283185307#)
+    length=sp.frameW*.9*scale*body.width/body.sourceWidth
+    slope=r.waveAmplitude*(2#*u*waveSin-6.283185307#*u*u*waveCos)*(0#-r.waveSign)/length
+    drawAngle=ReefClamp(angle-Atn(slope)*57.295779513#,-12.6,12.6)
+    base=angle
+    if not r.rotation then base=0# : drawAngle=0#
+    if r.fractionalFish then base=Int(base*256#+.5)/256# : drawAngle=Int(drawAngle*256#+.5)/256#
+    co=Cos(base/57.295779513#) : sn=Sin(base/57.295779513#)
+    originX=p.x : originY=p.y
+    if not r.fractionalFish
+        ' Match the body's integer origin on graphics backends without subpixels.
+        originX=Int((p.x+r.canvasOffset)*r.scale+.5)/r.scale-r.canvasOffset
+        originY=Int(p.y*r.scale+.5)/r.scale
+    end if
+    targetX=originX+co*tx+sn*ty : targetY=originY+co*ty-sn*tx
+    co=Cos(drawAngle/57.295779513#) : sn=Sin(drawAngle/57.295779513#)
+    x=targetX-co*source.x*sx-sn*source.y*sy
+    y=targetY-co*source.y*sy+sn*source.x*sx
+    ReefDrawFishRegion(r,x,y,sx,sy,drawAngle,region,ReefRGBA(red,green,blue,255))
 end sub
 
 sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,position as double,count as integer,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer,opacity=255 as integer)
@@ -122,7 +164,7 @@ sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,posit
         ReefDrawFishRegion(r,p.x,p.y,sx,sy,angle,region,tint)
     else if r.waveAmplitude>.15
         ' Fin and caudal patches remain whole and follow the tangent at their
-        ' attachment. The body uses overlapping smooth tangent sections.
+        ' attachment. The complete body remains a single curved image.
         joint=0.20
         if count=sp.tailPoseCount then joint=0.76
         sign=r.waveSign

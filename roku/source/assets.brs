@@ -85,6 +85,7 @@ function ReefLoadAssets(s as object) as object
     for fishIndex=0 to s.fish.Count()-1
         name=s.fish[fishIndex].name
         sp = s.species[name]
+        ReefTailRigInit(sp)
         b = ReefBitmap(sp.image)
         if b <> invalid then a.fish[name] = ReefFishFrames(b,sp.frames,s.settings.quality,sp.bodyRenderMode="whole-swim")
         b = ReefBitmap(sp.tailImage)

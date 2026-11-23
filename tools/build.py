@@ -66,6 +66,9 @@ def validate():
     species=json.loads((ROKU/'scenes/species.json').read_text())
     if len(species)<10:errors.append('Need at least ten species')
     for name,sp in species.items():
+        rig=sp.get('tailRig')
+        if sp.get('bodyRenderMode')=='whole-swim' and (not rig or len(rig.get('body',[]))!=3 or len(rig.get('posesXZ',[]))!=sp['tailPoseCount']):
+            errors.append('Missing model tail attachment: '+name+'; run tools/tail_rig.py')
         for image_key,frames_key,pose_key in [('image','frames','poseCount'),('finImage','finFrames','finPoseCount'),('tailImage','tailFrames','tailPoseCount')]:
             image=ROKU/sp[image_key][5:]
             if not image.exists():errors.append('Missing atlas '+str(image));continue

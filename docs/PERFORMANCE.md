@@ -1,4 +1,14 @@
-# FPS investigation — 1.0.29
+# FPS investigation — 1.0.30
+
+## V30: caudal attachment correction
+
+The user clarified that the remaining joint is **where the tail meets the body**. V30 keeps the complete-body renderer and corrects the separate caudal patch. The former crop-envelope transform resized/shifted the neck around its rectangle, and a generic .76 bend point did not match every species' actual attachment.
+
+The root now comes from the vertices shared by the existing body and caudal meshes, including each baked tail pose. Cached projections track the blended body angle and flex. Width interpolation pivots around that anatomical point; neck height stays fixed. A small underlap is hidden by drawing the body after the tail. Integer-only rendering uses the same rounded body origin.
+
+In the matching 1,280-case fractional subset, maximum projected root error falls **2.156544 → 0.016702 pixels**. Another 1,280 integer-backend cases stay within the expected rounding bound (maximum **0.695813 pixels**). No sampled visible side-view collar lacks overlap. All 2,560 cases paint the tail under the body. These are production-command and decoded-texture checks, not hardware screenshots. The texture files and maximum fish draw count are unchanged; joint tables are built once during asset loading.
+
+[tail-attachment-audit.json](tail-attachment-audit.json) records the result; [matching close-ups](previews/tail-joint-comparison.png) reconstruct the old/new production submissions. Run `python tools/tail_rig.py` after changing the fish mesh or baked caudal poses. The on-device join still needs the user's confirmation; no new hardware FPS measurement is available.
 
 ## V29: complete body images and shared anatomy caches
 
