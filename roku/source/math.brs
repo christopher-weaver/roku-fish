@@ -82,7 +82,7 @@ end function
 
 ' Floating scales carry the small remainder lost by integer draw coordinates.
 ' A shorter anchor bounds rotated float32 error and shape stretch for fish.
-function ReefFishTransform(x as double, y as double, sx as double, sy as double, angle as double, result = invalid as dynamic, cachedCos=invalid as dynamic, cachedSin=invalid as dynamic) as object
+function ReefFishTransform(x as double, y as double, sx as double, sy as double, angle as double, result = invalid as dynamic, cachedCos=invalid as dynamic, cachedSin=invalid as dynamic, pivotX=0# as double,pivotY=0# as double) as object
     anchor = 4096#
     c=cachedCos : sn=cachedSin
     if c=invalid
@@ -95,8 +95,10 @@ function ReefFishTransform(x as double, y as double, sx as double, sy as double,
     dy = y - py - anchor * (c * sy - sn * sx)
     if result = invalid then result = {}
     result.x = px : result.y = py : result.angle = angle
-    result.sx = sx + (c * dx - sn * dy) / anchor
-    result.sy = sy + (sn * dx + c * dy) / anchor
+    ' Correct the integer-placement remainder at the attachment when supplied,
+    ' rather than letting fractional scale correction displace the tail root.
+    result.sx = sx + (c * dx - sn * dy) / (anchor+pivotX)
+    result.sy = sy + (sn * dx + c * dy) / (anchor+pivotY)
     return result
 end function
 

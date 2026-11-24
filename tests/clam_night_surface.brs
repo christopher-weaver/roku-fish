@@ -2,19 +2,20 @@ sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     occ=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     s=ReefWorld(ReefValidateSettings(invalid),species,occ,47831)
-    c=s.clam : c.order=[0,1,2]
+    c=s.clam : c.order=[0,1] : c.rng=1000#
     s.time=9# : ReefClamStep(s)
     if c.event<>0 or not c.released or ReefClamOpening(s.time)<>1# then print "FAIL pearl opening" : return
-    s.time=56# : ReefClamStep(s)
+    c.rng=1000# : s.time=56# : ReefClamStep(s)
     if c.event<>1 or not c.released then print "FAIL bubble event" : return
-    born=c.bubbles[0].born : ReefClamStep(s)
+    born=c.bubbles[0].born : seed=c.rng : ReefClamStep(s)
     if c.bubbles[0].born<>born then print "FAIL duplicate release" : return
+    if c.rng<>seed then print "FAIL birth odds rerolled within one opening" : return
     if c.bubbles.Count()<>12 or c.bubbles[11].born<=born then print "FAIL bubble cluster" : return
     while s.fish.Count()>1
         s.fish.Pop()
     end while
     s.fish[0].x=250# : s.fish[0].y=400# : s.fish[0].z=.12
-    s.time=87# : ReefClamStep(s)
+    c.rng=1# : s.time=87# : ReefClamStep(s)
     s.displayTime=s.time
     if ReefClamDisplayOpening(s)<>0# then print "FAIL birth must start inside closed clam" : return
     if s.fish.Count()<>2 or c.births<>1 then print "FAIL baby not added" : return
@@ -31,8 +32,22 @@ sub Main()
     end for
     if baby.emerging=true then print "FAIL baby never clears the mouth" : return
     if baby.x=x and baby.y=y then print "FAIL baby is decorative/static" : return
-    c.births=4 : s.time=244# : ReefClamStep(s)
+    c.births=4 : c.rng=1# : s.time=244# : ReefClamStep(s)
     if c.event=2 then print "FAIL unbounded births" : return
+    rare=0
+    for bucket=0 to 49
+        seed=Int((((bucket+.5)/50#)*2147483646#+1#)/48271#)
+        sample={rng:seed,order:[0,1]}
+        event=ReefClamEvent(sample,bucket)
+        if event=2
+            rare=rare+1
+            if bucket<>0 then print "FAIL birth outside one-in-fifty bucket" : return
+        else if event<>bucket mod 2
+            print "FAIL ordinary pearl/bubble event" : return
+        end if
+    end for
+    if rare<>1 then print "FAIL birth probability is not 1/50" : return
+    print "PASS one birth bucket in fifty; one independent roll per clam opening"
     print "PASS clam pearl, staggered rising bubble pool, single safe live-fish birth, normal AI movement and bounded population"
     previous=ReefClamOpening(0#)
     for i=1 to 2820

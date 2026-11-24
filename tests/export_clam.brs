@@ -2,7 +2,7 @@ sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     occ=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     s=ReefWorld(ReefValidateSettings(invalid),species,occ,47831)
-    s.clam.order=[2,0,1] : s.renderAlpha=1#
+    s.clam.rng=1# : s.renderAlpha=1#
     ReefClamStep(s) : ExportClamPose(s)
     s.time=3# : s.clam.lastTime=3# : ReefClamStep(s) : ExportClamPose(s)
     s.time=6# : s.clam.lastTime=6# : ReefClamStep(s) : ExportClamPose(s)

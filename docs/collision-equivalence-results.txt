@@ -1,1 +1,1 @@
-PASS exact collision optimization: 1260 rectangles, 600 swept reef paths, 1200 swept/static fish paths, 600 cache invalidations, custom-grid fallback
+PASS exact collision optimization: 1260 rectangles, 600 swept reef paths, 1200 swept/static pairs, 2400 cached/uncached broad-phase paths, 600 cache invalidations, custom-grid fallback

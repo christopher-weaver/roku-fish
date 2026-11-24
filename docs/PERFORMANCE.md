@@ -1,4 +1,20 @@
-# FPS investigation — 1.0.30
+# FPS investigation — 1.0.32
+
+## V32: density-dependent fish work
+
+The user's latest Ultra measurements are **20–25 FPS at High fish density** and **about 45 FPS at Low density**. No new U/D split was supplied. These measurements support reducing work per fish and per pair; they do not isolate GPU time from script/driver time.
+
+V32 rejects a distant fish pair using conservative swept X/Z slabs before entering the full cylinder function. Both endpoints include the other fish's previous/current positions; a tiny broad-phase margin retains near-boundary candidates. The full collision test still checks every candidate. Predictive steering compares squared distances first and only computes a square root for an interaction. Neither simulation frequency nor population settings are reduced.
+
+The same 60-tick, eight-fish production fixture retains all reference end poses. Helper calls fall **17,136 → 13,896 (19%)**, square roots **5,608 → 2,576 (54%)**, and full pair-function calls **3,360 → 120 (96%)**. All original pair candidates are screened; rejected distant pairs cannot intersect. Field reads fall **462,656 → 427,736 (8%)**.
+
+Drawing submits whole-body layers directly, shares tint setup, and reuses the quantized rotation basis across successive layers. The same 120-frame fixture retains **707 transforms**, the opaque base, and the normalized phase/yaw blend. Rendering helper calls fall **4,752 → 3,818 (20%)**, and Sin/Cos calls **3,338 → 2,628 (21%)**. The optimized renderer exactly matches 10240 body commands across 2,560 heading/phase/resolution/backend cases. These are host work counts, not native FPS gains.
+
+The farther-back copperband attachment also exposed a subpixel-scale correction around the model origin. The correction now fixes the tail root itself. Maximum fractional joint error is **0.003062 px**, with no missing sampled side-view overlaps across 2,560 cases. The original 0.02 px gate is retained.
+
+Clam openings now independently roll a **1/50 birth chance**; ordinary openings alternate pearls and bubbles. This avoids the former birth every third opening and its rapid increase in fish load. The roll happens once per opening on a separate random stream, preserving ordinary swimming randomness. Existing four-birth/twelve-fish caps and closed-shell baby preparation remain.
+
+[The audit](density-performance-audit.json) records full counts. Actual v32 FPS remains unmeasured because no Roku is connected to this workspace.
 
 ## V30: caudal attachment correction
 

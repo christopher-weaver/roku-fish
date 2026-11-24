@@ -82,10 +82,27 @@ function ReefFishPairBlocked(f as object, fromPose as object, toPose as object, 
 end function
 
 function ReefFishBlocked(s as object, f as object, fromPose as object, toPose as object, swept = true as boolean) as boolean
+    ready=s.physicsBoundsReady=true : own=f.bodyBounds
+    if not ready then own=ReefFishBounds(f)
     for neighborIndex=0 to s.fish.Count()-1
         other=s.fish[neighborIndex]
         if other.id<>f.id
-            if ReefFishPairBlocked(f,fromPose,toPose,other,swept,s.physicsBoundsReady=true) then return true
+            neighbor=other.bodyBounds
+            if not ready then neighbor=ReefFishBounds(other)
+            radius=own.radius+neighbor.radius+4.000001#
+            ox=other.x : oz=other.z
+            if swept and other.previousX<>invalid then ox=other.previousX : oz=other.previousZ
+            start=fromPose.x-ox : finish=toPose.x-other.x
+            far=(start>=radius and finish>=radius) or (start<=0#-radius and finish<=0#-radius)
+            if not far
+                start=(fromPose.z-oz)*800# : finish=(toPose.z-other.z)*800#
+                far=(start>=radius and finish>=radius) or (start<=0#-radius and finish<=0#-radius)
+            end if
+            ' Exact sweep slabs reject distant pairs before calling the full
+            ' cylinder test. Both endpoints include the other fish's movement.
+            if not far
+                if ReefFishPairBlocked(f,fromPose,toPose,other,swept,true) then return true
+            end if
         end if
     end for
     return false
@@ -142,8 +159,9 @@ function ReefNeighbors(s as object, f as object) as object
                 if ahead>6# then ahead=6#
             end if
             cx=dx+vx*ahead : cz=dz+vz*ahead : cy=dy+vy*ahead
-            closest=Sqr(cx*cx+cz*cz)
-            if closest<radius*1.65 and Abs(cy)<height*1.25
+            closestSquared=cx*cx+cz*cz : reach=radius*1.65
+            if closestSquared<reach*reach and Abs(cy)<height*1.25
+                closest=Sqr(closestSquared)
                 pressure=ReefClamp((radius*1.65-closest)/(radius*.65),0,1)
                 pressure=pressure*(1-ahead/9#)
                 steer.traffic=ReefMax(steer.traffic,pressure)

@@ -51,8 +51,8 @@
   },
   "copperband_butterflyfish-atlas.webp": {
     "width": 2048,
-    "height": 1399,
-    "sha256": "7d3461fb1da5f292c819f2406b6b86d5d577482785cd8eca573091a0e7fbe475"
+    "height": 1376,
+    "sha256": "6f492f6576b3aa56435c97360a8818beba3ae6b00cd188da324c3c2ed4a36bd4"
   },
   "copperband_butterflyfish-fins.webp": {
     "width": 512,
@@ -61,8 +61,8 @@
   },
   "copperband_butterflyfish-tails.webp": {
     "width": 1024,
-    "height": 349,
-    "sha256": "304b829f1fd3bfa7f439696d7494783eba637ca0837e63b186e7bcf7994cddc0"
+    "height": 251,
+    "sha256": "0ece8e07c53d4873e84d46f8590942bff430cb79cf1cd5f1da388ada81d50cf1"
   },
   "emperor_angelfish-atlas.webp": {
     "width": 2048,

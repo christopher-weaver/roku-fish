@@ -1,3 +1,4 @@
+PASS one birth bucket in fifty; one independent roll per clam opening
 PASS clam pearl, staggered rising bubble pool, single safe live-fish birth, normal AI movement and bounded population
 PASS slow continuous hinge motion with open/closed pauses
 PASS selectable Night lighting with blue-green coral and plankton emission confined to Night/dark Automatic

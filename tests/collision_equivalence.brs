@@ -28,6 +28,12 @@ sub Main()
         for swept=0 to 1
             expected=ReferenceReefFishPairBlocked(f,a,b,other,swept=1)
             if ReefFishPairBlocked(f,a,b,other,swept=1)<>expected then print "FAIL swept pair equivalence ";sample : return
+            f.id=0 : other.id=1 : s.fish=[f,other]
+            s.physicsBoundsReady=false
+            if ReefFishBlocked(s,f,a,b,swept=1)<>expected then print "FAIL broad phase lost a swept pair ";sample : return
+            s.physicsBoundsReady=true
+            if ReefFishBlocked(s,f,a,b,swept=1)<>expected then print "FAIL cached broad phase lost a swept pair ";sample : return
+            s.physicsBoundsReady=false
         end for
         ' Bounds must refresh on cloned babies, size changes and a species change.
         f.size=.27 : f.sp=other.sp
@@ -42,5 +48,5 @@ sub Main()
     steer=ReefNeighbors(light,light.fish[0])
     if steer.count<>1 then print "FAIL geometry-free schooling bounds" : return
     if ReefCoralBlocked(light,light.fish[0],{x:84#,y:400#,z:.5},light.fish[0])<>true then print "FAIL geometry-free tank limits" : return
-    print "PASS exact collision optimization: 1260 rectangles, 600 swept reef paths, 1200 swept/static fish paths, 600 cache invalidations, custom-grid fallback"
+    print "PASS exact collision optimization: 1260 rectangles, 600 swept reef paths, 1200 swept/static pairs, 2400 cached/uncached broad-phase paths, 600 cache invalidations, custom-grid fallback"
 end sub

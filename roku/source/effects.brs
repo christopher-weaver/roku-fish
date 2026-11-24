@@ -119,11 +119,15 @@ function ReefClamOpening(time as double) as double
 end function
 
 sub ReefClamInit(s as object)
+    ' Preserve startup RNG consumption so existing fish routes stay reproducible.
     order=[0,1,2]
     for i=2 to 1 step -1
         j=Int(ReefRange(s,0,i+.99999)) : swap=order[i] : order[i]=order[j] : order[j]=swap
     end for
-    s.clam={enabled:true,cycle:-1,event:0,released:false,order:order,nextId:s.fish.Count(),births:0,bubbles:[],baby:invalid,escape:0#,lastTime:0#}
+    for i=2 to 0 step -1
+        if order[i]=2 then order.Delete(i)
+    end for
+    s.clam={enabled:true,cycle:-1,event:0,released:false,order:order,rng:s.rng,nextId:s.fish.Count(),births:0,bubbles:[],baby:invalid,escape:0#,lastTime:0#}
     for i=0 to 11
         s.clam.bubbles.Push({born:0#-1000#,x:1075#+(i mod 4)*5#,originY:964#+(i mod 3)*4#,speed:45#+i*2#,phase:i*2.399963#,scale:.25+(i mod 4)*.07})
     end for
@@ -146,7 +150,7 @@ sub ReefClamStep(s as object)
     dt=ReefClamp(s.time-c.lastTime,0#,.1) : c.lastTime=s.time
     if cycle<>c.cycle
         if c.baby=invalid or c.baby.emerging<>true
-            c.cycle=cycle : c.event=c.order[cycle mod 3] : c.released=false : c.baby=invalid : c.escape=0#
+            c.cycle=cycle : c.event=ReefClamEvent(c,cycle) : c.released=false : c.baby=invalid : c.escape=0#
             if c.event=2 and (s.fish.Count()>=12 or c.births>=4) then c.event=0
             ' The same live animal exists inside the CLOSED shell before opening.
             if c.event=1
@@ -187,6 +191,12 @@ sub ReefClamStep(s as object)
         c.released=true
     end if
 end sub
+
+function ReefClamEvent(c as object,cycle as integer) as integer
+    ' Independent clam RNG: one birth chance per opening, never per frame.
+    if Int(ReefRandom(c)*50#)=0 then return 2
+    return c.order[cycle mod 2]
+end function
 
 function ReefClamBaby(s as object) as boolean
     if s.fish.Count()=0 then return false

@@ -61,15 +61,15 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     if headingCos<0 then angle=0#-angle : r.waveSign=0#-1#
     r.waveBaseCos=Cos(angle/57.295779513#) : r.waveBaseSin=Sin(angle/57.295779513#)
     r.wavePhase=pose.phase : r.waveHeading=pose.heading
-    effort=.6
-    if f.speed<>invalid then effort=ReefClamp(f.speed/f.sp.speed,0#,1#)
-    r.waveAmplitude=f.sp.length*f.size*p.scale*.012*(.25+.75*effort)*Abs(headingCos)
     r.waveStanding=f.sp.bodyRenderMode="whole-swim"
     if r.waveStanding
         r.waveAmplitude=f.sp.length*f.size*p.scale*f.sp.bodySwimAmplitude*Abs(headingCos)
         if a.tails[f.name]<>invalid then ReefDrawBoundTail(r,p,f.sp,a.tails[f.name],tailPosition,view,f.bodyView,scale,angle,red,green,blue)
         ReefDrawWholeBody(r,p,f.sp,frames,bodyPosition,f.bodyView,scale,angle,red,green,blue)
     else
+        effort=.6
+        if f.speed<>invalid then effort=ReefClamp(f.speed/f.sp.speed,0#,1#)
+        r.waveAmplitude=f.sp.length*f.size*p.scale*.012*(.25+.75*effort)*Abs(headingCos)
         ReefDrawFishPart(r,p,f.sp,frames,bodyPosition,f.sp.poseCount,f.bodyView,scale,angle,red,green,blue)
     end if
     if not r.waveStanding and a.tails[f.name]<>invalid then ReefDrawFishPart(r,p,f.sp,a.tails[f.name],tailPosition,f.sp.tailPoseCount,view,scale,angle,red,green,blue)
@@ -81,19 +81,21 @@ sub ReefDrawWholeBody(r as object,p as object,sp as object,frames as object,posi
     first=Int(position) : second=first+1
     if second>=sp.poseCount then second=first
     phase=position-first : yaw=view.blend
-    savedIndex=view.index : savedWidth=view.sourceWidth
-    view.index=view.first : view.sourceWidth=sp.bodyViewWidths[view.first]
-    ReefDrawFishPart(r,p,sp,frames,first,sp.poseCount,view,scale,angle,red,green,blue)
+    ' Complete body regions share their position, pitch and tint. Submit them
+    ' directly instead of repeating the generic appendage setup for every layer.
+    firstBase=view.first*sp.poseCount : secondBase=view.second*sp.poseCount
+    firstScale=scale*view.width/sp.bodyViewWidths[view.first]
+    secondScale=scale*view.width/sp.bodyViewWidths[view.second]
+    tint=ReefRGBA(red,green,blue,0)
+    ReefDrawFishRegion(r,p.x,p.y,firstScale,scale,angle,frames[firstBase+first],tint or 255)
     opacity=Int(255#*phase+.5)
-    if opacity>0 and second<>first then ReefDrawFishPart(r,p,sp,frames,second,sp.poseCount,view,scale,angle,red,green,blue,opacity)
-    view.index=view.second : view.sourceWidth=sp.bodyViewWidths[view.second]
+    if opacity>0 and second<>first then ReefDrawFishRegion(r,p.x,p.y,firstScale,scale,angle,frames[firstBase+second],tint or opacity)
     denominator=1#-yaw*phase
     opacity=0
     if denominator>.0000001 then opacity=Int(255#*yaw*(1#-phase)/denominator+.5)
-    if opacity>0 then ReefDrawFishPart(r,p,sp,frames,first,sp.poseCount,view,scale,angle,red,green,blue,opacity)
+    if opacity>0 then ReefDrawFishRegion(r,p.x,p.y,secondScale,scale,angle,frames[secondBase+first],tint or opacity)
     opacity=Int(255#*yaw*phase+.5)
-    if opacity>0 then ReefDrawFishPart(r,p,sp,frames,second,sp.poseCount,view,scale,angle,red,green,blue,opacity)
-    view.index=savedIndex : view.sourceWidth=savedWidth
+    if opacity>0 then ReefDrawFishRegion(r,p.x,p.y,secondScale,scale,angle,frames[secondBase+second],tint or opacity)
 end sub
 
  ' The caudal root stays fixed while its texture envelope changes at the tip.
@@ -134,7 +136,7 @@ sub ReefDrawBoundTail(r as object,p as object,sp as object,frames as object,posi
     co=Cos(drawAngle/57.295779513#) : sn=Sin(drawAngle/57.295779513#)
     x=targetX-co*source.x*sx-sn*source.y*sy
     y=targetY-co*source.y*sy+sn*source.x*sx
-    ReefDrawFishRegion(r,x,y,sx,sy,drawAngle,region,ReefRGBA(red,green,blue,255))
+    ReefDrawFishRegion(r,x,y,sx,sy,drawAngle,region,ReefRGBA(red,green,blue,255),source)
 end sub
 
 sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,position as double,count as integer,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer,opacity=255 as integer)
@@ -223,13 +225,18 @@ sub ReefDrawWaveRegion(r as object,p as object,sp as object,sx as double,sy as d
     ReefDrawFishRegion(r,p.x+co*dx+si*dy,p.y+co*dy-si*dx,sx,sy,drawAngle,region,tint)
 end sub
 
-sub ReefDrawFishRegion(r as object, x as double, y as double, sx as double, sy as double, angle as double, region as object, tint as integer)
+sub ReefDrawFishRegion(r as object, x as double, y as double, sx as double, sy as double, angle as double, region as object, tint as integer,root=invalid as dynamic)
     x = x + r.canvasOffset
     if not r.rotation then angle = 0#
     c=invalid : sn=invalid
     if r.fractionalFish
         angle=Int(angle*256#+.5)/256#
-        c=Cos(angle/57.295779513#) : sn=Sin(angle/57.295779513#)
+    end if
+    if r.fractionalFish or region.offsetX<>invalid
+        if r.basisAngle<>angle or r.basisCos=invalid
+            r.basisAngle=angle : r.basisCos=Cos(angle/57.295779513#) : r.basisSin=Sin(angle/57.295779513#)
+        end if
+        c=r.basisCos : sn=r.basisSin
     end if
     if region.offsetX<>invalid
         if c=invalid then c=Cos(angle/57.295779513#) : sn=Sin(angle/57.295779513#)
@@ -237,7 +244,13 @@ sub ReefDrawFishRegion(r as object, x as double, y as double, sx as double, sy a
         y=y+c*sy*region.offsetY-sn*sx*region.offsetX
     end if
     if r.fractionalFish
-        transform = ReefFishTransform(x*r.scale,y*r.scale,sx*r.scale,sy*r.scale,angle,r.placement,c,sn)
+        if root=invalid
+            transform = ReefFishTransform(x*r.scale,y*r.scale,sx*r.scale,sy*r.scale,angle,r.placement,c,sn)
+        else
+            pivotX=root.x : pivotY=root.y
+            if region.offsetX<>invalid then pivotX=pivotX-region.offsetX : pivotY=pivotY-region.offsetY
+            transform = ReefFishTransform(x*r.scale,y*r.scale,sx*r.scale,sy*r.scale,angle,r.placement,c,sn,pivotX,pivotY)
+        end if
         if r.rotation
             r.screen.DrawTransformedObject(transform.x,transform.y,transform.angle,transform.sx,transform.sy,region.fractional,tint)
         else
