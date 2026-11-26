@@ -1,0 +1,4 @@
+PILEUP  copperband_butterflyfish  travel= 238.28620417099992  displacement= 170.3135  maxStationary= 0.9999999999999999
+PILEUP  mandarin_dragonet  travel= 316.92350667800014  displacement= 197.873  maxStationary= 0.16666666666666666
+PILEUP  banggai_cardinalfish  travel= 373.30038597800007  displacement= 317.2743  maxStationary= 0.16666666666666666
+PASS all three reported species leave the coral pileup within 15 seconds with swept and interpolated reef/fish clearance

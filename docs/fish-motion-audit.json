@@ -1,0 +1,84 @@
+{
+  "swim_amplitude_fraction": 0.055,
+  "turn_amplitude_fraction": 0.065,
+  "native_body_heading_slots": 64,
+  "dense_frontal_samples": 25,
+  "turn_heading_slots": 24,
+  "unique_body_regions_per_species": 125,
+  "previous_unique_body_regions_per_species": 123,
+  "maximum_body_draws": 4,
+  "maximum_total_fish_draws": 6,
+  "frame_resolution_changed": false,
+  "palette_compaction": {
+    "ocellaris_clownfish": {
+      "palette": 64,
+      "before_bytes": 145050,
+      "after_bytes": 132674,
+      "visible_rgb_mae": 2.3831,
+      "alpha_identical": true
+    },
+    "yellow_tang": {
+      "palette": 64,
+      "before_bytes": 206456,
+      "after_bytes": 182686,
+      "visible_rgb_mae": 1.2163,
+      "alpha_identical": true
+    },
+    "royal_gramma": {
+      "palette": 64,
+      "before_bytes": 105506,
+      "after_bytes": 98578,
+      "visible_rgb_mae": 1.3767,
+      "alpha_identical": true
+    },
+    "emperor_angelfish": {
+      "palette": 64,
+      "before_bytes": 202194,
+      "after_bytes": 180566,
+      "visible_rgb_mae": 3.7159,
+      "alpha_identical": true
+    },
+    "moorish_idol": {
+      "palette": 64,
+      "before_bytes": 183752,
+      "after_bytes": 168552,
+      "visible_rgb_mae": 2.5545,
+      "alpha_identical": true
+    },
+    "green_chromis": {
+      "palette": 64,
+      "before_bytes": 120322,
+      "after_bytes": 112908,
+      "visible_rgb_mae": 1.1554,
+      "alpha_identical": true
+    },
+    "blue_tang": {
+      "palette": 64,
+      "before_bytes": 206968,
+      "after_bytes": 185936,
+      "visible_rgb_mae": 2.0476,
+      "alpha_identical": true
+    },
+    "copperband_butterflyfish": {
+      "palette": 64,
+      "before_bytes": 381700,
+      "after_bytes": 349016,
+      "visible_rgb_mae": 2.4367,
+      "alpha_identical": true
+    },
+    "banggai_cardinalfish": {
+      "palette": 64,
+      "before_bytes": 267428,
+      "after_bytes": 247348,
+      "visible_rgb_mae": 1.7501,
+      "alpha_identical": true
+    },
+    "mandarin_dragonet": {
+      "palette": 96,
+      "alpha_identical": true,
+      "visible_rgb_mae": 0,
+      "note": "Retained original colors; lower palette exceeded the color-error limit."
+    }
+  },
+  "validation_boundary": "Host measurements and production draw captures; native Roku FPS and appearance require device validation."
+}

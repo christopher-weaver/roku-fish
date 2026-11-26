@@ -1,4 +1,4 @@
-# Fish anatomy and lateral swimming — 1.0.33
+# Fish anatomy and lateral swimming — 1.0.34
 
 The former swim atlas shifted image columns in screen Y. That made the rear body move vertically. Complete body poses now come from the textured volume mesh, bending in model Z (left/right), before yaw projection. Model Y stays fixed. The forebody remains steady and the rear body forms an S and inverse S. Caudal deflection continues the rear-body S curve with the matching opposite stroke. Tails bind to the projected 3D attachment; no vertical swim tangent is applied to the tail or pectoral image.
 
@@ -40,3 +40,9 @@ Validation checks every species' width ratio and mesh coordinates: opposite swim
 - [University of Hawaii, fish structure and swimming](https://manoa.hawaii.edu/exploringourfluidearth/biological/fish/structure-and-function-fish): lateral muscle contraction and caudal propulsion.
 
 Rebuild artwork with `python tools/whole_swim.py`; it uses the approved source meshes/textures and `tools/lateral_swim.py`. This is offline work; the Roku renders prebuilt regions.
+
+## 1.0.34 articulation and eyes
+
+The lateral S-curve coefficient is now 5.5% of model length, with the trunk bend starting 28% of the way back from the head; the caudal fin retains its separate rig and stroke. A small head counter-sway makes that depth movement visible in profile. C-turn poses use a smooth, one-sided quadratic bend up to 6.5% of length and follow signed, eased yaw velocity. S motion eases through neutral before the C bend grows; both transitions stay within four body draws. Neither curve changes model Y. Anatomical width targets above remain unchanged; collision depth additionally reserves the bend envelope.
+
+Every fish has two actual ellipsoidal eyeball meshes, positioned on its photographed eye centers. Iris/pupil textures use the existing photographs. The copperband's false eyespot remains a skin marking; its true eye is modeled on the head. Fine frontal S views retain all 25 samples. Retained sprites keep their native resolution; the atlas adds C poses while removing redundant side views. Projected pitch scales continuously with yaw instead of switching signs at front/rear views.

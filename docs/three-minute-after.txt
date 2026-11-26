@@ -1,0 +1,36 @@
+PROGRESS seconds= 10  fish= 10  stall windows= 0  max stationary= 0.39999999999999997
+PROGRESS seconds= 20  fish= 10  stall windows= 0  max stationary= 1.2666666666666673
+PROGRESS seconds= 30  fish= 10  stall windows= 0  max stationary= 1.2666666666666673
+PROGRESS seconds= 40  fish= 10  stall windows= 0  max stationary= 1.2666666666666673
+STALL  {"heading":3.4025488415129916,"id":9,"name":"ocellaris_clownfish","recoveries":3,"routeCount":0,"routeIndex":0,"span":11.72235,"speed":14.949915340842523,"state":"Avoidance","still":0,"target":[1460.2814272919654,778.4259262103564,0.8850599044371983],"time":47.99999999999984,"x":1536.1389909059549,"y":778.4259262103564,"z":0.8832641436915802}
+PROGRESS seconds= 50  fish= 10  stall windows= 1  max stationary= 1.2666666666666673
+PROGRESS seconds= 60  fish= 10  stall windows= 1  max stationary= 1.2666666666666673
+PROGRESS seconds= 70  fish= 10  stall windows= 1  max stationary= 1.2666666666666673
+PROGRESS seconds= 80  fish= 10  stall windows= 1  max stationary= 1.2666666666666673
+PROGRESS seconds= 90  fish= 10  stall windows= 1  max stationary= 1.3666666666666676
+STALL  {"heading":2.862155471327719,"id":3,"name":"emperor_angelfish","recoveries":3,"routeCount":0,"routeIndex":0,"span":2.305788,"speed":27.844547522947604,"state":"Avoidance","still":0,"target":[582.0637121163902,180.36899847944173,0.3777348202370342],"time":95.99999999999712,"x":1523.7856478172148,"y":180.36899847944173,"z":0.408026329861268}
+PROGRESS seconds= 100  fish= 10  stall windows= 2  max stationary= 1.3666666666666676
+PROGRESS seconds= 110  fish= 10  stall windows= 2  max stationary= 1.3666666666666676
+PROGRESS seconds= 120  fish= 10  stall windows= 2  max stationary= 1.3666666666666676
+STALL  {"heading":6.0663957119087355,"id":8,"name":"yellow_tang","recoveries":3,"routeCount":0,"routeIndex":0,"span":4.805236,"speed":59.797838381434985,"state":"Avoidance","still":0,"target":[415.8193996937756,573.5923552395835,0.06],"time":125.99999999999541,"x":317.4799065146106,"y":573.5923552395835,"z":0.04044243183909845}
+PROGRESS seconds= 130  fish= 10  stall windows= 3  max stationary= 1.3666666666666676
+STALL  {"heading":6.0776545977106355,"id":0,"name":"green_chromis","recoveries":0,"routeCount":0,"routeIndex":0,"span":13.24154,"speed":62.5665118668758,"state":"Avoidance","still":0,"target":[1796.2145366950097,415.52417205080616,0.12750074388834937],"time":137.99999999999474,"x":422.9222908315239,"y":402.1681920734044,"z":0.04000012509717917}
+STALL  {"heading":3.913068074180081,"id":1,"name":"copperband_butterflyfish","recoveries":10,"routeCount":0,"routeIndex":0,"span":9.161763,"speed":17.34485039583443,"state":"Avoidance","still":0,"target":[310.54883712022456,383.4574878529313,0.9717668024771068],"time":137.99999999999474,"x":1446.1896309547656,"y":386.34637674182017,"z":0.9706845926447002}
+PROGRESS seconds= 140  fish= 10  stall windows= 5  max stationary= 1.3666666666666676
+PROGRESS seconds= 150  fish= 10  stall windows= 5  max stationary= 1.3666666666666676
+PROGRESS seconds= 160  fish= 10  stall windows= 5  max stationary= 1.3666666666666676
+STALL  {"heading":3.77847188769642,"id":6,"name":"moorish_idol","recoveries":13,"routeCount":0,"routeIndex":0,"span":17.78487,"speed":22.28164104519571,"state":"Avoidance","still":0.1,"target":[376.5242966884042,433.6973718384201,0.4141280718328524],"time":167.99999999999304,"x":1115.3674107693282,"y":433.90181628286444,"z":0.40924692341974106}
+PROGRESS seconds= 170  fish= 10  stall windows= 6  max stationary= 1.3666666666666676
+PROGRESS seconds= 180  fish= 10  stall windows= 6  max stationary= 1.3666666666666676
+FISH  {"id":0,"maxStill":1.2666666666666673,"name":"green_chromis","stalls":1,"travel":5703.616095949998}
+FISH  {"id":1,"maxStill":1.2666666666666673,"name":"copperband_butterflyfish","stalls":1,"travel":3534.08703909798}
+FISH  {"id":2,"maxStill":1.3666666666666676,"name":"blue_tang","stalls":0,"travel":3706.0714777389517}
+FISH  {"id":3,"maxStill":1.2666666666666673,"name":"emperor_angelfish","stalls":1,"travel":4751.576199570011}
+FISH  {"id":4,"maxStill":1.2666666666666673,"name":"mandarin_dragonet","stalls":0,"travel":2857.73230189706}
+FISH  {"id":5,"maxStill":1.3666666666666676,"name":"banggai_cardinalfish","stalls":0,"travel":3018.8454374637013}
+FISH  {"id":6,"maxStill":1.2666666666666673,"name":"moorish_idol","stalls":1,"travel":3267.8033726229783}
+FISH  {"id":7,"maxStill":1.2666666666666673,"name":"royal_gramma","stalls":0,"travel":3961.4351048470094}
+FISH  {"id":8,"maxStill":1.2666666666666673,"name":"yellow_tang","stalls":1,"travel":5548.122851305939}
+FISH  {"id":9,"maxStill":1.1333333333333335,"name":"ocellaris_clownfish","stalls":1,"travel":4335.425066701993}
+THREE MINUTE RESULT seconds=180 ticks=5400 stalls= 6  maxStationary= 1.3666666666666676  violations= 0
+PASS three-minute production movement and collision regression

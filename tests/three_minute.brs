@@ -2,7 +2,7 @@
 sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     occ=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
-    s=ReefWorld(ReefValidateSettings(invalid),species,occ,47831)
+    s=ReefWorld(ReefValidateSettings({density:"High"}),species,occ,47831)
     stats=[] : violations=0 : maxStuck=0# : stalls=0
     for tick=1 to 5400
         ReefStep(s,1#/30#)

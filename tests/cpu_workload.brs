@@ -3,6 +3,36 @@ sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     ' Freeze the original collision dimensions for the v26 trajectory oracle.
     ' Shipping art envelopes are exercised by the traffic/clearance tests.
+    species.ocellaris_clownfish.collisionHalfWidth=85
+    species.ocellaris_clownfish.collisionHalfHeight=41
+    species.ocellaris_clownfish.bodyThickness=0.28
+    species.yellow_tang.collisionHalfWidth=92
+    species.yellow_tang.collisionHalfHeight=57
+    species.yellow_tang.bodyThickness=0.2
+    species.royal_gramma.collisionHalfWidth=88
+    species.royal_gramma.collisionHalfHeight=40
+    species.royal_gramma.bodyThickness=0.216
+    species.emperor_angelfish.collisionHalfWidth=100
+    species.emperor_angelfish.collisionHalfHeight=47
+    species.emperor_angelfish.bodyThickness=0.216
+    species.moorish_idol.collisionHalfWidth=97
+    species.moorish_idol.collisionHalfHeight=58
+    species.moorish_idol.bodyThickness=0.168
+    species.green_chromis.collisionHalfWidth=91
+    species.green_chromis.collisionHalfHeight=40
+    species.green_chromis.bodyThickness=0.24
+    species.blue_tang.collisionHalfWidth=113
+    species.blue_tang.collisionHalfHeight=49
+    species.blue_tang.bodyThickness=0.2
+    species.copperband_butterflyfish.collisionHalfWidth=113
+    species.copperband_butterflyfish.collisionHalfHeight=69
+    species.copperband_butterflyfish.bodyThickness=0.17
+    species.banggai_cardinalfish.collisionHalfWidth=113
+    species.banggai_cardinalfish.collisionHalfHeight=73
+    species.banggai_cardinalfish.bodyThickness=0.18
+    species.mandarin_dragonet.collisionHalfWidth=113
+    species.mandarin_dragonet.collisionHalfHeight=56
+    species.mandarin_dragonet.bodyThickness=0.24
     species.emperor_angelfish.collisionHalfWidth=99
     species.moorish_idol.collisionHalfWidth=96
     species.green_chromis.collisionHalfWidth=89

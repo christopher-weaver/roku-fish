@@ -227,6 +227,7 @@ function ReefSwimPose(pose as object,sp as object,speed as dynamic,result=invali
     result.x=pose.x : result.y=pose.y : result.z=pose.z
     result.heading=pose.heading : result.pitch=pose.pitch
     result.phase=pose.phase : result.finPhase=pose.finPhase
+    result.yawVelocity=pose.yawVelocity
     return result
 end function
 
@@ -346,6 +347,15 @@ sub ReefTailRigInit(sp as object)
         sp.tailBodyPoints.Push({x:x/sp.bodyViewWidths[i],y:y,positive:positive,negative:negative,u:uRoot})
         end if
     end for
+    if sp.turnViews<>invalid
+        sp.tailTurnPoints=[]
+        u=ReefClamp(((sp.swimExtent[1]-root[0])/sp.swimSpan-sp.turnStart)/(1#-sp.turnStart),0#,1#)
+        for i=0 to sp.turnViews.bodyAngles.Count()-1
+            angle=sp.turnViews.bodyAngles[i] : co=Cos(angle) : sn=Sin(angle)
+            width=sp.turnViews.bodyViewWidths[i]
+            sp.tailTurnPoints.Push({x:(root[0]*co-root[2]*sn)*sp.frameW*.45/width,offset:0#-sn*sp.swimSpan*sp.bodyTurnAmplitude*u*u*sp.frameW*.45/width,y:0#-root[1]*sp.frameH*.45})
+        end for
+    end if
     count=sp.tailPoseCount
     for index=0 to sp.tailFrames.Count()-1
         frame=sp.tailFrames[index] : angle=frame.yaw/57.295779513# : pose=frame.pose

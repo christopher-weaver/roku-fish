@@ -10,7 +10,7 @@ sub Main()
     for i=0 to sp.tailFrames.Count()-1
         tails.Push({normal:"tail",fractional:"tail"})
     end for
-    screen={bad:false,calls:0,DrawTransformedObject:UprightCapture}
+    screen={bad:false,calls:0,maxAngleStep:0#,previousAngle:invalid,DrawTransformedObject:UprightCapture}
     r={screen:screen,scale:1#,canvasOffset:0#,rotation:true,fractionalFish:true,placement:{}}
     s={camera:64#,displayTime:0#,lighting:[1#,0#,0#,0#],settings:{lighting:"Sunset"}}
     a={fish:{yellow_tang:body},fins:{yellow_tang:fins},tails:{yellow_tang:tails}}
@@ -20,6 +20,8 @@ sub Main()
         ReefDrawFish(r,s,a,f)
     end for
     if screen.bad or (screen.calls<484 or screen.calls>726) then print "FAIL upright transforms" : return
+    if screen.maxAngleStep>1.5 then print "FAIL tilt flips at front/rear yaw crossing";screen.maxAngleStep : return
+    print "PASS projected pitch remains continuous through front/rear turns; maximum submitted angle step=";screen.maxAngleStep
     print "PASS full-circle pitched fish draw body, tail and fins with positive scales only; no runtime reflections"
     output={calls:[],SetAlphaEnable:PresentAlpha,Clear:PresentClear,DrawScaledObject:PresentCapture,DrawObject:PresentObject}
     s.settings.clock="Off" : s.settings.fps="Off"
@@ -49,6 +51,8 @@ sub Main()
 end sub
 function UprightCapture(x as integer,y as integer,angle as float,sx as float,sy as float,source as dynamic,tint as integer) as boolean
     if sx<=0 or sy<=0 or Abs(angle)>13 or (tint and 255)<1 then m.bad=true
+    if m.previousAngle<>invalid then m.maxAngleStep=ReefMax(m.maxAngleStep,Abs(angle-m.previousAngle))
+    m.previousAngle=angle
     m.calls=m.calls+1
     return true
 end function

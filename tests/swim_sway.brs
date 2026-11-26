@@ -61,9 +61,21 @@ sub Main()
         for i=0 to count-1
             if Abs(screen.angles[i])>12.601 then print "FAIL pitch clearance" : return
         end for
-        if f.swimPose.heading<>.35 or f.swimPose.y<>400# then print "FAIL changed physical pose" : return
+        if Abs(f.swimPose.heading-.35)>.029 or f.swimPose.y<>400# or f.renderPose.heading<>.35 then print "FAIL changed physical pose or excessive head sway" : return
     end for
     if partial=0 then print "FAIL missing smooth yaw/phase blends" : return
+    for turnSide=-1 to 1 step 2
+        f.renderPose.yawVelocity=turnSide*.3
+        screen.angles=[] : screen.sources=[] : screen.opacity=[] : ReefDrawFish(r,s,a,f)
+        count=screen.sources.Count()
+        if count>6 then print "FAIL C-turn exceeds body draw budget" : return
+        if turnSide*r.waveTurn<.999 then print "FAIL C turn points opposite steering" : return
+        for i=1 to count-2
+            index=Val(Mid(screen.sources[i],6))
+            if index<sp.turnOffset then print "FAIL full turn retains stiff neutral body" : return
+        end for
+    end for
+    print "PASS signed left/right C-turn bodies retain four body submissions and attached appendages"
     print "PASS 120 frames use ";draws;" transforms: complete S/inverse-S body poses, shared pitch, opaque base, smooth yaw/phase blends, one attached tail and fin; no body slices"
 end sub
 function SwimCapture(x as integer,y as integer,angle as float,sx as float,sy as float,source as dynamic,tint as integer) as boolean

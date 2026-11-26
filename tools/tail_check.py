@@ -5,8 +5,13 @@ import numpy as np
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[1]
 SPEC=json.loads((ROOT/'roku/scenes/species.json').read_text());CACHE={}
+def motion(f):
+    t=max(-1,min(1,f.get('yawVelocity',0)/.30))
+    def ease(x):
+        x=max(0,min(1,x));return x*x*(3-2*x)
+    return math.sin(f['phase'])*(1-ease(abs(t)/.12)),math.copysign(ease((abs(t)-.12)/.88),t)
 def targets(f,overlap):
-    sp=SPEC[f['name']];root=sp['tailRig']['body'];body=f['body'];scale=f['fishScale'];sinphase=math.sin(f['phase']);points=[]
+    sp=SPEC[f['name']];root=sp['tailRig']['body'];body=f['body'];scale=f['fishScale'];sinphase,turn=motion(f);points=[]
     for view in [body['first'],body['second']]:
         a=sp['bodyAngles'][view];co=math.cos(a);sn=math.sin(a)
         x=(root[0]*co-root[2]*sn)*sp['frameW']*.45;y=-root[1]*sp['frameH']*.45
@@ -24,16 +29,25 @@ def targets(f,overlap):
         points.append((x/sp['bodyViewWidths'][view],y+shift))
     mix=body['blend'];tx=scale*body['width']*(points[0][0]+(points[1][0]-points[0][0])*mix)
     ty=scale*(points[0][1]+(points[1][1]-points[0][1])*mix)
+    if turn:
+        cv=f['turnBody'];q=np.clip(((sp['swimExtent'][1]-root[0])/sp['swimSpan']-sp['turnStart'])/(1-sp['turnStart']),0,1)
+        z=root[2]+math.copysign(sp['swimSpan']*sp['bodyTurnAmplitude']*q*q,turn)
+        projected=[]
+        for i in [cv['first'],cv['second']]:
+            a=sp['turnViews']['bodyAngles'][i]
+            projected.append((root[0]*math.cos(a)-z*math.sin(a))*sp['frameW']*.45/sp['turnViews']['bodyViewWidths'][i])
+        cx=scale*cv['width']*(projected[0]+(projected[1]-projected[0])*cv['blend'])
+        tx=tx*(1-abs(turn))+cx*abs(turn)
     tx+=overlap*scale*math.cos(f['heading'])
-    angle=f['pitch']*(1 if math.cos(f['heading'])>=0 else -1)*57.29578
+    angle=f['pitch']*math.cos(f['heading'])*57.29578
     if f.get('fractional',True):angle=math.floor(angle*256+.5)/256
     co=math.cos(math.radians(angle));sn=math.sin(math.radians(angle))
     x=(f['p']['x']+f['canvas'])*f['scale'];y=f['p']['y']*f['scale']
     if not f.get('fractional',True):x=math.floor(x+.5);y=math.floor(y+.5)
     return (x+(co*tx+sn*ty)*f['scale'],y+(co*ty-sn*tx)*f['scale'])
 def source_pose(f):
-    sp=SPEC[f['name']];wave=math.sin(f['phase'])
-    if sp.get('swimAxis')=='lateral':wave=-wave
+    sp=SPEC[f['name']];wave,turn=motion(f)
+    if sp.get('swimAxis')=='lateral':wave=-wave+turn
     return int((wave+1)*.5*(sp['tailPoseCount']-1)+.5)
 def source_root(f):
     sp=SPEC[f['name']];yaw=f['view']['index'];pose=source_pose(f)

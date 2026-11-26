@@ -1,8 +1,8 @@
 {
   "cases": 2560,
-  "max_root_error_pixels": 0.650335,
-  "max_fractional_root_error_pixels": 0.003276,
-  "max_integer_root_error_pixels": 0.650335,
+  "max_root_error_pixels": 0.685543,
+  "max_fractional_root_error_pixels": 0.002936,
+  "max_integer_root_error_pixels": 0.685543,
   "side_view_collars_without_overlap": 0,
   "tail_not_before_body_cases": 0,
   "tail_phase_mismatch_cases": 0,

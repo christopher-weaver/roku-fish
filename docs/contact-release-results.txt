@@ -1,0 +1,1 @@
+PASS contact releases lateral, depth and vertical escapes; inward motion, moving-neighbor contact, actual overlap and stationary spawn buffer remain guarded

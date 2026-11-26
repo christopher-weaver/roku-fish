@@ -20,15 +20,20 @@ sub Main()
             heading=direction*6.283185307#/8#+.03
             for phaseIndex=0 to 7
                 phase=phaseIndex*6.283185307#/8#+.13
+                yawVelocity=0#
+                if phaseIndex=2 or phaseIndex=3 then yawVelocity=.18
+                if phaseIndex=4 then yawVelocity=.3
+                if phaseIndex=5 or phaseIndex=6 then yawVelocity=-.18
+                if phaseIndex=7 then yawVelocity=-.3
                 for resolution=0 to 1
                     for backend=0 to 1
                         screen={draws:[],DrawTransformedObject:JointCapture}
                         outputScale=1#
                         if resolution=1 then outputScale=2#/3#
                         r={screen:screen,scale:outputScale,canvasOffset:64#,rotation:true,fractionalFish:backend=0,placement:{}}
-                        f={name:name,sp:sp,size:1#,speed:sp.speed,renderPose:{x:900#,y:400#,z:.7,heading:heading,pitch:.12,phase:phase,finPhase:.3}}
+                        f={name:name,sp:sp,size:1#,speed:sp.speed,renderPose:{x:900#,y:400#,z:.7,heading:heading,pitch:.12,phase:phase,finPhase:.3,yawVelocity:yawVelocity}}
                         ReefDrawFish(r,s,a,f)
-                        print "JOINT ";FormatJson({name:name,heading:heading,phase:phase,pitch:.12,scale:outputScale,fractional:backend=0,canvas:64#,p:f.screenPose,view:f.renderView,body:f.bodyView,fishScale:f.screenPose.scale*sp.length/sp.renderLength,draws:screen.draws})
+                        print "JOINT ";FormatJson({name:name,heading:f.swimPose.heading,yawVelocity:yawVelocity,phase:phase,pitch:.12,scale:outputScale,fractional:backend=0,canvas:64#,p:f.screenPose,view:f.renderView,body:f.bodyView,turnBody:f.turnView,fishScale:f.screenPose.scale*sp.length/sp.renderLength,draws:screen.draws})
                     end for
                 end for
             end for

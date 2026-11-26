@@ -81,7 +81,19 @@ function ReefFishPairBlocked(f as object, fromPose as object, toPose as object, 
         if t>high then t=high
     end if
     dx=px+vx*t : dz=pz+vz*t
-    return dx*dx+dz*dz<radius*radius
+    if dx*dx+dz*dz>=radius*radius then return false
+    if swept
+        ' The extra numerical buffer is not a cage. At contact, rounding or a
+        ' neighbor's last accepted tick can leave a safe body inside that buffer.
+        ' Admit only motion that monotonically separates the real cylinders;
+        ' inward movement, tunneling and actual body overlap remain blocked.
+        coreRadius=own.radius+neighbor.radius+4#
+        moving=vx*vx+vy*vy+vz*vz>0#
+        if moving and px*px+pz*pz>=coreRadius*coreRadius and px*vx+pz*vz>=0# then return false
+        coreHeight=own.height+neighbor.height+4#
+        if moving and Abs(py)>=coreHeight and py*vy>=0# then return false
+    end if
+    return true
 end function
 
 function ReefFishBlocked(s as object, f as object, fromPose as object, toPose as object, swept = true as boolean) as boolean

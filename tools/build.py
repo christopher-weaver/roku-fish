@@ -73,7 +73,11 @@ def validate():
             image=ROKU/sp[image_key][5:]
             if not image.exists():errors.append('Missing atlas '+str(image));continue
             w,h=dimensions(image)
-            if len(sp[frames_key])!=(sp.get('bodyYawCount',sp['yawCount']) if frames_key=='frames' else sp['yawCount'])*sp[pose_key]:errors.append('Atlas frame count '+name+' '+frames_key)
+            expected=(sp.get('bodyYawCount',sp['yawCount']) if frames_key=='frames' else sp['yawCount'])*sp[pose_key]
+            if frames_key=='frames' and 'turnViews' in sp:
+                if sp['turnOffset']!=expected:errors.append('Turn atlas offset '+name)
+                expected+=sp['turnViews']['bodyYawCount']*2
+            if len(sp[frames_key])!=expected:errors.append('Atlas frame count '+name+' '+frames_key)
             for f in sp[frames_key]:
                 if min(f['x'],f['y'])<0 or min(f['w'],f['h'])<1 or f['x']+f['w']>w or f['y']+f['h']>h:errors.append('Out-of-bounds frame '+name)
                 if 'anchorX' not in f or 'anchorY' not in f:errors.append('Missing cropped-frame anchor '+name)

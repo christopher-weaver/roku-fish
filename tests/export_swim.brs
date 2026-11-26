@@ -8,14 +8,16 @@ sub Main()
         fins=ReefFishFrames({part:"fin",file:sp.finImage},sp.finFrames,"High",false,true)
         a={fish:{},tails:{},fins:{}} : a.fish[name]=body : a.tails[name]=tails : a.fins[name]=fins
         s={camera:64#,displayTime:0#,lighting:[1#,0#,0#,0#],settings:{lighting:"Sunset"}}
-        for view=0 to 2
-            heading=0#
+        for view=0 to 4
+            heading=0# : yawVelocity=0#
             if view=1 then heading=.6
             if view=2 then heading=1.570796327#
+            if view=3 then heading=.6 : yawVelocity=.24
+            if view=4 then heading=.6 : yawVelocity=-.24
             for tick=0 to 35
                 screen={draws:[],DrawTransformedObject:JointCapture}
                 r={screen:screen,scale:1#,canvasOffset:0#,rotation:true,fractionalFish:true,placement:{}}
-                f={name:name,sp:sp,size:.9,speed:sp.speed,renderPose:{x:900.25,y:400.25,z:.7,heading:heading,pitch:0#,phase:tick*6.283185307#/36#,finPhase:.4}}
+                f={name:name,sp:sp,size:.9,speed:sp.speed,renderPose:{x:900.25,y:400.25,z:.7,heading:heading,pitch:0#,phase:tick*6.283185307#/36#,finPhase:.4,yawVelocity:yawVelocity}}
                 ReefDrawFish(r,s,a,f)
                 print "SWIM ";FormatJson({name:name,view:view,tick:tick,p:f.screenPose,draws:screen.draws})
             end for

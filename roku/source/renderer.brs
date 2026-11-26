@@ -39,17 +39,31 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     if frames = invalid then return
     f.swimPose=ReefSwimPose(f.renderPose,f.sp,f.speed,f.swimPose)
     pose = f.swimPose
+    r.waveSinPhase=Sin(pose.phase) : r.waveCosPhase=0# : r.waveTurn=0#
+    if f.sp.turnViews<>invalid
+        ' A small head counter-sway makes depth-axis flex visible in profile.
+        effort=1#
+        if f.speed<>invalid then effort=.4+.6*ReefClamp(f.speed/f.sp.speed,0#,1#)
+        pose.heading=pose.heading+r.waveSinPhase*.028*effort
+        turn=0#
+        if pose.yawVelocity<>invalid then turn=ReefClamp(pose.yawVelocity/.30,-1#,1#)
+        amount=Abs(turn)
+        r.waveSinPhase=r.waveSinPhase*(1#-ReefEase(amount/.12))
+        r.waveTurn=ReefEase((amount-.12)/.88)
+        if turn<0# then r.waveTurn=0#-r.waveTurn
+        f.turnView=ReefBodyView(pose.heading,f.sp.turnViews,f.turnView)
+        r.turnView=f.turnView
+    end if
     f.screenPose = ReefProjection(pose,s.camera,f.screenPose)
     p = f.screenPose
     if p.x < -200 or p.x > 2120 then return
     f.renderView = ReefFishView(pose.heading,f.sp,f.renderView)
     view = f.renderView
     f.bodyView=ReefBodyView(pose.heading,f.sp,f.bodyView)
-    r.waveSinPhase=Sin(pose.phase) : r.waveCosPhase=0#
     if f.sp.swimAxis<>"lateral" then r.waveCosPhase=Cos(pose.phase)
     bodyPosition = (r.waveSinPhase+1)*0.5*(f.sp.poseCount-1)
     tailPosition = (r.waveSinPhase+1)*0.5*(f.sp.tailPoseCount-1)
-    if f.sp.swimAxis="lateral" then tailPosition=(1#-r.waveSinPhase)*.5*(f.sp.tailPoseCount-1)
+    if f.sp.swimAxis="lateral" then tailPosition=(1#-r.waveSinPhase+r.waveTurn)*.5*(f.sp.tailPoseCount-1)
     finPosition = (Sin(pose.finPhase)+1)*0.5*(f.sp.finPoseCount-1)
     scale = p.scale*f.sp.length/f.sp.renderLength*f.size
     haze = 1-pose.z
@@ -58,9 +72,11 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     light=ReefSurfaceShade(pose.x,pose.y+(1-pose.z)*30+36,s.displayTime)
     light=1#-(1#-light)*.30*(.35+.65*s.lighting[0])
     red=Int(red*light) : green=Int(green*light) : blue=Int(blue*light)
-    angle = pose.pitch*57.29578
     headingCos=Cos(pose.heading) : r.waveHeadingCos=headingCos : r.waveSign=1#
-    if headingCos<0 then angle=0#-angle : r.waveSign=0#-1#
+    ' Project 3D pitch continuously. A sign(Cos(yaw)) switch flips the full
+    ' tilt instantly when the fish passes a front/rear view.
+    angle=pose.pitch*57.29578*headingCos
+    if headingCos<0 then r.waveSign=0#-1#
     r.waveBaseCos=Cos(angle/57.295779513#) : r.waveBaseSin=Sin(angle/57.295779513#)
     r.wavePhase=pose.phase : r.waveHeading=pose.heading
     r.waveStanding=f.sp.bodyRenderMode="whole-swim"
@@ -69,7 +85,7 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
         r.waveLateral=f.sp.swimAxis="lateral"
         if r.waveLateral
             r.waveAmplitude=0# : r.waveHeadingSin=0#
-            if f.sp.finSwimOffset<>0# then r.waveHeadingSin=Sin(pose.heading)
+            if f.sp.finSwimOffset<>0# or f.sp.finTurnOffset<>invalid then r.waveHeadingSin=Sin(pose.heading)
         end if
         if a.tails[f.name]<>invalid then ReefDrawBoundTail(r,p,f.sp,a.tails[f.name],tailPosition,view,f.bodyView,scale,angle,red,green,blue)
         ReefDrawWholeBody(r,p,f.sp,frames,bodyPosition,f.bodyView,scale,angle,red,green,blue)
@@ -85,6 +101,24 @@ end sub
 
  ' Bilinear phase/yaw weights, normalized for source-over with an opaque base.
 sub ReefDrawWholeBody(r as object,p as object,sp as object,frames as object,position as double,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer)
+    if r.waveTurn<>invalid and Abs(r.waveTurn)>0#
+        ' Two neutral yaw samples and two C-bend samples: the same four-draw
+        ' budget as the S swim. Source-over alpha preserves the linear weights.
+        t=Abs(r.waveTurn) : cv=r.turnView : signPose=1
+        if r.waveTurn<0# then signPose=0
+        tint=ReefRGBA(red,green,blue,0)
+        if t<1#
+            ReefDrawFishRegion(r,p.x,p.y,scale*view.width/sp.bodyViewWidths[view.first],scale,angle,frames[view.first*sp.poseCount+1],tint or 255)
+            opacity=Int(255#*view.blend+.5)
+            if opacity>0 then ReefDrawFishRegion(r,p.x,p.y,scale*view.width/sp.bodyViewWidths[view.second],scale,angle,frames[view.second*sp.poseCount+1],tint or opacity)
+        end if
+        denominator=1#-t*cv.blend : opacity=0
+        if denominator>.0000001 then opacity=Int(255#*t*(1#-cv.blend)/denominator+.5)
+        if opacity>0 then ReefDrawFishRegion(r,p.x,p.y,scale*cv.width/sp.turnViews.bodyViewWidths[cv.first],scale,angle,frames[sp.turnOffset+cv.first*2+signPose],tint or opacity)
+        opacity=Int(255#*t*cv.blend+.5)
+        if opacity>0 then ReefDrawFishRegion(r,p.x,p.y,scale*cv.width/sp.turnViews.bodyViewWidths[cv.second],scale,angle,frames[sp.turnOffset+cv.second*2+signPose],tint or opacity)
+        return
+    end if
     first=Int(position) : second=first+1
     if second>=sp.poseCount then second=first
     phase=position-first : yaw=view.blend
@@ -120,6 +154,12 @@ sub ReefDrawBoundTail(r as object,p as object,sp as object,frames as object,posi
     if sp.swimAxis="lateral"
         tx=scale*body.width*(a.x+(b.x-a.x)*body.blend+(a.lateral+(b.lateral-a.lateral)*body.blend)*r.waveSinPhase)
         ty=scale*(a.y+(b.y-a.y)*body.blend)
+        if sp.turnViews<>invalid and Abs(r.waveTurn)>0#
+            cv=r.turnView : c=sp.tailTurnPoints[cv.first] : d=sp.tailTurnPoints[cv.second]
+            turnX=cv.width*(c.x+(d.x-c.x)*cv.blend)
+            turnOffset=cv.width*(c.offset+(d.offset-c.offset)*cv.blend)
+            tx=tx*(1#-Abs(r.waveTurn))+scale*(turnX*Abs(r.waveTurn)+turnOffset*r.waveTurn)
+        end if
         drawAngle=angle
     else
     shiftA=a.positive*r.waveSinPhase : shiftB=b.positive*r.waveSinPhase
@@ -175,9 +215,11 @@ sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,posit
             drawPoint=r.warpPoint : sx=sx*warp.sx : sy=sy*warp.sy
         end if
     end if
-    if sp.swimAxis="lateral" and count=sp.finPoseCount and sp.finSwimOffset<>0#
+    if sp.swimAxis="lateral" and count=sp.finPoseCount and (sp.finSwimOffset<>0# or sp.finTurnOffset<>invalid)
         if r.lateralFinPoint=invalid then r.lateralFinPoint={}
-        r.lateralFinPoint.x=drawPoint.x-r.waveHeadingSin*r.waveSinPhase*sp.finSwimOffset*scale/sp.finTextureScale
+        offset=r.waveSinPhase*sp.finSwimOffset
+        if sp.finTurnOffset<>invalid then offset=offset+r.waveTurn*sp.finTurnOffset
+        r.lateralFinPoint.x=drawPoint.x-r.waveHeadingSin*offset*scale/sp.finTextureScale
         r.lateralFinPoint.y=drawPoint.y : drawPoint=r.lateralFinPoint
     end if
     if region.wholeSwim=true

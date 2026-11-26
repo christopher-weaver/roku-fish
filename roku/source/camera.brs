@@ -24,6 +24,7 @@ function ReefDisplayPose(f as object, alpha as double, pose = invalid as dynamic
     a2 = alpha * alpha : a3 = a2 * alpha
     pose.heading = f.previousHeading + delta * (3*a2-2*a3)
     pose.heading = pose.heading + (a3-2*a2+alpha) * f.previousYawVelocity / 30# + (a3-a2) * f.yawVelocity / 30#
+    pose.yawVelocity=f.previousYawVelocity+(f.yawVelocity-f.previousYawVelocity)*alpha
     pose.pitch = f.previousPitch + (f.pitch - f.previousPitch) * alpha
     pose.phase = f.previousPhase + ReefAngleDelta(f.previousPhase, f.phase) * alpha
     pose.finPhase = f.previousFinPhase + ReefAngleDelta(f.previousFinPhase, f.finPhase) * alpha

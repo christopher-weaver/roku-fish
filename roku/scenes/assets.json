@@ -1,8 +1,8 @@
 {
   "banggai_cardinalfish-atlas.webp": {
     "width": 2048,
-    "height": 745,
-    "sha256": "790658b7110702d4ebcbbfe51ff85b21d74c93e7653a6b280e482bbfcbc05b8f"
+    "height": 743,
+    "sha256": "962efaef9cdecfc8bf120950164f7f76aedc1e9ff05bbb0f3d46f773cb997a55"
   },
   "banggai_cardinalfish-fins.webp": {
     "width": 512,
@@ -22,12 +22,12 @@
   "blue_tang-atlas.webp": {
     "width": 2048,
     "height": 510,
-    "sha256": "9daf80001d1352fdb56ddd7beb5286a78df08368545c063207045ffe468f701b"
+    "sha256": "6150913a2fff3b121f44cc7852ffb57083f664e5766bdca5eb70a2b4cf1570c0"
   },
   "blue_tang-fins.webp": {
     "width": 512,
     "height": 162,
-    "sha256": "ed6aea950a671c8898e42916d2aec9fa6d0c30459580df41fd986812c61e701b"
+    "sha256": "1c3e750b58b20f55f2509eaa6e366c4a50548b0a700893ccae2577d71fbe54dd"
   },
   "blue_tang-tails.webp": {
     "width": 1024,
@@ -52,12 +52,12 @@
   "copperband_butterflyfish-atlas.webp": {
     "width": 2048,
     "height": 843,
-    "sha256": "0354e38602018a946229bceeafc871074bcd64b53f8e474a7e2c152c79541f0c"
+    "sha256": "f6b06b6a07517e540ba9ce53073d969df56ef55d2f27cc8984ecf5a7de586f7a"
   },
   "copperband_butterflyfish-fins.webp": {
     "width": 512,
     "height": 180,
-    "sha256": "3fd3fa96248e950804ded9c9da42f6fe694e6fbe89beb09c25c60d1dc991903e"
+    "sha256": "93e12273a2d5085bdf5b67077306764d26194d0bde16b1f7f75b2f42059a343a"
   },
   "copperband_butterflyfish-tails.webp": {
     "width": 1024,
@@ -67,12 +67,12 @@
   "emperor_angelfish-atlas.webp": {
     "width": 2048,
     "height": 485,
-    "sha256": "68f17ffa1c3c4c75312cecfc2ef4dc732cf6dfa55b2e42ab86946deeb3634db3"
+    "sha256": "d0b569752584cf5bdc1d16eead568b958e76027395a1aadeb61acb7232e6bc1d"
   },
   "emperor_angelfish-fins.webp": {
     "width": 512,
     "height": 198,
-    "sha256": "6efd1de8e9426a4d484fff4e7aa23671a235e5421309f52b0cee3dd32e17c544"
+    "sha256": "bd008e64bd85956dab84b6d04e36b890bc7b269b37c9cc660ac8af9fb6c74a32"
   },
   "emperor_angelfish-tails.webp": {
     "width": 1024,
@@ -81,13 +81,13 @@
   },
   "green_chromis-atlas.webp": {
     "width": 2048,
-    "height": 311,
-    "sha256": "bd1049e15176c999872d6486a5e19563e68f0829dca2318b8d5efe83e8c783f3"
+    "height": 310,
+    "sha256": "67205b1bdc318736cbaa9ce14f6804f4f69dd424bc8ea3d3f289b55d8d2d4e7c"
   },
   "green_chromis-fins.webp": {
     "width": 512,
     "height": 192,
-    "sha256": "bc2e519d5412e7141cbabeb012bb8ca35746a56d382d9f39c69ecf37f73ab220"
+    "sha256": "6a0dd240ba4f64691ba1f2556339eea536e8c7d6f69476512c8c3c25f0865966"
   },
   "green_chromis-tails.webp": {
     "width": 1024,
@@ -112,7 +112,7 @@
   "mandarin_dragonet-atlas.webp": {
     "width": 2048,
     "height": 569,
-    "sha256": "1fac7d5a3cabd9294713e5132db6e148ee02a46d2a78c89a086a5feb25afe8b9"
+    "sha256": "61382f99891a6111e4edbefe8d2bee8aa93e372cf6a0d7518e2fd0c87ea9cb24"
   },
   "mandarin_dragonet-fins.webp": {
     "width": 512,
@@ -127,7 +127,7 @@
   "moorish_idol-atlas.webp": {
     "width": 2048,
     "height": 588,
-    "sha256": "d4ad9b165bb90a0b4c8f7f6a1c021328f510f2a5f568a690044d3fa6c96b45d2"
+    "sha256": "0b7e32f3e489de8a929ae468b0028d554dcfd19ed7a55aa11c523ec0c2de62cf"
   },
   "moorish_idol-fins.webp": {
     "width": 512,
@@ -146,13 +146,13 @@
   },
   "ocellaris_clownfish-atlas.webp": {
     "width": 2048,
-    "height": 409,
-    "sha256": "797cff8937053466723cd3a5f5b3ad6f5e781e35ee0da7e612752f84ec4d7236"
+    "height": 408,
+    "sha256": "e3429391ca22b7416c6319ca25036eb69c75f8025ecc423b51b8bf429b2eba32"
   },
   "ocellaris_clownfish-fins.webp": {
     "width": 512,
     "height": 260,
-    "sha256": "d9be394691602f29da0b7faff8fb5597c5bdd60e1e9c8056605e1732a334a656"
+    "sha256": "cad1394021fe33dc9750d8ee869d3f8df82fb7b232274ce9cb55df3b43b44a37"
   },
   "ocellaris_clownfish-tails.webp": {
     "width": 1024,
@@ -196,13 +196,13 @@
   },
   "royal_gramma-atlas.webp": {
     "width": 2048,
-    "height": 316,
-    "sha256": "f40081ddc1679bc888fc048707522946f7c7ea9bb06077c2f74d274bf4e0c61c"
+    "height": 393,
+    "sha256": "4f94531a7ba8b5473333bf1e38e44ec89b7d8ecfd048d59b21a7f5a064487aff"
   },
   "royal_gramma-fins.webp": {
     "width": 512,
     "height": 176,
-    "sha256": "7271f1e558555a2d9210b085cd167ce3d3d69ec826830c5e39b1709165774c6e"
+    "sha256": "f27a7b73179329bcf9bc05dfaeb2b9ac7d62ee8a74163e5963a6a2c3c596cdcc"
   },
   "royal_gramma-tails.webp": {
     "width": 1024,
@@ -267,7 +267,7 @@
   "yellow_tang-atlas.webp": {
     "width": 2048,
     "height": 444,
-    "sha256": "1ef405a768a551eea4da999a93854c1a57c7359108acf273046468350bc1a752"
+    "sha256": "d8c5881e3dc14c390be374846613df2f58a6eb862e0912b70d90376dc5b178a0"
   },
   "yellow_tang-fins.webp": {
     "width": 512,

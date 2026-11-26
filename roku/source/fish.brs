@@ -1,5 +1,6 @@
 sub ReefChooseTarget(s as object, f as object)
     f.stateTime = 0# : f.recoveryUntil=0# : f.maneuverUntil=0#
+    f.maneuverArrival=18#
     f.route = [] : f.routeIndex = 0 : f.routeCheckAt = 0#
     r = ReefRandom(s)
     f.duration = ReefRange(s, 10, 30)
@@ -35,7 +36,10 @@ sub ReefFishStep(s as object, f as object, dt as double)
     if f.recoveryUntil<>invalid
         if s.time<f.recoveryUntil then arrivalDistance=45#
     end if
-    if maneuver then arrivalDistance=18#
+    if maneuver
+        arrivalDistance=18#
+        if f.maneuverArrival<>invalid then arrivalDistance=f.maneuverArrival
+    end if
     if (f.stateTime > f.duration) or (dx * dx + dy * dy + dz * dz < arrivalDistance*arrivalDistance and f.state <> "Hovering" and f.routeIndex >= f.route.Count() - 1)
         ReefChooseTarget(s, f)
         maneuver=false
@@ -310,6 +314,7 @@ end sub
 
 sub ReefRecoverRoute(s as object,f as object)
     if s.navigation=invalid then return
+    f.maneuverArrival=18#
     if ReefLocalManeuver(s,f) then return
     chosen=invalid : best=1e20 : nodes=s.navigation.nodes
     for nodeIndex=0 to nodes.Count()-1
@@ -363,28 +368,40 @@ end sub
 ' turns smoothly. Position is integrated normally; no teleport or forced overlap.
 function ReefLocalManeuver(s as object,f as object) as boolean
     escape=f.candidate
-    for lengthIndex=0 to 2
+    for lengthIndex=0 to 3
         distance=110#
         if lengthIndex=1 then distance=65#
         if lengthIndex=2 then distance=40#
-        for turnIndex=0 to 11
+        if lengthIndex=3 then distance=12#
+        for turnIndex=0 to 12
             offset=Int((turnIndex+1)/2)*.5235987756#
             if turnIndex mod 2=1 then offset=0#-offset
             bearing=f.heading+offset
+            ' A narrow corner may offer less than a full body-length leg.
+            ' Axis-aligned short probes can leave it before rejoining a route.
+            if lengthIndex=3 then bearing=turnIndex*.5235987756#
             for vertical=0 to 2
                 lift=0#
                 if vertical=1 then lift=0#-70#
                 if vertical=2 then lift=70#
+                if lengthIndex=3 then lift=lift*(20#/70#)
                 escape.x=ReefClamp(f.x+Cos(bearing)*distance,160#,1880#)
                 escape.y=ReefClamp(f.y+lift,140#,920#)
                 escape.z=ReefClamp(f.z+Sin(bearing)*distance/800#,.06,.97)
+                ' Between two neighbors the only clear leg may be straight up
+                ' or down. Every former probe required horizontal displacement.
+                if turnIndex=12 then escape.x=f.x : escape.z=f.z
                 span=(escape.x-f.x)^2+(escape.y-f.y)^2+((escape.z-f.z)*800#)^2
-                if span>30#^2
+                minimumSpan=30#
+                if lengthIndex=3 then minimumSpan=8#
+                if span>minimumSpan^2
                     if not ReefCoralBlocked(s,f,f,escape) and not ReefFishBlocked(s,f,f,escape)
                         f.route=[] : f.routeIndex=0 : f.routeCheckAt=0#
                         f.tx=escape.x : f.ty=escape.y : f.tz=escape.z
                         f.state="Maneuvering" : f.stateTime=0# : f.duration=12#
                         f.recoveryUntil=s.time+12# : f.maneuverUntil=s.time+12#
+                        f.maneuverArrival=18#
+                        if lengthIndex=3 then f.maneuverArrival=3#
                         f.recoveryCount=f.recoveryCount+1
                         return true
                     end if

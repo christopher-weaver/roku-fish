@@ -1,2 +1,3 @@
+PASS projected pitch remains continuous through front/rear turns; maximum submitted angle step= 0.691406
 PASS full-circle pitched fish draw body, tail and fins with positive scales only; no runtime reflections
 PASS production presentation blends an opaque canvas at adjacent pixels, at HD/FHD, without anchor transforms

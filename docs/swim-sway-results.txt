@@ -1,1 +1,2 @@
+PASS signed left/right C-turn bodies retain four body submissions and attached appendages
 PASS 120 frames use  707  transforms: complete S/inverse-S body poses, shared pitch, opaque base, smooth yaw/phase blends, one attached tail and fin; no body slices

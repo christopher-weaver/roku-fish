@@ -18,12 +18,13 @@ class PackageChecks(unittest.TestCase):
     def test_independent_tail_poses_and_full_turn(self):
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
         for sp in species.values():
-            self.assertEqual(len(sp['frames']),sp.get('bodyYawCount',sp['yawCount'])*sp['poseCount'])
+            self.assertEqual(sp['turnOffset'],sp['bodyYawCount']*sp['poseCount'])
+            self.assertEqual(len(sp['frames']),sp['turnOffset']+sp['turnViews']['bodyYawCount']*2)
             self.assertEqual({f['pose']for f in sp['frames']},set(range(sp['poseCount'])))
             self.assertEqual(sp['poseCount'],3)
             self.assertEqual(sp['bodyRenderMode'],'whole-swim')
             self.assertGreaterEqual(sp['tailPoseCount'],4)
-            self.assertEqual(len({f['yaw']for f in sp['frames']}),sp.get('bodyYawCount',sp['yawCount']))
+            self.assertEqual(len({f['yaw']for f in sp['frames'][:sp['turnOffset']]}),sp.get('bodyYawCount',sp['yawCount']))
             from PIL import Image,ImageChops
             atlas=Image.open(ROOT/'roku'/sp['tailImage'][5:]).convert('RGBA')
             first,second=sp['tailFrames'][8*sp['tailPoseCount']],sp['tailFrames'][9*sp['tailPoseCount']-1]
@@ -44,7 +45,7 @@ class PackageChecks(unittest.TestCase):
                 self.assertGreater(len(tail),100)
                 self.assertGreater(len(mesh['vertices']),20000)
                 self.assertTrue(np.isfinite(mesh['normals']).all())
-                self.assertEqual(sp['meshRevision'],4)
+                self.assertEqual(sp['meshRevision'],5)
                 self.assertGreaterEqual(sp['frameW'],224)
     def test_sparse_roster_and_shadow_mask(self):
         from PIL import Image
@@ -65,7 +66,7 @@ class PackageChecks(unittest.TestCase):
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
         for sp in species.values():
             angles=sp['bodyAngles'];self.assertEqual(angles,sorted(set(angles)))
-            self.assertEqual(sp['bodyYawCount'],80)
+            self.assertEqual(sp['bodyYawCount'],64)
             frontal=[a for a in angles if math.radians(78.75)-1e-7<=a<=math.radians(101.25)+1e-7]
             self.assertEqual(len(frontal),25)
             self.assertLessEqual(max(b-a for a,b in zip(frontal,frontal[1:])),math.radians(1.40625)+1e-8)
@@ -134,7 +135,10 @@ class PackageChecks(unittest.TestCase):
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
         for sp in species.values():
             self.assertEqual(sp['bodyHeightFactor'],.92)
-            self.assertLessEqual(sp['bodyThickness'],.28)
+            # Anatomy remains slim; collision depth also reserves the larger
+            # S/C sweep and must not be capped at the old resting-body value.
+            self.assertLessEqual(sp['modelWidthRatio'],.15)
+            self.assertGreaterEqual(sp['bodyThickness'],sp['modelWidthRatio'])
     def test_settings_rows_have_system_fonts_above_highlight(self):
         import xml.etree.ElementTree as ET
         root=ET.parse(ROOT/'roku/components/ReefSettings.xml').getroot()
@@ -227,7 +231,7 @@ class PackageChecks(unittest.TestCase):
             self.assertFalse(any(f['flipX']for f in sp['frames']))
             for pose in range(sp['poseCount']):
                 count=sp['bodyYawCount']//2+1 if pose==1 else sp['bodyYawCount']
-                self.assertEqual(len({(f['x'],f['y'])for f in sp['frames'][pose::sp['poseCount']]}),count)
+                self.assertEqual(len({(f['x'],f['y'])for f in sp['frames'][:sp['turnOffset']][pose::sp['poseCount']]}),count)
             self.assertEqual(sp['poseCount'],3)
             self.assertEqual(sp['bodyRenderMode'],'whole-swim')
             self.assertEqual(sp['tailPoseCount'],4)

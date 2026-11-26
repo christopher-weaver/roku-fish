@@ -7,8 +7,10 @@ WIDTHS={'ocellaris_clownfish':.145,'yellow_tang':.085,'royal_gramma':.115,
         'emperor_angelfish':.10,'moorish_idol':.065,'green_chromis':.11,
         'blue_tang':.09,'copperband_butterflyfish':.06,
         'banggai_cardinalfish':.09,'mandarin_dragonet':.15}
-AMPLITUDE=.025
-START=.45
+AMPLITUDE=.055
+START=.28
+TURN_AMPLITUDE=.065
+TURN_START=.15
 def curve(u):
     u=np.clip((u-START)/(1-START),0,1)
     return u*u*np.sin(1.5*np.pi*u)
@@ -16,6 +18,13 @@ def flex(vertices,phase):
     result=vertices.astype(float).copy();span=np.ptp(vertices[:,0])
     u=(vertices[:,0].max()-vertices[:,0])/span
     result[:,2]+=phase*AMPLITUDE*span*curve(u)
+    return result
+def turn_curve(u):
+    return np.clip((u-TURN_START)/(1-TURN_START),0,1)**2
+def turn_flex(vertices,amount):
+    result=vertices.astype(float).copy();span=np.ptp(vertices[:,0])
+    u=(vertices[:,0].max()-vertices[:,0])/span
+    result[:,2]+=amount*TURN_AMPLITUDE*span*turn_curve(u)
     return result
 def rescale(data,name):
     v=data['vertices'];span=np.ptp(v[:,0]);factor=WIDTHS[name]*span/np.ptp(v[:,2])

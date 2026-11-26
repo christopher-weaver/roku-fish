@@ -1,0 +1,1 @@
+FAIL no escape between two contact neighbors

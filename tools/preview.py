@@ -84,7 +84,7 @@ def fish(canvas,f,mode,t=0):
     sc=f['scale']*sp['length']/sp['renderLength']*f['size'];im=im.resize((max(1,round(im.width*sc)),max(1,round(im.height*sc))),Image.Resampling.LANCZOS)
     if sp.get('bodyRenderMode')!='whole-swim':
         yy,xx=np.mgrid[:im.height,:im.width];length=sp['frameW']*.9*sc;sign=1 if math.cos(f['heading'])>=0 else -1;u=np.clip(.5-sign*(xx-im.width/2)/length,0,1);effort=min(1,f.get('speed',sp['speed']*.6)/sp['speed']);amp=sp['length']*f['size']*f['scale']*.012*(.25+.75*effort)*abs(math.cos(f['heading']));bend=amp*u*u*np.sin(f['phase']-u*2*math.pi);pixels=np.asarray(im);im=Image.fromarray(np.stack([map_coordinates(pixels[:,:,c],[yy-bend,xx],order=1,mode='constant',cval=0)for c in range(4)],axis=2))
-    angle=f['pitch']*57.29578*(-1 if math.cos(f['heading'])<0 else 1)
+    angle=f['pitch']*57.29578*math.cos(f['heading'])
     im=im.rotate(angle,resample=Image.Resampling.BICUBIC,expand=True)
     paste(canvas,im,f['sx']-im.width/2,f['sy']-im.height/2)
 

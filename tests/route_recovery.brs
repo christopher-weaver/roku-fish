@@ -52,4 +52,11 @@ sub Main()
     end for
     if f.y>380# or Abs(f.x-900#)>1# then print "FAIL vertical recovery loses propulsion";f.x;f.y : return
     print "PASS pure vertical recovery retains propulsion and follows its clear segment"
+    f.x=900# : f.y=400# : f.z=.94 : f.tx=912# : f.ty=400# : f.tz=.94
+    f.route=[] : f.state="Maneuvering" : f.stateTime=0# : f.duration=12#
+    f.maneuverUntil=s.time+12# : f.recoveryUntil=s.time+12# : f.maneuverArrival=3#
+    f.vx=0# : f.vy=0# : f.vz=0# : ReefSavePose(f)
+    ReefAdvance(s,1#/30#)
+    if f.tx<>912# or f.maneuverArrival<>3# then print "FAIL short escape canceled before moving" : return
+    print "PASS short corner escape uses its own arrival radius instead of canceling a 12-pixel leg immediately"
 end sub

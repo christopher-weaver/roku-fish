@@ -5,10 +5,10 @@ from PIL import Image,ImageDraw,ImageFont
 root=Path(__file__).resolve().parents[1];sys.path.insert(0,str(root/'tools'))
 from tail_check import CACHE
 samples={}
-for line in (root/'work/v33-swim-preview.txt').read_text().splitlines():
+for line in (root/'work/v34-swim-preview.txt').read_text().splitlines():
  if line.startswith('SWIM '):
   f=json.loads(line[5:]);samples[f['name'],f['view'],f['tick']]=f
-assert len(samples)==216,len(samples)
+assert len(samples)==360,len(samples)
 def render(f,size=(380,260)):
  ox=f['p']['x']-size[0]/2;oy=f['p']['y']-size[1]/2;canvas=Image.new('RGBA',size)
  for d in f['draws']:
@@ -21,13 +21,13 @@ def render(f,size=(380,260)):
   if d['alpha']<255:im.putalpha(im.getchannel('A').point(lambda v:round(v*d['alpha']/255)))
   canvas.alpha_composite(im)
  return canvas
-frames=[];names=['blue_tang','emperor_angelfish'];labels=['Regal blue tang','Emperor angelfish'];views=['Profile','Oblique','Front']
+frames=[];names=['blue_tang','emperor_angelfish'];labels=['Regal blue tang','Emperor angelfish'];views=['Profile S swim','Oblique S swim','Front / raised eyes','Turning left / C bend','Turning right / C bend']
 for tick in range(36):
- sheet=Image.new('RGBA',(1140,590),(19,42,55,255));draw=ImageDraw.Draw(sheet)
+ sheet=Image.new('RGBA',(1900,590),(19,42,55,255));draw=ImageDraw.Draw(sheet)
  for row,name in enumerate(names):
-  for col in range(3):
+  for col in range(5):
    im=render(samples[name,col,tick]);sheet.alpha_composite(im,(col*380,row*285+25));draw.text((col*380+12,row*285+7),labels[row]+' | '+views[col],fill=(235,244,245))
- draw.text((12,574),'Host reconstruction of production draws. Swim motion changes model depth; body height stays fixed.',fill=(177,204,214))
+ draw.text((12,574),'Slow-motion host reconstruction of production draws: stronger lateral S swim, signed C-turn geometry, paired raised eyeballs. Not a Roku screenshot.',fill=(177,204,214))
  frames.append(sheet.convert('RGB'))
 frames[9].save(root/'docs/previews/lateral-swim.png')
 palette=frames[0].quantize(colors=224);gif=[im.quantize(palette=palette,dither=Image.Dither.NONE) for im in frames]

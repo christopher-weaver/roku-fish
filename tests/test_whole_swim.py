@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'tools'))
-from fish_anatomy import WIDTHS,flex
+from fish_anatomy import WIDTHS,flex,turn_flex
 class WholeSwimChecks(unittest.TestCase):
     def test_lateral_geometry_and_species_proportions(self):
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
@@ -18,7 +18,7 @@ class WholeSwimChecks(unittest.TestCase):
             self.assertGreater(np.max(np.abs(a[:,2]-b[:,2])),.04)
             atlas=Image.open(ROOT/'roku'/sp['image'][5:]).convert('RGBA')
             for yaw in [0,45,180]:
-                index=next(i for i,f in enumerate(sp['frames'][::3]) if f['yaw']==yaw)
+                index=next(i for i,f in enumerate(sp['frames'][:sp['turnOffset']][::3]) if f['yaw']==yaw)
                 masks=[]
                 for pose in range(3):
                     f=sp['frames'][index*3+pose];im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
@@ -33,6 +33,15 @@ class WholeSwimChecks(unittest.TestCase):
                         rows=np.flatnonzero((mask>128).any(axis=1));reference=np.flatnonzero((masks[1]>128).any(axis=1))
                         np.testing.assert_array_equal(rows,reference,err_msg=name)
             self.assertEqual(sp['poseCount'],3)
+            # C turns curve to one side, with a stable front and no Y bobbing.
+            c=turn_flex(v,1)
+            np.testing.assert_array_equal(c[:,:2],v[:,:2])
+            self.assertTrue(np.all(c[:,2]>=v[:,2]))
+            self.assertGreater(np.max(c[:,2]-v[:,2]),.1)
+            with np.load(ROOT/'assets/source'/(name+'.npz')) as mesh:
+                self.assertGreater(len(mesh['eye_faces']),1000)
+                self.assertTrue(np.any(mesh['eye_vertices'][:,2]>0))
+                self.assertTrue(np.any(mesh['eye_vertices'][:,2]<0))
 
     def test_loader_does_not_construct_body_slices(self):
         source=(ROOT/'roku/source/assets.brs').read_text()

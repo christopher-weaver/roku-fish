@@ -41,6 +41,8 @@ if __name__=='__main__':
         if '--quick' not in sys.argv:print(output)
         print(brs_run('fish_traffic','docs/fish-traffic-results.txt'))
         print(brs_run('route_recovery','docs/route-recovery-results.txt'))
+        print(brs_run('contact_release','docs/contact-release-results.txt'))
+        print(brs_run('coral_pileup','docs/coral-pileup-results.txt'))
         print(brs_run('clam_contents','docs/clam-contents-results.txt'))
         print(brs_run('clam_night_surface','docs/clam-night-surface-results.txt'))
         print(brs_run('appendage_smoothness','docs/appendage-smoothness-results.txt'))
