@@ -56,6 +56,9 @@ function ReefFishPairBlocked(f as object, fromPose as object, toPose as object, 
         end if
     end if
     radius=own.radius+neighbor.radius+4# : height=own.height+neighbor.height+4#
+    ' Keep accepted movement clear of the static boundary despite floating-point
+    ' contact drift. This is 1/100 of a design pixel, below display precision.
+    if swept then radius=radius+.01 : height=height+.01
     ' Exact broad phase: a linear relative sweep wholly outside a slab cannot hit.
     if px>=radius and px+vx>=radius then return false
     if px<=0#-radius and px+vx<=0#-radius then return false
@@ -90,6 +93,7 @@ function ReefFishBlocked(s as object, f as object, fromPose as object, toPose as
             neighbor=other.bodyBounds
             if not ready then neighbor=ReefFishBounds(other)
             radius=own.radius+neighbor.radius+4.000001#
+            if swept then radius=radius+.01
             ox=other.x : oz=other.z
             if swept and other.previousX<>invalid then ox=other.previousX : oz=other.previousZ
             start=fromPose.x-ox : finish=toPose.x-other.x
@@ -109,21 +113,21 @@ function ReefFishBlocked(s as object, f as object, fromPose as object, toPose as
 end function
 
 function ReefFishSafeSpawn(s as object, f as object) as boolean
-    if not ReefFishBlocked(s,f,f,f,false) then return true
+    if not ReefFishBlocked(s,f,f,f,true) then return true
     best=1e20 : chosen=invalid
     if s.navigation<>invalid
         for nodeIndex=0 to s.navigation.nodes.Count()-1
             node=s.navigation.nodes[nodeIndex]
             distance=(node.x-f.x)^2+(node.y-f.y)^2+((node.z-f.z)*800)^2
             if distance<best
-                if not ReefFishBlocked(s,f,node,node,false) and not ReefCoralBlocked(s,f,node,node) then best=distance : chosen=node
+                if not ReefFishBlocked(s,f,node,node,true) and not ReefCoralBlocked(s,f,node,node) then best=distance : chosen=node
             end if
         end for
     end if
     if chosen=invalid
         for attempt=0 to 63
             sample={x:ReefRange(s,160,1880),y:ReefRange(s,110,790),z:ReefRange(s,.12,.94)}
-            if not ReefFishBlocked(s,f,sample,sample,false) and not ReefCoralBlocked(s,f,sample,sample) then chosen=sample : exit for
+            if not ReefFishBlocked(s,f,sample,sample,true) and not ReefCoralBlocked(s,f,sample,sample) then chosen=sample : exit for
         end for
     end if
     if chosen=invalid then return false
@@ -133,7 +137,10 @@ end function
 
 ' Predictive separation for every species; alignment/cohesion only for chromis.
 function ReefNeighbors(s as object, f as object) as object
-    steer={x:0#,y:0#,z:0#,hx:0#,hz:0#,cx:0#,cy:0#,cz:0#,count:0,alarm:false,traffic:0#}
+    steer=f.neighborSteer
+    if steer=invalid then steer={} : f.neighborSteer=steer
+    steer.x=0# : steer.y=0# : steer.z=0# : steer.hx=0# : steer.hz=0#
+    steer.cx=0# : steer.cy=0# : steer.cz=0# : steer.count=0 : steer.alarm=false : steer.traffic=0#
     ready=s.physicsBoundsReady=true : own=f.bodyBounds
     if not ready then own=ReefFishBounds(f)
     for neighborIndex=0 to s.fish.Count()-1

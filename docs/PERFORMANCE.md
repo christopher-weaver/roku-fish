@@ -1,4 +1,29 @@
-# FPS investigation — 1.0.32
+# FPS investigation — 1.0.33
+
+## V33: sustained workload, memory and true lateral swimming
+
+The user reports continued FPS decline over time. No native timing or memory trace accompanies that report, so this release addresses identified causes of excess steady-state work and adds diagnostics to distinguish remaining causes. It does not claim a measured Roku FPS gain or a proven device-specific leak.
+
+- Decoded artwork estimate: **171.58 → 142.54 MiB (17% less)**. These are all-variant RGBA dimensions, not a measurement of live GPU memory. All refined frontal angles are retained; profile angles need fewer samples. Native playback still blends complete bodies and keeps independent tails/fins.
+- Fish graphics-region handles at ten unique species: **9,072 → 4,200 (54% fewer)**. The actual graphics probe now runs before loading, so only its selected placement backend is allocated. Bitmaps remain shared.
+- After loading, **8,160 JSON frame objects** and metadata for unused species are released. Draw captures continue to pass after deleting those tables. Babies reuse loaded parent species. Startup garbage collection precedes the animation clock.
+- The two-second/eight-fish update fixture creates **9 associative-array literals instead of 481 (98% fewer)**. Each fish reuses its steering record. Surface, pan, pacing and eel records also reuse storage. These are allocation counts, not retained Roku heap readings.
+- Exact, direct-mapped **64-entry caches per immutable reef plane** reuse quantized rectangle results. They preserve the swept tests and have bounded storage. The same short fixture makes **403 occupancy string searches instead of 1,372 (71% fewer)**. Reference rectangles, cache hits, evictions and altered-grid fallback are checked.
+- The same 120-frame draw fixture retains **707 transforms**. Sin/Cos calls fall **2,628 → 1,320 (50% fewer)**; total observed calls fall **15,715 → 12,969 (17%)**. Adaptive yaw interval reuse, lateral attachment math and direct whole-body layers remove work. GPU pixel timing remains unmeasured.
+
+The final High-density run completes **7,200 production ticks / four simulated minutes**, with ten fish, 72 particles, constant fish-field counts, bounded route lists and zero sampled collisions. It uses the normal 30 Hz timestep. These are host stability/work checks, not device FPS or retained-heap measurements.
+
+The High-density sustained test exposed a near-contact overlap of about 0.000086 design pixels that left two fish stationary. Swept pair guards now reserve another **0.01 design pixels**, while static validation remains unchanged. Spawn checks reserve the same margin. This strengthens collision clearance rather than relaxing the failure threshold.
+
+Blocked clam births now fall back to a prepared pearl, rather than repeatedly allocating clones or introducing a fish into an already-open shell. Eligible openings retain the 1-in-50 roll and existing birth/population caps.
+
+The memory-event handler previously collected on every notification, including recovery notifications. It now checks actual pressure and throttles repeated collections to once per ten seconds. Auto's 30 Hz fallback can recover after twenty seconds of measured CPU/draw headroom and low swap blocking; High and Performance selections retain their own caps.
+
+The simulation clock no longer resets every 24 hours: recovery and clam deadlines stay monotonic. The hardware millisecond timer still restarts safely, preserving elapsed time, camera phase and uptime; light/glow phases wrap independently so their trigonometry stays bounded. A boundary regression crosses 24 hours without resetting deadlines.
+
+The existing PERF JSON now includes uptime, app memory percentage, available memory and metadata-release counts. The FPS overlay adds **N = live fish count**, **M = app memory-limit percentage** when supported. M is not a texture-memory gauge. This exposes population growth from rare births, app-memory growth and deliberate Auto pacing separately from U/D/S/E.
+
+[The audit](sustained-performance-audit.json) records complete counts and resource assumptions. [Anatomy/animation details](FISH_ANATOMY.md) explain the species proportions and lateral mesh check. No connected Roku is available for final GPU/FPS validation.
 
 ## V32: density-dependent fish work
 

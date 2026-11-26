@@ -17,6 +17,7 @@ def brs_run(test,log):
     (work/'settings-test.brs').write_text(settings)
     extra=['roku/components/ReefSettings.brs'] if test=='settings_ui' else ['roku/source/renderer.brs'] if test in ['render_depth','upright_present','swim_sway','clam_night_surface','clam_contents','wave_equivalence'] else []
     if test=='collision_equivalence':extra+=['tests/collision-reference.brs']
+    if test in ['runtime_stability','clam_night_surface']:extra+=['roku/source/assets.brs']
     if test=='tail_attachment':
         assets=(ROOT/'roku/source/assets.brs').read_text().replace('CreateObject("roRegion",','JointRegion(')
         (work/'assets-joint-test.brs').write_text(assets)
@@ -48,12 +49,13 @@ if __name__=='__main__':
         import json
         brs_run('tail_attachment','work/tail-joints-current.txt')
         joint=validate_tail(ROOT/'work/tail-joints-current.txt')
-        if joint['max_fractional_root_error_pixels']>.02 or joint['max_integer_root_error_pixels']>.75 or joint['side_view_collars_without_overlap']or joint['tail_not_before_body_cases']:raise RuntimeError(str(joint))
+        if joint['max_fractional_root_error_pixels']>.02 or joint['max_integer_root_error_pixels']>.75 or joint['side_view_collars_without_overlap']or joint['tail_not_before_body_cases']or joint['tail_phase_mismatch_cases']:raise RuntimeError(str(joint))
         (ROOT/'docs/tail-attachment-results.json').write_text(json.dumps(joint,indent=2)+'\n')
         print('PASS shared mesh tail attachment: '+str(joint))
         print(brs_run('cpu_workload','docs/cpu-workload-results.txt'))
         print(brs_run('collision_equivalence','docs/collision-equivalence-results.txt'))
         print(brs_run('frame_profile','docs/frame-profile-results.txt'))
+        print(brs_run('runtime_stability','docs/runtime-stability-results.txt'))
         print(brs_run('wave_equivalence','docs/wave-equivalence-results.txt'))
         print(brs_run('fish_profile','docs/fish-profile-results.txt'))
         print(brs_run('floor_collision','docs/floor-collision-results.txt'))

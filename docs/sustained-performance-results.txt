@@ -1,0 +1,13 @@
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":17,"seconds":20.000000000000153}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":0,"seconds":40.00000000000029}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":10,"seconds":59.999999999999154}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":10,"seconds":79.99999999999802}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":16,"seconds":99.99999999999689}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":10,"seconds":119.99999999999575}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":0,"seconds":139.99999999999463}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":0,"seconds":159.9999999999935}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":0,"seconds":179.99999999999235}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":0,"seconds":199.99999999999122}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":21,"seconds":219.99999999999008}
+STABILITY  {"births":0,"effects":72,"fish":10,"fish_fields":650,"route_entries":21,"seconds":239.99999999998894}
+PASS four-minute High-density production ticks; bounded populations, particles, routes and fish fields

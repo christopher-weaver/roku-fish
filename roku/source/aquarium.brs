@@ -77,8 +77,8 @@ end function
 sub ReefStep(s as object, elapsed as double)
     dt = ReefClamp(elapsed, 0, 0.1)
     s.time = s.time + dt
-    ' Bound the phase clock daily; no loss of per-frame precision in indefinite sessions.
-    if s.time > 86400# then s.time = s.time - 86400#
+    ' Keep deadlines monotonic. Individual animation phases wrap at their own
+    ' periods; resetting the world clock would invalidate recovery/clam timers.
     s.camera = ReefCamera(s.time, s.settings.camera, s.cfg.camera)
     ' Roku shares one ifEnum cursor per object. Never enumerate the fish array across
     ' a call that also inspects that array (the neighbor scan used to stop this after fish 0).
@@ -113,6 +113,7 @@ sub ReefAdvance(s as object, elapsed as double)
     end while
     s.accumulator = ReefClamp(s.accumulator, 0, tick)
     s.renderAlpha = s.accumulator / tick
-    s.displayTime = ReefWrap(s.time - tick + s.accumulator, 86400#)
+    s.displayTime = s.time - tick + s.accumulator
+    if s.displayTime<0# then s.displayTime=0#
     s.camera = ReefCamera(s.displayTime, s.settings.camera, s.cfg.camera)
 end sub

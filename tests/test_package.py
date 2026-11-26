@@ -44,7 +44,7 @@ class PackageChecks(unittest.TestCase):
                 self.assertGreater(len(tail),100)
                 self.assertGreater(len(mesh['vertices']),20000)
                 self.assertTrue(np.isfinite(mesh['normals']).all())
-                self.assertEqual(sp['meshRevision'],3)
+                self.assertEqual(sp['meshRevision'],4)
                 self.assertGreaterEqual(sp['frameW'],224)
     def test_sparse_roster_and_shadow_mask(self):
         from PIL import Image
@@ -65,7 +65,7 @@ class PackageChecks(unittest.TestCase):
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
         for sp in species.values():
             angles=sp['bodyAngles'];self.assertEqual(angles,sorted(set(angles)))
-            self.assertEqual(sp['bodyYawCount'],112)
+            self.assertEqual(sp['bodyYawCount'],80)
             frontal=[a for a in angles if math.radians(78.75)-1e-7<=a<=math.radians(101.25)+1e-7]
             self.assertEqual(len(frontal),25)
             self.assertLessEqual(max(b-a for a,b in zip(frontal,frontal[1:])),math.radians(1.40625)+1e-8)
@@ -226,7 +226,8 @@ class PackageChecks(unittest.TestCase):
             self.assertEqual(len(sp['viewWidths']),64)
             self.assertFalse(any(f['flipX']for f in sp['frames']))
             for pose in range(sp['poseCount']):
-                self.assertEqual(len({(f['x'],f['y'])for f in sp['frames'][pose::sp['poseCount']]}),57)
+                count=sp['bodyYawCount']//2+1 if pose==1 else sp['bodyYawCount']
+                self.assertEqual(len({(f['x'],f['y'])for f in sp['frames'][pose::sp['poseCount']]}),count)
             self.assertEqual(sp['poseCount'],3)
             self.assertEqual(sp['bodyRenderMode'],'whole-swim')
             self.assertEqual(sp['tailPoseCount'],4)

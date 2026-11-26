@@ -68,16 +68,27 @@ sub ReefLightingStep(s as object, hour as double, dt as double)
     end for
 end sub
 
-sub ReefQualitySample(s as object, seconds as double, frameCount as integer)
+sub ReefQualitySample(s as object, seconds as double, frameCount as integer,busyMs=invalid as dynamic,swapMs=invalid as dynamic)
     if seconds <= 0 then return
     s.fps = frameCount / seconds
     if s.settings.quality <> "Auto" then return
     if s.renderFps = invalid then s.renderFps = 60#
     if s.pacingPressure = invalid then s.pacingPressure = 0#
+    if s.pacingRecovery=invalid then s.pacingRecovery=0#
+    if s.renderFps=30 and busyMs<>invalid and swapMs<>invalid
+        if busyMs<12# and swapMs<4#
+            s.pacingRecovery=s.pacingRecovery+seconds
+        else
+            s.pacingRecovery=0#
+        end if
+        if s.pacingRecovery>=20#
+            s.renderFps=60# : s.pacingPressure=0# : s.pacingRecovery=0#
+        end if
+    end if
     if s.renderFps = 60 and s.fps < 45
         s.pacingPressure = s.pacingPressure + seconds
         if s.pacingPressure >= 12
-            ' Lock to an even 30Hz cadence rather than oscillating between frame caps.
+            ' Use an even cadence under load; sustained measured headroom can recover.
             s.renderFps = 30#
             s.adaptation = 0#
         end if
@@ -98,11 +109,13 @@ function ReefBubbleScale(z as double) as double
     return 0.42 + ReefClamp(z, 0, 1) * 0.45
 end function
 
-function ReefSurface(t as double) as object
+function ReefSurface(t as double,result=invalid as dynamic) as object
     ' One phase drives both the moving surface and refracted sand highlights.
     phase = ReefWrap(ReefWrap(t, 8#) * 4#, 32#)
     first = Int(phase)
-    return { first: first, second: (first + 1) mod 32, blend: phase - first }
+    if result=invalid then result={}
+    result.first=first : result.second=(first+1) mod 32 : result.blend=phase-first
+    return result
 end function
 
 function ReefEffectPose(e as object, alpha as double) as object
@@ -158,7 +171,12 @@ sub ReefClamStep(s as object)
                     e.born=1000000#
                 end for
             end if
-            if c.event=2 then c.released=ReefClamBaby(s)
+            if c.event=2
+                c.released=ReefClamBaby(s)
+                ' A crowded mouth reveals a pearl instead of repeatedly cloning
+                ' a fish and making it appear after the shell has already opened.
+                if not c.released then c.event=0
+            end if
         end if
     end if
     if c.baby<>invalid
@@ -186,7 +204,7 @@ sub ReefClamStep(s as object)
         end for
         c.released=true
     else if c.event=2
-        c.released=ReefClamBaby(s)
+        c.released=true
     else
         c.released=true
     end if
@@ -210,10 +228,11 @@ function ReefClamBaby(s as object) as boolean
     f.tx=1260# : f.ty=760# : f.tz=.94 : f.state="Exploring" : f.stateTime=0# : f.duration=12# : f.schooling=false
     f.route=[] : f.routeIndex=0 : f.routeCheckAt=0# : f.routeVisits=0
     f.probe={} : f.candidate={} : f.trafficProbe={}
+    f.neighborSteer=invalid
     f.renderPose=invalid : f.swimPose=invalid : f.screenPose=invalid : f.renderView=invalid : f.bodyView=invalid
     f.phase=ReefRange(s,0,6.283185307#) : f.finPhase=ReefRange(s,0,6.283185307#)
     f.steeringHeading=0# : f.avoidance=0# : f.progressTime=0# : f.recoveryUntil=0# : f.recoveryCount=0
-    if ReefCoralBlocked(s,f,f,f) or ReefFishBlocked(s,f,f,f,false) then return false
+    if ReefCoralBlocked(s,f,f,f) or ReefFishBlocked(s,f,f,f,true) then return false
     f.progressX=f.x : f.progressY=f.y : f.progressZ=f.z
     ReefSavePose(f)
     s.fish.Push(f) : s.clam.baby=f : s.clam.escape=0# : s.clam.births=s.clam.births+1 : s.clam.nextId=s.clam.nextId+1

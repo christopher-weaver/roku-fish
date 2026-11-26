@@ -53,14 +53,16 @@ function ReefMax(a as double, b as double) as double
     return b
 end function
 
-function ReefFrameSchedule(nowMs as double, deadline as double, fps as double) as object
+function ReefFrameSchedule(nowMs as double, deadline as double, fps as double,result=invalid as dynamic) as object
     deadline = deadline + 1000# / fps
     if deadline < nowMs then deadline = nowMs
     ' A double-buffered swap supplies native display pacing at 60Hz.
     ' Only the 30Hz mode needs an extra wait; leave GPU submission headroom.
     delay = 0
     if fps < 59 then delay = Int(ReefMax(0#, deadline - nowMs - 8#))
-    return {deadline:deadline, sleepMs:delay}
+    if result=invalid then result={}
+    result.deadline=deadline : result.sleepMs=delay
+    return result
 end function
 
 ' Match the silhouette width continuously between densely sampled mesh views.
@@ -124,9 +126,11 @@ end function
 
 ' Integer neighbor positions and their weight. Scale precision cannot amplify
 ' these offsets: even a quantized scale leaves the pan's pixel centroid smooth.
-function ReefPixelPhase(x as double) as object
+function ReefPixelPhase(x as double,result=invalid as dynamic) as object
     first = Int(x)
-    return {first:first,blend:x-first}
+    if result=invalid then result={}
+    result.first=first : result.blend=x-first
+    return result
 end function
 
 ' Nonuniform, true mesh angles give four times the head-on rotation detail.
@@ -134,11 +138,19 @@ function ReefBodyView(heading as double, species as object, result = invalid as 
     if species.bodyAngles=invalid then return ReefFishView(heading,species,result)
     angle=ReefWrap(heading,6.283185307)
     angles=species.bodyAngles : last=angles.Count()-1
-    lo=0 : hi=last
-    while lo<hi
-        mid=Int((lo+hi+1)/2)
-        if angles[mid]<=angle then lo=mid else hi=mid-1
-    end while
+    lo=0 : hi=last : cached=false
+    if result<>invalid and result.first<>invalid
+        lo=result.first : upper=6.283185307#
+        if lo<last then upper=angles[lo+1]
+        cached=angle>=angles[lo] and angle<upper
+    end if
+    if not cached
+        lo=0
+        while lo<hi
+            mid=Int((lo+hi+1)/2)
+            if angles[mid]<=angle then lo=mid else hi=mid-1
+        end while
+    end if
     first=lo : second=(first+1) mod angles.Count()
     upper=angles[second]
     if second=0 then upper=6.283185307
@@ -190,8 +202,8 @@ function ReefSurfaceShade(x as double,y as double,time as double) as double
     return 1#-alpha/255#
 end function
 
-function ReefEelFrame(time as double) as integer
-    pose=ReefEelPose(time)
+function ReefEelFrame(time as double,pose=invalid as dynamic) as integer
+    pose=ReefEelPose(time,pose)
     if pose.peek<.999999 then return Int(pose.peek*64#+.5)
     q=ReefWrap(time+15#,31#)
     cycle=Int((time+15#)/31#)
@@ -266,6 +278,16 @@ function ReefNewFrameProfile() as object
     return {frames:0,updateMs:0#,drawMs:0#,waitMs:0#,swapMs:0#,eventsMs:0#,ticks:0#,maxUpdateMs:0#,maxDrawMs:0#,maxSwapMs:0#,maxEventsMs:0#,maxFrameMs:0#,memoryEvents:0}
 end function
 
+function ReefMemoryPressure(kind as string,info as dynamic) as boolean
+    if info=invalid then return true
+    if kind="roAppMemoryNotificationEvent"
+        if info.memoryUsagePercent<>invalid then return info.memoryUsagePercent>=80
+    else if kind="roDeviceInfoEvent"
+        if info.generalMemoryLevel<>invalid then return info.generalMemoryLevel<>"normal"
+    end if
+    return true
+end function
+
 sub ReefProfileFrame(p as object,updateMs as double,drawMs as double,waitMs as double,swapMs as double,eventsMs as double,totalMs as double,ticks as integer)
     p.frames=p.frames+1 : p.updateMs=p.updateMs+updateMs : p.drawMs=p.drawMs+drawMs
     p.waitMs=p.waitMs+waitMs : p.swapMs=p.swapMs+swapMs : p.eventsMs=p.eventsMs+eventsMs : p.ticks=p.ticks+ticks
@@ -301,6 +323,12 @@ sub ReefTailRigInit(sp as object)
         angle=sp.bodyAngles[i] : co=Cos(angle) : sn=Sin(angle)
         x=(root[0]*co-root[2]*sn)*sp.frameW*.45
         y=0#-root[1]*sp.frameH*.45
+        if sp.swimAxis="lateral"
+            u=(sp.swimExtent[1]-root[0])/sp.swimSpan
+            u=ReefClamp((u-sp.swimStart)/(1#-sp.swimStart),0#,1#)
+            offset=0#-sn*sp.swimSpan*sp.bodySwimAmplitude*u*u*Sin(4.71238898#*u)*sp.frameW*.45
+            sp.tailBodyPoints.Push({x:x/sp.bodyViewWidths[i],y:y,lateral:offset/sp.bodyViewWidths[i],u:u})
+        else
         frame=sp.frames[i*sp.poseCount+1]
         pixel=frame.anchorX+x : left=Int(pixel) : blend=pixel-left
         positive=0# : negative=0# : uRoot=.5
@@ -316,6 +344,7 @@ sub ReefTailRigInit(sp as object)
             if column=0 then uRoot=u
         end for
         sp.tailBodyPoints.Push({x:x/sp.bodyViewWidths[i],y:y,positive:positive,negative:negative,u:uRoot})
+        end if
     end for
     count=sp.tailPoseCount
     for index=0 to sp.tailFrames.Count()-1

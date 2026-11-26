@@ -1,6 +1,11 @@
 sub Main()
     prefs=ReefValidateSettings(invalid)
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
+    ' Freeze the original collision dimensions for the v26 trajectory oracle.
+    ' Shipping art envelopes are exercised by the traffic/clearance tests.
+    species.emperor_angelfish.collisionHalfWidth=99
+    species.moorish_idol.collisionHalfWidth=96
+    species.green_chromis.collisionHalfWidth=89
     occ=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     s=ReefWorld(prefs,species,occ,47831)
     s.clam.enabled=false

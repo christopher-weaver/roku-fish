@@ -10,6 +10,11 @@ def targets(f,overlap):
     for view in [body['first'],body['second']]:
         a=sp['bodyAngles'][view];co=math.cos(a);sn=math.sin(a)
         x=(root[0]*co-root[2]*sn)*sp['frameW']*.45;y=-root[1]*sp['frameH']*.45
+        if sp.get('swimAxis')=='lateral':
+            u=(sp['swimExtent'][1]-root[0])/sp['swimSpan']
+            u=np.clip((u-sp['swimStart'])/(1-sp['swimStart']),0,1)
+            x-=sn*sp['swimSpan']*sp['bodySwimAmplitude']*u*u*math.sin(1.5*math.pi*u)*sp['frameW']*.45*sinphase
+            points.append((x/sp['bodyViewWidths'][view],y));continue
         fr=sp['frames'][view*3+1];pixel=fr['anchorX']+x;left=math.floor(pixel);blend=pixel-left;shift=0
         for col,w in [(left,1-blend),(left+1,blend)]:
             u=np.clip(.5-(1 if co>=0 else -1)*(col-fr['anchorX'])/(sp['frameW']*.9),0,1)
@@ -26,8 +31,12 @@ def targets(f,overlap):
     x=(f['p']['x']+f['canvas'])*f['scale'];y=f['p']['y']*f['scale']
     if not f.get('fractional',True):x=math.floor(x+.5);y=math.floor(y+.5)
     return (x+(co*tx+sn*ty)*f['scale'],y+(co*ty-sn*tx)*f['scale'])
+def source_pose(f):
+    sp=SPEC[f['name']];wave=math.sin(f['phase'])
+    if sp.get('swimAxis')=='lateral':wave=-wave
+    return int((wave+1)*.5*(sp['tailPoseCount']-1)+.5)
 def source_root(f):
-    sp=SPEC[f['name']];yaw=f['view']['index'];pose=int((math.sin(f['phase'])+1)*.5*(sp['tailPoseCount']-1)+.5)
+    sp=SPEC[f['name']];yaw=f['view']['index'];pose=source_pose(f)
     frame=sp['tailFrames'][yaw*sp['tailPoseCount']+pose];angle=math.radians(frame['yaw'])
     if frame['yaw']>180:angle=2*math.pi-angle;pose=sp['tailPoseCount']-1-pose
     v=sp['tailRig']['posesXZ'][pose]
@@ -49,12 +58,14 @@ def raster(f,center,size=(84,64)):
     yy,xx=np.mgrid[:size[1],:size[0]];near=(xx-size[0]/2)**2+(yy-size[1]/2)**2<14**2
     return canvas,int((intersection&near).sum())
 def validate(path,overlap=True,preview=None):
-    cases=0;max_error=0.;max_fractional=0.;max_integer=0.;no_overlap=[];worst=[];order_errors=0
+    cases=0;max_error=0.;max_fractional=0.;max_integer=0.;no_overlap=[];worst=[];order_errors=0;phase_errors=0
     for line in Path(path).read_text().splitlines():
         if not line.startswith('JOINT '):continue
         f=json.loads(line[6:]);cases+=1
         sp=SPEC[f['name']];wanted=targets(f,sp['tailRig']['overlap']if overlap else 0)
         d=next(d for d in f['draws']if d['part']=='tail');root=source_root(f)
+        frame=sp['tailFrames'][f['view']['index']*sp['tailPoseCount']+source_pose(f)]
+        if [d[k] for k in ['cropX','cropY','w','h']]!=[frame[k] for k in ['x','y','w','h']]:phase_errors+=1
         # Fractional native regions pretranslate by 4096 minus the crop anchor.
         a=math.radians(d['angle']);co=math.cos(a);sn=math.sin(a)
         anchor=4096 if f.get('fractional',True)else 0
@@ -74,9 +85,9 @@ def validate(path,overlap=True,preview=None):
         for i,(error,f,im)in enumerate(selected):
             x=(i%4)*168;y=(i//4)*156;im=im.resize((168,128),Image.Resampling.NEAREST);sheet.paste(im,(x,y+24),im);draw.text((x+3,y+3),f['name'][:19],fill='white')
         sheet.save(preview)
-    return {'cases':cases,'max_root_error_pixels':round(max_error,6),'max_fractional_root_error_pixels':round(max_fractional,6),'max_integer_root_error_pixels':round(max_integer,6),'side_view_collars_without_overlap':len(no_overlap),'tail_not_before_body_cases':order_errors,'failing_collars':no_overlap[:12]}
+    return {'cases':cases,'max_root_error_pixels':round(max_error,6),'max_fractional_root_error_pixels':round(max_fractional,6),'max_integer_root_error_pixels':round(max_integer,6),'side_view_collars_without_overlap':len(no_overlap),'tail_not_before_body_cases':order_errors,'tail_phase_mismatch_cases':phase_errors,'failing_collars':no_overlap[:12]}
 if __name__=='__main__':
     import argparse
     p=argparse.ArgumentParser();p.add_argument('path');p.add_argument('--baseline',action='store_true');p.add_argument('--preview');a=p.parse_args()
     report=validate(a.path,not a.baseline,a.preview);print(json.dumps(report,indent=2))
-    if not a.baseline and(report['max_fractional_root_error_pixels']>.02 or report['max_integer_root_error_pixels']>.75 or report['side_view_collars_without_overlap']or report['tail_not_before_body_cases']):raise SystemExit('FAIL caudal attachment')
+    if not a.baseline and(report['max_fractional_root_error_pixels']>.02 or report['max_integer_root_error_pixels']>.75 or report['side_view_collars_without_overlap']or report['tail_not_before_body_cases']or report['tail_phase_mismatch_cases']):raise SystemExit('FAIL caudal attachment')

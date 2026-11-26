@@ -7,6 +7,13 @@ sub Main()
         body=ReefFishFrames({part:"body",file:sp.image},sp.frames,"High",true)
         tails=ReefFishFrames({part:"tail",file:sp.tailImage},sp.tailFrames,"High")
         fins=ReefFishFrames({part:"fin",file:sp.finImage},sp.finFrames,"High")
+        if n=0
+            fractional=ReefFishFrames({part:"body",file:sp.image},[sp.frames[0]],"High",true,true)
+            integer=ReefFishFrames({part:"body",file:sp.image},[sp.frames[0]],"High",true,false)
+            if fractional[0].normal<>invalid or fractional[0].fractional=invalid then print "FAIL unused normal region retained" : return
+            if integer[0].fractional<>invalid or integer[0].normal=invalid then print "FAIL unused fractional region retained" : return
+        end if
+        sp.Delete("frames") : sp.Delete("tailFrames") : sp.Delete("finFrames")
         a={fish:{},tails:{},fins:{}} : a.fish[name]=body : a.tails[name]=tails : a.fins[name]=fins
         s={camera:64#,displayTime:0#,lighting:[1#,0#,0#,0#],settings:{lighting:"Sunset"}}
         for direction=0 to 7

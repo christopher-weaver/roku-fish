@@ -138,6 +138,10 @@ def make_mesh(name,thick):
     depth=(.006+cross*bulk*thick)*np.clip(dist/2,0,1)
     depth=gaussian_filter(depth,.65)*mask
     v,uv,normals,faces=closed_shell(mask,depth)
+    from fish_anatomy import WIDTHS
+    zscale=WIDTHS[name]*np.ptp(v[:,0])/np.ptp(v[:,2])
+    v[:,2]*=zscale;normals[:,2]/=zscale
+    normals/=np.linalg.norm(normals,axis=1)[:,None]
     fm=np.asarray(finmask.resize((w,h),Image.Resampling.LANCZOS));fins=[]
     for face in faces:
         points=v[face];ys=np.rint((1-points[:,1]/(.92*h/w))*.5*(h-1)).astype(int);xs=np.rint((points[:,0]+1)*.5*(w-1)).astype(int)

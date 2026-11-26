@@ -29,6 +29,7 @@ def fish(canvas,f,mode,t=0):
     for part in ['tail','body','fin']:
         count=sp['poseCount']if part=='body'else sp['tailPoseCount']if part=='tail'else sp['finPoseCount']
         phase=f['phase']if part!='fin'else f.get('finPhase',f['phase']*.6)
+        if part=='tail' and sp.get('swimAxis')=='lateral':phase=-phase
         pose_value=(math.sin(phase)+1)*.5*(count-1);pose=int(pose_value+.5)
         view=int(position+.5)%sp['yawCount'];part_width=width;source_width=sp['viewWidths'][view]
         if part=='body' and 'bodyAngles'in sp:
@@ -45,7 +46,7 @@ def fish(canvas,f,mode,t=0):
             fr=sp['tailFrames'][view*count+pose];fa=sp['tailFrames'][view*count+int(pose_value)];fb=sp['tailFrames'][view*count+min(int(pose_value)+1,count-1)];blend_pose=pose_value-int(pose_value)
             sx=part_width/source_width*(fa['w']+(fb['w']-fa['w'])*blend_pose)/fr['w'];sy=1.
             co=math.cos(f['heading']);root=sp['tailRig']['body'];u=max(0,min(1,.5-(1 if co>=0 else -1)*(root[0]*co-root[2]*math.sin(f['heading']))*.5));amp=sp['renderLength']*sp['bodySwimAmplitude']*abs(co);q=math.sin(f['phase']);ws=-q*math.sin(u*2*math.pi);wc=q*math.cos(u*2*math.pi);slope=amp*(2*u*ws-2*math.pi*u*u*wc)*(-1 if co>=0 else 1)/(sp['frameW']*.9*bv['width']/bv['sourceWidth'])
-            base=f['pitch']*(1 if co>=0 else -1);bend=max(-math.radians(12.6),min(math.radians(12.6),base-math.atan(slope)))-base;c=math.cos(bend);sn=math.sin(bend)
+            base=f['pitch']*(1 if co>=0 else -1);bend=0 if sp.get('swimAxis')=='lateral'else max(-math.radians(12.6),min(math.radians(12.6),base-math.atan(slope)))-base;c=math.cos(bend);sn=math.sin(bend)
             piece=atlas.crop((fr['x'],fr['y'],fr['x']+fr['w'],fr['y']+fr['h']))
             matrix=(c/sx,-sn/sx,fr['anchorX']+rx+(-c*tx+sn*ty)/sx,sn/sy,c/sy,fr['anchorY']+ry+(-sn*tx-c*ty)/sy)
             im.alpha_composite(piece.transform(im.size,Image.Transform.AFFINE,matrix,Image.Resampling.BILINEAR))

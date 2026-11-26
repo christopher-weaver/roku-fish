@@ -168,15 +168,37 @@ function ReefSolidRect(rows as object, cell as integer, x0 as double, y0 as doub
     if left<0 then left=0
     if right>=width then right=width-1
     if index<>invalid
+        ' Immutable occupancy grids: small exact cell rectangles repeat as fish
+        ' move less than one grid cell. Bounded direct-mapped memoization keeps
+        ' every swept query, while avoiding repeated native string searches.
+        cacheable=width<=256 and height<=144
+        if cacheable
+            if index.cacheKeys=invalid
+                index.cacheKeys=[] : index.cacheValues=[]
+                for slot=0 to 63
+                    index.cacheKeys.Push(-1) : index.cacheValues.Push(false)
+                end for
+            end if
+            key=((top*height+bottom)*width+left)*width+right
+            slot=(top*3+bottom*5+left*7+right*11) mod 64
+            if index.cacheKeys[slot]=key then return index.cacheValues[slot]
+        end if
         height=bottom-top+1 : level=index.levelByHeight[height]
         bands=index.levels[level] : masks=index.masks
         found=Instr(left+1,masks[bands[top]],"#")
-        if found>0 and found<=right+1 then return true
+        if found>0 and found<=right+1
+            if cacheable then index.cacheKeys[slot]=key : index.cacheValues[slot]=true
+            return true
+        end if
         last=bottom-index.spanByHeight[height]+1
         if last<>top
             found=Instr(left+1,masks[bands[last]],"#")
-            if found>0 and found<=right+1 then return true
+            if found>0 and found<=right+1
+                if cacheable then index.cacheKeys[slot]=key : index.cacheValues[slot]=true
+                return true
+            end if
         end if
+        if cacheable then index.cacheKeys[slot]=key : index.cacheValues[slot]=false
         return false
     end if
     for rowIndex = top to bottom

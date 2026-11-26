@@ -19,18 +19,25 @@ sub RunScreenSaver()
     seed = date.AsSeconds() mod 2147483646
     if seed <= 0 then seed = 47831
     s = ReefWorld(settings, species, occupancy, seed)
-    assets = ReefLoadAssets(s)
     renderer = ReefRenderer(screen, settings)
+    assets = ReefLoadAssets(s,renderer.fractionalFish)
+    ' Release initialization garbage before starting the animation clock.
+    RunGarbageCollector()
     timer = CreateObject("roTimespan")
     last = 0# : nextFrame = 0# : sampleAt = 0# : localAt = -2#
-    hour = 12# : profile=ReefNewFrameProfile()
+    hour = 12# : profile=ReefNewFrameProfile() : lastGC=0#-10000# : pacing=invalid
+    gcPendingApp=false : gcPendingGeneral=false
+    clockOffsetMs=0#
     while true
         nowMs = CDbl(timer.TotalMilliseconds())
+        elapsed = (nowMs - last) / 1000#
         ' Restart the 32-bit millisecond clock daily, before it can overflow.
         if nowMs >= 86400000#
+            clockOffsetMs=clockOffsetMs+nowMs
             timer.Mark() : nowMs = 0# : last = 0# : nextFrame = 0# : sampleAt = 0# : localAt = -2# : profile=ReefNewFrameProfile()
+            s.sampleFrames=0
+            lastGC=0#-10000#
         end if
-        elapsed = (nowMs - last) / 1000#
         last = nowMs
         if nowMs / 1000# - localAt >= 1
             date.Mark() : date.ToLocalTime()
@@ -43,15 +50,15 @@ sub RunScreenSaver()
         beforeSim=s.time
         ReefAdvance(s, elapsed)
         ' The camera follows the display clock even if physics catch-up is capped.
-        s.camera=ReefCamera(nowMs/1000#,settings.camera,s.cfg.camera)
+        s.camera=ReefCamera((clockOffsetMs+nowMs)/1000#,settings.camera,s.cfg.camera)
         ReefLightingStep(s, hour, elapsed)
         updateDone=CDbl(timer.TotalMilliseconds())
-        ticks=Int(ReefWrap(s.time-beforeSim,86400#)*30#+.5)
+        ticks=Int((s.time-beforeSim)*30#+.5)
         ReefRender(renderer, s, assets)
         drawDone=CDbl(timer.TotalMilliseconds())
         ' The double-buffered swap paces 60Hz directly. The 30Hz mode waits
         ' before submission; sleeping after a swap can miss the next refresh.
-        pacing = ReefFrameSchedule(drawDone, nextFrame, s.renderFps)
+        pacing = ReefFrameSchedule(drawDone, nextFrame, s.renderFps,pacing)
         nextFrame = pacing.deadline
         if pacing.sleepMs > 0 then Sleep(pacing.sleepMs)
         waitDone=CDbl(timer.TotalMilliseconds())
@@ -65,20 +72,41 @@ sub RunScreenSaver()
             if kind = "roUniversalControlEvent" then return
             if kind = "roDeviceInfoEvent" or kind = "roAppMemoryNotificationEvent"
                 profile.memoryEvents=profile.memoryEvents+1
-                print "Deep Reef memory event: ";kind
-                s.quality = 0.3
-                RunGarbageCollector()
+                if kind="roAppMemoryNotificationEvent"
+                    gcPendingApp=ReefMemoryPressure(kind,msg.GetInfo())
+                else
+                    gcPendingGeneral=ReefMemoryPressure(kind,msg.GetInfo())
+                end if
             end if
             msg = port.GetMessage()
         end while
+        if (gcPendingApp or gcPendingGeneral) and swapDone-lastGC>=10000#
+            print "Deep Reef: collecting under memory pressure"
+            s.quality=.3 : RunGarbageCollector() : lastGC=CDbl(timer.TotalMilliseconds())
+            gcPendingApp=false : gcPendingGeneral=false
+        end if
         finished=CDbl(timer.TotalMilliseconds())
         ReefProfileFrame(profile,updateDone-nowMs,drawDone-updateDone,waitDone-drawDone,swapDone-waitDone,finished-swapDone,finished-nowMs,ticks)
         if finished-sampleAt>=4000
-            ReefQualitySample(s,(finished-sampleAt)/1000#,s.sampleFrames)
+            busy=ReefProfileMs(profile.updateMs+profile.drawMs+profile.eventsMs,profile.frames)
+            swap=ReefProfileMs(profile.swapMs,profile.frames)
+            ReefQualitySample(s,(finished-sampleAt)/1000#,s.sampleFrames,busy,swap)
             report=ReefProfileSummary(profile,s,renderer)
+            report.uptime_seconds=Int((clockOffsetMs+finished)/1000#)
+            report.asset_memory=s.assetMemory
+            if s.memoryProbeSupported<>false
+                try
+                    report.memory_percent=monitor.app.GetMemoryLimitPercent()
+                    report.available_memory_kb=monitor.app.GetChannelAvailableMemory()
+                catch error
+                    s.memoryProbeSupported=false
+                end try
+            end if
             print "Deep Reef FPS=";s.fps;" quality=";s.quality
             print "Deep Reef PERF ";FormatJson(report)
             s.perfText="U "+Int(report.update_ms).ToStr()+" D "+Int(report.draw_ms).ToStr()+" S "+Int(report.swap_ms).ToStr()+" E "+Int(report.events_ms).ToStr()+" ms"
+            s.perfText=s.perfText+" N "+report.fish.ToStr()
+            if report.memory_percent<>invalid then s.perfText=s.perfText+" M "+report.memory_percent.ToStr()+"%"
             sampleAt=finished : s.sampleFrames=0 : profile=ReefNewFrameProfile()
         end if
     end while

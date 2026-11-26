@@ -13,7 +13,9 @@ sub Main()
             expected=ReferenceReefSolidRect(plane.rows,8,x,y,x+w,y+h)
             actual=ReefSolidRect(plane.rows,8,x,y,x+w,y+h,plane.rowIndex)
             if actual<>expected then print "FAIL indexed rectangle ";planeIndex;sample : return
+            if ReefSolidRect(plane.rows,8,x,y,x+w,y+h,plane.rowIndex)<>expected then print "FAIL memoized rectangle ";planeIndex;sample : return
         end for
+        if plane.rowIndex.cacheKeys.Count()<>64 or plane.rowIndex.cacheValues.Count()<>64 then print "FAIL growing rectangle cache" : return
     end for
     for sample=0 to 599
         sp=species[names[sample mod names.Count()]]

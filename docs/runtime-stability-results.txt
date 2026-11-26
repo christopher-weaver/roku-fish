@@ -1,0 +1,3 @@
+PASS releases  8160  JSON frame objects and unused species after loading; runtime attachments survive
+PASS monotonic world/display clocks cross 24 hours without resetting deadlines
+PASS memory recovery notifications do not force GC; Auto recovers only with sustained measured headroom

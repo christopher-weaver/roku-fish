@@ -6,7 +6,11 @@ const fs=require('node:fs'),path=require('node:path');
 const bin=fs.realpathSync(process.env.BRS_BIN);
 const {Interpreter}=require(path.resolve(path.dirname(bin),'../lib/interpreter'));
 const original=Interpreter.prototype.visitCall;
-let active=false,counts={},fieldReads=0,indexReads=0;
+let active=false,counts={},fieldReads=0,indexReads=0,aaLiterals=0,arrayLiterals=0;
+for(const [method,isAA] of [['visitAALiteral',true],['visitArrayLiteral',false]]){
+ const read=Interpreter.prototype[method];
+ Interpreter.prototype[method]=function(expr){if(active){if(isAA)aaLiterals++;else arrayLiterals++;}return read.call(this,expr);};
+}
 for(const [method,counter] of [["visitDottedGet","field"],["visitIndexedGet","index"]]){
  const read=Interpreter.prototype[method];
  Interpreter.prototype[method]=function(expr){if(active){if(counter==="field")fieldReads++;else indexReads++}return read.call(this,expr)};
@@ -14,10 +18,10 @@ for(const [method,counter] of [["visitDottedGet","field"],["visitIndexedGet","in
 Interpreter.prototype.visitCall=function(expr){
  const name=(expr.callee?.name?.text??'method').toLowerCase();
  if(name==='reefcpuwindow'){
-  counts={};fieldReads=0;indexReads=0;active=true;
+  counts={};fieldReads=0;indexReads=0;aaLiterals=0;arrayLiterals=0;active=true;
   try{return original.call(this,expr)}finally{
    active=false;
-   fs.writeFileSync(process.env.PROFILE_OUT,JSON.stringify({scope:'Production BrightScript, 60 fixed ticks / 8 fish, excluding startup. Counts only; not Roku FPS.',fieldReads,indexReads,counts},null,2)+'\n');
+   fs.writeFileSync(process.env.PROFILE_OUT,JSON.stringify({scope:'Production BrightScript, 60 fixed ticks / 8 fish, excluding startup. Counts only; not Roku FPS.',fieldReads,indexReads,aaLiterals,arrayLiterals,counts},null,2)+'\n');
   }
  }
  if(active)counts[name]=(counts[name]??0)+1;

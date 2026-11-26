@@ -1,51 +1,38 @@
-"""Continuous body images preserve each column's pixel sequence without cuts."""
-import json,unittest
+"""Mesh flex must be lateral; profile pixels must never bob vertically."""
+import json,unittest,sys
 from pathlib import Path
 import numpy as np
 from PIL import Image
-ROOT=Path(__file__).resolve().parents[1]
-
+ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'tools'))
+from fish_anatomy import WIDTHS,flex
 class WholeSwimChecks(unittest.TestCase):
-    def test_complete_curves_preserve_pixels_and_column_topology(self):
-        rest=json.loads((ROOT/'assets/source/fish-rest/species.json').read_text())
+    def test_lateral_geometry_and_species_proportions(self):
         species=json.loads((ROOT/'roku/scenes/species.json').read_text())
-        checked=0
         for name,sp in species.items():
-            self.assertEqual(sp['bodyRenderMode'],'whole-swim')
-            self.assertEqual(sp['poseCount'],3)
-            self.assertEqual(sp['bodyAngles'],rest[name]['bodyAngles'])
-            self.assertEqual(sp['frameW'],rest[name]['frameW'])
-            self.assertEqual(sp['frameH'],rest[name]['frameH'])
-            original=Image.open(ROOT/'assets/source/fish-rest'/(name+'.webp')).convert('RGBA')
+            self.assertEqual(sp['swimAxis'],'lateral')
+            with np.load(ROOT/'assets/source'/(name+'.npz')) as mesh:v=mesh['vertices']
+            self.assertAlmostEqual(np.ptp(v[:,2])/np.ptp(v[:,0]),WIDTHS[name],places=6)
+            a,b=flex(v,-1),flex(v,1)
+            np.testing.assert_array_equal(a[:,:2],b[:,:2])
+            np.testing.assert_allclose(a[:,2]+b[:,2],2*v[:,2],atol=1e-7)
+            self.assertGreater(np.max(np.abs(a[:,2]-b[:,2])),.04)
             atlas=Image.open(ROOT/'roku'/sp['image'][5:]).convert('RGBA')
-            visited=set();varied=0
-            for yaw,old in enumerate(rest[name]['frames']):
-                key=old['x'],old['y']
-                if key in visited:continue
-                visited.add(key)
-                source=np.asarray(original.crop((old['x'],old['y'],old['x']+old['w'],old['y']+old['h'])))
-                poses=[]
+            for yaw in [0,45,180]:
+                index=next(i for i,f in enumerate(sp['frames'][::3]) if f['yaw']==yaw)
+                masks=[]
                 for pose in range(3):
-                    f=sp['frames'][yaw*3+pose]
-                    actual=np.asarray(atlas.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h'])))
-                    delta_x=round(old['anchorX']-f['anchorX'])
-                    for x in range(source.shape[1]):
-                        col=source[:,x];occupied=np.flatnonzero(col[:,3])
-                        if not len(occupied):continue
-                        a=col[occupied[0]:occupied[-1]+1]
-                        candidate=actual[:,x-delta_x];occupied_new=np.flatnonzero(candidate[:,3])
-                        self.assertTrue(len(occupied_new),(name,yaw,pose,x))
-                        b=candidate[occupied_new[0]:occupied_new[-1]+1]
-                        if pose==1:
-                            self.assertEqual(occupied[0]-old['anchorY'],occupied_new[0]-f['anchorY'])
-                        # Exact alpha topology and every visible color value: no new seam.
-                        np.testing.assert_array_equal(a[:,3],b[:,3],err_msg=str((name,yaw,pose,x)))
-                        np.testing.assert_array_equal(a[a[:,3]>0],b[b[:,3]>0])
-                    poses.append(actual[:,:,3].tobytes())
-                    checked+=1
-                if len(set(poses))>1:varied+=1
-            self.assertGreater(varied,0,'Body must actually form different S poses: '+name)
-        self.assertEqual(checked,1710)
+                    f=sp['frames'][index*3+pose];im=Image.new('RGBA',(sp['frameW'],sp['frameH']))
+                    piece=atlas.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h']))
+                    im.alpha_composite(piece,(round(sp['frameW']/2-f['anchorX']),round(sp['frameH']/2-f['anchorY'])))
+                    masks.append(np.asarray(im)[:,:,3])
+                if yaw==45:
+                    self.assertFalse(np.array_equal(masks[0],masks[2]),'Baked oblique mesh must actually flex: '+name)
+                else:
+                    # Z-only flex cannot move the profile's dorsal/ventral outline.
+                    for mask in masks:
+                        rows=np.flatnonzero((mask>128).any(axis=1));reference=np.flatnonzero((masks[1]>128).any(axis=1))
+                        np.testing.assert_array_equal(rows,reference,err_msg=name)
+            self.assertEqual(sp['poseCount'],3)
 
     def test_loader_does_not_construct_body_slices(self):
         source=(ROOT/'roku/source/assets.brs').read_text()

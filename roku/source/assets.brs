@@ -5,7 +5,7 @@ function ReefBitmap(path as string) as dynamic
     return bitmap
 end function
 
-function ReefLoadAssets(s as object) as object
+function ReefLoadAssets(s as object,useFractional=invalid as dynamic) as object
     warm = s.settings.lighting = "Sunset"
     plate = "water-day.webp"
     if warm then plate = "water-sunset.webp"
@@ -79,7 +79,7 @@ function ReefLoadAssets(s as object) as object
     end for
     eelCfg=ParseJson(ReadAsciiFile("pkg:/scenes/eel.json"))
     eel=ReefBitmap(eelCfg.image)
-    if eel<>invalid then a.eels=ReefFishFrames(eel,eelCfg.frames,s.settings.quality)
+    if eel<>invalid then a.eels=ReefFishFrames(eel,eelCfg.frames,s.settings.quality,false,useFractional)
     a.eelConfig=eelCfg
     ' Load only the unique species present at this density.
     for fishIndex=0 to s.fish.Count()-1
@@ -87,14 +87,29 @@ function ReefLoadAssets(s as object) as object
         sp = s.species[name]
         ReefTailRigInit(sp)
         b = ReefBitmap(sp.image)
-        if b <> invalid then a.fish[name] = ReefFishFrames(b,sp.frames,s.settings.quality,sp.bodyRenderMode="whole-swim")
+        if b <> invalid then a.fish[name] = ReefFishFrames(b,sp.frames,s.settings.quality,sp.bodyRenderMode="whole-swim",useFractional)
         b = ReefBitmap(sp.tailImage)
-        if b <> invalid then a.tails[name] = ReefFishFrames(b,sp.tailFrames,s.settings.quality)
+        if b <> invalid then a.tails[name] = ReefFishFrames(b,sp.tailFrames,s.settings.quality,false,useFractional)
         b = ReefBitmap(sp.finImage)
-        if b <> invalid then a.fins[name] = ReefFishFrames(b,sp.finFrames,s.settings.quality)
+        if b <> invalid then a.fins[name] = ReefFishFrames(b,sp.finFrames,s.settings.quality,false,useFractional)
     end for
+    ReefReleaseAssetMetadata(s,a)
     return a
 end function
+
+' Regions retain their bitmap and scalar anchors. The JSON frame objects are
+' no longer needed after regions and model attachment tables are constructed.
+sub ReefReleaseAssetMetadata(s as object,a as object)
+    names=s.species.Keys() : released=0 : unused=0
+    for index=0 to names.Count()-1
+        name=names[index] : sp=s.species[name]
+        for each key in ["frames","tailFrames","finFrames"]
+            if sp[key]<>invalid then released=released+sp[key].Count() : sp.Delete(key)
+        end for
+        if a.fish[name]=invalid then s.species.Delete(name) : unused=unused+1
+    end for
+    s.assetMemory={released_frame_objects:released,unloaded_species_removed:unused}
+end sub
 
 ' Two immutable regions share one bitmap; no second texture is allocated.
 function ReefLayer(bitmap as dynamic, x = 0 as integer, y = 0 as integer, width = -1 as integer, height = -1 as integer) as dynamic
@@ -108,18 +123,23 @@ function ReefLayer(bitmap as dynamic, x = 0 as integer, y = 0 as integer, width 
 end function
 
 
-function ReefFishFrames(bitmap as object, metadata as object, quality as string,wholeSwim=false as boolean) as object
+function ReefFishFrames(bitmap as object, metadata as object, quality as string,wholeSwim=false as boolean,useFractional=invalid as dynamic) as object
     frames = [] : cache = {}
     for index = 0 to metadata.Count()-1
         frame = metadata[index]
         key = frame.x.ToStr()+":"+frame.y.ToStr()
         if not cache.DoesExist(key)
-            reg = CreateObject("roRegion",bitmap,frame.x,frame.y,frame.w,frame.h)
-            reg.SetPretranslation(0-Int(frame.anchorX),0-Int(frame.anchorY))
-            if quality <> "Performance" then reg.SetScaleMode(1)
-            fractional = CreateObject("roRegion",bitmap,frame.x,frame.y,frame.w,frame.h)
-            fractional.SetPretranslation(4096-Int(frame.anchorX),4096-Int(frame.anchorY))
-            fractional.SetScaleMode(1)
+            reg=invalid : fractional=invalid
+            if useFractional<>true
+                reg = CreateObject("roRegion",bitmap,frame.x,frame.y,frame.w,frame.h)
+                reg.SetPretranslation(0-Int(frame.anchorX),0-Int(frame.anchorY))
+                if quality <> "Performance" then reg.SetScaleMode(1)
+            end if
+            if useFractional<>false
+                fractional = CreateObject("roRegion",bitmap,frame.x,frame.y,frame.w,frame.h)
+                fractional.SetPretranslation(4096-Int(frame.anchorX),4096-Int(frame.anchorY))
+                fractional.SetScaleMode(1)
+            end if
             cache[key] = {wholeSwim:wholeSwim,width:frame.w,height:frame.h,anchorX:frame.anchorX,anchorY:frame.anchorY,normal:reg,fractional:fractional,offsetX:Int(frame.anchorX)-frame.anchorX,offsetY:Int(frame.anchorY)-frame.anchorY}
 
         end if

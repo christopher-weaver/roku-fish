@@ -45,9 +45,11 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     f.renderView = ReefFishView(pose.heading,f.sp,f.renderView)
     view = f.renderView
     f.bodyView=ReefBodyView(pose.heading,f.sp,f.bodyView)
-    r.waveSinPhase=Sin(pose.phase) : r.waveCosPhase=Cos(pose.phase)
+    r.waveSinPhase=Sin(pose.phase) : r.waveCosPhase=0#
+    if f.sp.swimAxis<>"lateral" then r.waveCosPhase=Cos(pose.phase)
     bodyPosition = (r.waveSinPhase+1)*0.5*(f.sp.poseCount-1)
     tailPosition = (r.waveSinPhase+1)*0.5*(f.sp.tailPoseCount-1)
+    if f.sp.swimAxis="lateral" then tailPosition=(1#-r.waveSinPhase)*.5*(f.sp.tailPoseCount-1)
     finPosition = (Sin(pose.finPhase)+1)*0.5*(f.sp.finPoseCount-1)
     scale = p.scale*f.sp.length/f.sp.renderLength*f.size
     haze = 1-pose.z
@@ -64,6 +66,11 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     r.waveStanding=f.sp.bodyRenderMode="whole-swim"
     if r.waveStanding
         r.waveAmplitude=f.sp.length*f.size*p.scale*f.sp.bodySwimAmplitude*Abs(headingCos)
+        r.waveLateral=f.sp.swimAxis="lateral"
+        if r.waveLateral
+            r.waveAmplitude=0# : r.waveHeadingSin=0#
+            if f.sp.finSwimOffset<>0# then r.waveHeadingSin=Sin(pose.heading)
+        end if
         if a.tails[f.name]<>invalid then ReefDrawBoundTail(r,p,f.sp,a.tails[f.name],tailPosition,view,f.bodyView,scale,angle,red,green,blue)
         ReefDrawWholeBody(r,p,f.sp,frames,bodyPosition,f.bodyView,scale,angle,red,green,blue)
     else
@@ -110,18 +117,24 @@ sub ReefDrawBoundTail(r as object,p as object,sp as object,frames as object,posi
     end if
     ' Do not scale the neck vertically from a changing crop rectangle.
     a=sp.tailBodyPoints[body.first] : b=sp.tailBodyPoints[body.second]
+    if sp.swimAxis="lateral"
+        tx=scale*body.width*(a.x+(b.x-a.x)*body.blend+(a.lateral+(b.lateral-a.lateral)*body.blend)*r.waveSinPhase)
+        ty=scale*(a.y+(b.y-a.y)*body.blend)
+        drawAngle=angle
+    else
     shiftA=a.positive*r.waveSinPhase : shiftB=b.positive*r.waveSinPhase
     if r.waveSinPhase<0# then shiftA=0#-a.negative*r.waveSinPhase : shiftB=0#-b.negative*r.waveSinPhase
     tx=scale*body.width*(a.x+(b.x-a.x)*body.blend)
     ty=scale*(a.y+(b.y-a.y)*body.blend+shiftA+(shiftB-shiftA)*body.blend)
-    ' A small model-axis underlap is hidden by the body painted afterwards.
-    tx=tx+sp.tailRig.overlap*scale*r.waveHeadingCos
     u=a.u+(b.u-a.u)*body.blend
     waveSin=0#-r.waveSinPhase*Sin(u*6.283185307#)
     waveCos=r.waveSinPhase*Cos(u*6.283185307#)
     length=sp.frameW*.9*scale*body.width/body.sourceWidth
     slope=r.waveAmplitude*(2#*u*waveSin-6.283185307#*u*u*waveCos)*(0#-r.waveSign)/length
     drawAngle=ReefClamp(angle-Atn(slope)*57.295779513#,-12.6,12.6)
+    end if
+    ' Underlap along the model axis, never an artificial vertical swim bend.
+    tx=tx+sp.tailRig.overlap*scale*r.waveHeadingCos
     base=angle
     if not r.rotation then base=0# : drawAngle=0#
     if r.fractionalFish then base=Int(base*256#+.5)/256# : drawAngle=Int(drawAngle*256#+.5)/256#
@@ -133,7 +146,8 @@ sub ReefDrawBoundTail(r as object,p as object,sp as object,frames as object,posi
         originY=Int(p.y*r.scale+.5)/r.scale
     end if
     targetX=originX+co*tx+sn*ty : targetY=originY+co*ty-sn*tx
-    co=Cos(drawAngle/57.295779513#) : sn=Sin(drawAngle/57.295779513#)
+    if sp.swimAxis<>"lateral" then co=Cos(drawAngle/57.295779513#) : sn=Sin(drawAngle/57.295779513#)
+    r.basisAngle=drawAngle : r.basisCos=co : r.basisSin=sn
     x=targetX-co*source.x*sx-sn*source.y*sy
     y=targetY-co*source.y*sy+sn*source.x*sx
     ReefDrawFishRegion(r,x,y,sx,sy,drawAngle,region,ReefRGBA(red,green,blue,255),source)
@@ -160,6 +174,11 @@ sub ReefDrawFishPart(r as object,p as object,sp as object,frames as object,posit
             r.warpPoint.x=p.x+co*dx+sn*dy : r.warpPoint.y=p.y+co*dy-sn*dx
             drawPoint=r.warpPoint : sx=sx*warp.sx : sy=sy*warp.sy
         end if
+    end if
+    if sp.swimAxis="lateral" and count=sp.finPoseCount and sp.finSwimOffset<>0#
+        if r.lateralFinPoint=invalid then r.lateralFinPoint={}
+        r.lateralFinPoint.x=drawPoint.x-r.waveHeadingSin*r.waveSinPhase*sp.finSwimOffset*scale/sp.finTextureScale
+        r.lateralFinPoint.y=drawPoint.y : drawPoint=r.lateralFinPoint
     end if
     if region.wholeSwim=true
         ' A complete curved body is one region: there are no interior slice edges.
@@ -290,9 +309,16 @@ sub ReefDrawEffects(r as object, s as object, a as object, lo as double, hi as d
     end for
 end sub
 
+function ReefRenderSurface(r as object,time as double) as object
+    if r.surfaceState=invalid or r.surfaceTime<>time
+        r.surfaceState=ReefSurface(time,r.surfaceState) : r.surfaceTime=time
+    end if
+    return r.surfaceState
+end function
+
 sub ReefDrawSurface(r as object, s as object, a as object)
     if a.surface.Count() = 0 then return
-    wave = ReefSurface(s.displayTime)
+    wave = ReefRenderSurface(r,s.displayTime)
     cfg = a.waveConfig.surface
     for pass = 0 to 1
         weight = 1 - wave.blend
@@ -307,7 +333,7 @@ end sub
 
 sub ReefDrawCaustics(r as object, s as object, a as object)
     if a.caustics.Count() = 0 then return
-    wave = ReefSurface(s.displayTime)
+    wave = ReefRenderSurface(r,s.displayTime)
     cfg = a.waveConfig.sand
     for pass = 0 to 1
         weight = 1 - wave.blend
@@ -320,7 +346,7 @@ end sub
 sub ReefDrawSandShadows(r as object, s as object, a as object)
     if a.sandShadows=invalid then return
     if a.sandShadows.Count()=0 then return
-    wave=ReefSurface(s.displayTime) : cfg=a.waveConfig.shadow
+    wave=ReefRenderSurface(r,s.displayTime) : cfg=a.waveConfig.shadow
     for pass=0 to 1
         weight=1-wave.blend : index=wave.first
         if pass=1 then weight=wave.blend : index=wave.second
@@ -334,13 +360,14 @@ sub ReefDrawEel(r as object,s as object,a as object)
     shade=ReefSurfaceShade(773#,858#,s.displayTime)
     light=Int(255*(1#-(1#-shade)*.30*(.35+.65*s.lighting[0])))
     ' Cave walls, closed rear chamber, and the animal were depth-tested together.
-    ReefDrawFishRegion(r,cfg.x-s.camera,cfg.y-36,1#,1#,0#,a.eels[ReefEelFrame(s.displayTime)],ReefRGBA(light,light,light,255))
+    if r.eelPose=invalid then r.eelPose={}
+    ReefDrawFishRegion(r,cfg.x-s.camera,cfg.y-36,1#,1#,0#,a.eels[ReefEelFrame(s.displayTime,r.eelPose)],ReefRGBA(light,light,light,255))
 end sub
 
 sub ReefDrawSurfaceShadow(r as object,s as object,a as object,index as integer,formation as object)
     if a.surfaceShadows=invalid then return
     if a.surfaceShadows[index].Count()=0 then return
-    cfg=formation.surfaceShadow : wave=ReefSurface(s.displayTime)
+    cfg=formation.surfaceShadow : wave=ReefRenderSurface(r,s.displayTime)
     for pass=0 to 1
         weight=1-wave.blend : phase=wave.first
         if pass=1 then weight=wave.blend : phase=wave.second
@@ -394,10 +421,11 @@ sub ReefRender(r as object, s as object, a as object)
         marineView=0
         if formation.animation<>invalid then marineView=ReefMarineFrame(s.displayTime,formation)
         if formation.id="clam" then marineView=Int(ReefClamDisplayOpening(s)*(formation.frames-1)+.5)
-        light=ReefSurfaceShade(formation.x+formation.width*.5,formation.y+formation.height*.45,s.displayTime)
-        strength=.35
-        if formation.animation<>invalid then strength=0#
-        light=1#-(1#-light)*strength*(.35+.65*s.lighting[0])
+        light=1#
+        if formation.animation=invalid
+            shade=ReefSurfaceShade(formation.x+formation.width*.5,formation.y+formation.height*.45,s.displayTime)
+            light=1#-(1#-shade)*.35*(.35+.65*s.lighting[0])
+        end if
         red=255 : green=255 : blue=255
         if s.settings.lighting<>"Sunset" then red=221 : green=235
         tint=ReefRGBA(Int(red*light),Int(green*light),Int(blue*light),255)
@@ -433,8 +461,10 @@ sub ReefRender(r as object, s as object, a as object)
         ReefDrawFish(r, s, a, s.sorted[i]) : i = i + 1
     end while
     ReefDrawEffects(r,s,a,previousDepth,1.01,s.cfg.formations.Count())
+    rayPhase=ReefWrap(s.displayTime*.07,6.283185307#)
+    rayLight=ReefWrap(s.displayTime*.13,6.283185307#)
     for k = 0 to 2
-        ReefDraw(r, 150 + k * 590 + Sin(s.displayTime * 0.07 + k) * 24 - s.camera * 0.25, -70, 2.0, 1.8, a.ray, ReefRGBA(255, 223, 210, Int((65 + 18 * Sin(s.displayTime * 0.13 + k)) * s.lighting[0])))
+        ReefDraw(r, 150 + k * 590 + Sin(rayPhase + k) * 24 - s.camera * 0.25, -70, 2.0, 1.8, a.ray, ReefRGBA(255, 223, 210, Int((65 + 18 * Sin(rayLight + k)) * s.lighting[0])))
     end for
     if s.lighting[2] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(8, 16, 57, Int(s.lighting[2])))
     if s.lighting[3] > 0 then screen.DrawRect(0, 0, screen.GetWidth(), screen.GetHeight(), ReefRGBA(241, 105, 108, Int(s.lighting[3])))
@@ -445,7 +475,7 @@ end sub
 sub ReefPresent(r as object,s as object)
     screen = r.output
     if r.frame<>invalid
-        phase = ReefPixelPhase(0#-s.camera*r.outputScale)
+        r.panPhase = ReefPixelPhase(0#-s.camera*r.outputScale,r.panPhase) : phase=r.panPhase
         screen.SetAlphaEnable(false)
         screen.Clear(&h182A42FF)
         ' The canvas is already in output pixels; never rescale it a second time.
@@ -508,16 +538,18 @@ sub ReefDrawBioluminescence(r as object,s as object,a as object)
     if s.settings.lighting="Automatic" and s.lighting[0]<.24 then enabled=true
     if not enabled then return
     strength=ReefClamp((.30-s.lighting[0])/.24,0#,1#)
+    coralPhase=ReefWrap(s.displayTime*.32,6.283185307#)
     for each site in s.bioluminescence
-        pulse=.72+.28*Sin(s.displayTime*.32+site.phase)
+        pulse=.72+.28*Sin(coralPhase+site.phase)
         ReefDraw(r,site.x-s.camera-16#*site.size,site.y-36#-16#*site.size,site.size,site.size,a.glow,ReefRGBA(52,255,202,Int(190*strength*pulse)))
     end for
     if s.settings.particles="Off" then return
+    planktonPhase=ReefWrap(s.displayTime*.7,6.283185307#)
     for i=0 to 11
         e=s.effects[i]
         x=e.previousX+(e.x-e.previousX)*s.renderAlpha-s.camera*(.4+e.z*.6)
         y=e.previousY+(e.y-e.previousY)*s.renderAlpha
-        pulse=.55+.45*Sin(s.displayTime*.7+e.phase*4#)
+        pulse=.55+.45*Sin(planktonPhase+e.phase*4#)
         ReefDraw(r,x-5#,y-5#,.32,.32,a.glow,ReefRGBA(70,214,255,Int(170*strength*pulse)))
     end for
 end sub

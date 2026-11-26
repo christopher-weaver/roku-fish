@@ -1,18 +1,18 @@
 {
   "banggai_cardinalfish-atlas.webp": {
     "width": 2048,
-    "height": 1336,
-    "sha256": "334956d161caf4d8c16b1863c855fdda42ee2a75eba6740060e3176af507a67e"
+    "height": 745,
+    "sha256": "790658b7110702d4ebcbbfe51ff85b21d74c93e7653a6b280e482bbfcbc05b8f"
   },
   "banggai_cardinalfish-fins.webp": {
     "width": 512,
-    "height": 242,
-    "sha256": "794700d8c939200a7e64c9e8eaf8c15e3bfde3b8e7dca8f189eaa3844926e3ce"
+    "height": 230,
+    "sha256": "8caf96afddd510dd6b2498d0760d2ead9059a6adb1ac7cabbcb5bce7811c5e4c"
   },
   "banggai_cardinalfish-tails.webp": {
     "width": 1024,
     "height": 639,
-    "sha256": "21fcd8769fdfa911079356a745931155aed32ef41fc5e14dc5b628e484a03bb6"
+    "sha256": "1e9772a408aedfdefe65439231152f8fc7f689597b4c59e00cb9035be426817a"
   },
   "bioluminescence.png": {
     "width": 32,
@@ -21,18 +21,18 @@
   },
   "blue_tang-atlas.webp": {
     "width": 2048,
-    "height": 700,
-    "sha256": "2105190e007a20d0594977dbc2c21098546f4722ea169d8afaad0b057309d9e3"
+    "height": 510,
+    "sha256": "9daf80001d1352fdb56ddd7beb5286a78df08368545c063207045ffe468f701b"
   },
   "blue_tang-fins.webp": {
     "width": 512,
-    "height": 180,
-    "sha256": "a13708292027d0c2d4e79ac0b6a9cf63d53228ea0244cec55feff659f7eaed59"
+    "height": 162,
+    "sha256": "ed6aea950a671c8898e42916d2aec9fa6d0c30459580df41fd986812c61e701b"
   },
   "blue_tang-tails.webp": {
     "width": 1024,
-    "height": 354,
-    "sha256": "b5d881c56cf4aa8dadb603879146a2831969369746b45065ab378f15b9f073ba"
+    "height": 427,
+    "sha256": "5389ec8156b3450c71287294471c4fe0928eddae493e198e715857d654bb44fc"
   },
   "bubble.png": {
     "width": 32,
@@ -51,48 +51,48 @@
   },
   "copperband_butterflyfish-atlas.webp": {
     "width": 2048,
-    "height": 1376,
-    "sha256": "6f492f6576b3aa56435c97360a8818beba3ae6b00cd188da324c3c2ed4a36bd4"
+    "height": 843,
+    "sha256": "0354e38602018a946229bceeafc871074bcd64b53f8e474a7e2c152c79541f0c"
   },
   "copperband_butterflyfish-fins.webp": {
     "width": 512,
-    "height": 220,
-    "sha256": "fe524c69bebb62a07bc1b0d91e6c8c8dacaab1ee48814611f9fd63c0acfe82cd"
+    "height": 180,
+    "sha256": "3fd3fa96248e950804ded9c9da42f6fe694e6fbe89beb09c25c60d1dc991903e"
   },
   "copperband_butterflyfish-tails.webp": {
     "width": 1024,
-    "height": 251,
-    "sha256": "0ece8e07c53d4873e84d46f8590942bff430cb79cf1cd5f1da388ada81d50cf1"
+    "height": 256,
+    "sha256": "663425055ffc226855f9d60b919b72fd46972aab1b7724b82cd8fc81ceb2ebdf"
   },
   "emperor_angelfish-atlas.webp": {
     "width": 2048,
-    "height": 658,
-    "sha256": "f064f489fce80957ee58d9f9f67b00b632d0eb5b3f37484730a0f612bfe447d4"
+    "height": 485,
+    "sha256": "68f17ffa1c3c4c75312cecfc2ef4dc732cf6dfa55b2e42ab86946deeb3634db3"
   },
   "emperor_angelfish-fins.webp": {
     "width": 512,
-    "height": 242,
-    "sha256": "f2fc28dc8e15e51680d19837cea8f63303417fd7c5d7a328216b2fd570689022"
+    "height": 198,
+    "sha256": "6efd1de8e9426a4d484fff4e7aa23671a235e5421309f52b0cee3dd32e17c544"
   },
   "emperor_angelfish-tails.webp": {
     "width": 1024,
-    "height": 393,
-    "sha256": "4546deae1a71f47051358e4499e2fb52b3f9b2f3519f300c32d0813ec2d48e99"
+    "height": 405,
+    "sha256": "4fdae842131346d0d7b87f249994746c8c3ecadfa960e6fdb4856f34dd41e466"
   },
   "green_chromis-atlas.webp": {
     "width": 2048,
-    "height": 592,
-    "sha256": "26e659964af269d2af41cb5753484f259e731e4dc02c6d1eed96410b37aec640"
+    "height": 311,
+    "sha256": "bd1049e15176c999872d6486a5e19563e68f0829dca2318b8d5efe83e8c783f3"
   },
   "green_chromis-fins.webp": {
     "width": 512,
-    "height": 264,
-    "sha256": "b60c8a2b5b644b94d05f925779a0ba9c4529162eb272593126541ba94fcdf152"
+    "height": 192,
+    "sha256": "bc2e519d5412e7141cbabeb012bb8ca35746a56d382d9f39c69ecf37f73ab220"
   },
   "green_chromis-tails.webp": {
     "width": 1024,
     "height": 265,
-    "sha256": "0871a71aad48c5ae5ceae5e46e30ec3258319742284a829e5026e8dc78f5866d"
+    "sha256": "5c5b410357c8917240f66fd99ecdea501c177aecc29039e328eb3019a95627c8"
   },
   "icon-fhd.jpg": {
     "width": 540,
@@ -111,33 +111,33 @@
   },
   "mandarin_dragonet-atlas.webp": {
     "width": 2048,
-    "height": 1014,
-    "sha256": "a4af68832334a1abd971446b0bf918472edd36422b3f0e7b4d1edf5b19a1c1c8"
+    "height": 569,
+    "sha256": "1fac7d5a3cabd9294713e5132db6e148ee02a46d2a78c89a086a5feb25afe8b9"
   },
   "mandarin_dragonet-fins.webp": {
     "width": 512,
-    "height": 437,
-    "sha256": "b12d087672b448f9b4483c393107ad688f0298de8b5dbf69788d8d5233cfedcf"
+    "height": 419,
+    "sha256": "e18e1f0cb5cb026cd7201392eecac2a05f93a29ff310ab64843d7b047d997d5e"
   },
   "mandarin_dragonet-tails.webp": {
     "width": 1024,
     "height": 528,
-    "sha256": "b661f8dfc820b0ccca2c124ec137c11d9e9fd1e5646704d74c879496ba3940a9"
+    "sha256": "fa0b8e105e4c603b19b39aedf2c9bbe6ecdd60fce48d9e55553fb8a8444fea05"
   },
   "moorish_idol-atlas.webp": {
     "width": 2048,
-    "height": 1049,
-    "sha256": "fe8cc336a4fc981bc2523f4b5bf25c53b47d3501d56a104d89904f87770a12e5"
+    "height": 588,
+    "sha256": "d4ad9b165bb90a0b4c8f7f6a1c021328f510f2a5f568a690044d3fa6c96b45d2"
   },
   "moorish_idol-fins.webp": {
     "width": 512,
-    "height": 200,
-    "sha256": "c1ee1c26cc4836d5482e82d878bfe0c248f26e76bb12b0023b4647d989b970d9"
+    "height": 160,
+    "sha256": "0f51c178697db182344f358cba42cc462b5a1686ddc3a945b1a61feb1a344cf6"
   },
   "moorish_idol-tails.webp": {
     "width": 1024,
     "height": 236,
-    "sha256": "8fca6980cc94a4b7a03173d764a62a3e191cd4e797d212678521dccaeede876a"
+    "sha256": "22a9d61f2c18a0c606a2944af5acff4b529a7c98ca697516e423ea541ad84802"
   },
   "mote.png": {
     "width": 8,
@@ -146,18 +146,18 @@
   },
   "ocellaris_clownfish-atlas.webp": {
     "width": 2048,
-    "height": 732,
-    "sha256": "fae17572d1657ea3f074bf44ac569681c8afee108d933dd722dc6ab7b4b35fd9"
+    "height": 409,
+    "sha256": "797cff8937053466723cd3a5f5b3ad6f5e781e35ee0da7e612752f84ec4d7236"
   },
   "ocellaris_clownfish-fins.webp": {
     "width": 512,
-    "height": 300,
-    "sha256": "fc85cb9e0cb8604991e28fe602d32b4bc0d2d841b447cab2b8f2b1eae8debeed"
+    "height": 260,
+    "sha256": "d9be394691602f29da0b7faff8fb5597c5bdd60e1e9c8056605e1732a334a656"
   },
   "ocellaris_clownfish-tails.webp": {
     "width": 1024,
     "height": 240,
-    "sha256": "34d10ecfdc9cb4858c48d32bc4dd28ad9eb672f116af55651860da5bfd3edd81"
+    "sha256": "11a723641a5eece323e63e69af291f43b00c3622412681605f15d42c96b4e533"
   },
   "ray.png": {
     "width": 128,
@@ -196,18 +196,18 @@
   },
   "royal_gramma-atlas.webp": {
     "width": 2048,
-    "height": 525,
-    "sha256": "1d037d9d3434900c073838910bb2cc69680ebe7aa4e5219bcc4642933bcf13fe"
+    "height": 316,
+    "sha256": "f40081ddc1679bc888fc048707522946f7c7ea9bb06077c2f74d274bf4e0c61c"
   },
   "royal_gramma-fins.webp": {
     "width": 512,
-    "height": 220,
-    "sha256": "331e328abe23842f895950d489d16c5199843ec127337429e097fc8cf55de061"
+    "height": 176,
+    "sha256": "7271f1e558555a2d9210b085cd167ce3d3d69ec826830c5e39b1709165774c6e"
   },
   "royal_gramma-tails.webp": {
     "width": 1024,
-    "height": 234,
-    "sha256": "22d406536c6c45d6021af215dd9fd0e9ed9540601e5d884c8b781a4c485bbf62"
+    "height": 192,
+    "sha256": "f3908bf2f1583f74e823448f16d450cc6de7b91f14b323259411bb3dca330a39"
   },
   "sand-caustics.png": {
     "width": 2048,
@@ -266,17 +266,17 @@
   },
   "yellow_tang-atlas.webp": {
     "width": 2048,
-    "height": 888,
-    "sha256": "e7c6ca0d82a77da086d78e8e1782c18756da85356e64b17e43adceb87a8fe043"
+    "height": 444,
+    "sha256": "1ef405a768a551eea4da999a93854c1a57c7359108acf273046468350bc1a752"
   },
   "yellow_tang-fins.webp": {
     "width": 512,
-    "height": 210,
-    "sha256": "59daaac7a20da3afb0da9e5eed9b6ca5524b8bb0d6e6f5d6a6b30f10c5666f3f"
+    "height": 176,
+    "sha256": "649731b7c367e6ea0493478007065b3634868de9646819791e41cf85eba1c37e"
   },
   "yellow_tang-tails.webp": {
     "width": 1024,
     "height": 320,
-    "sha256": "0faf5c98755ab74dea80a0d11065746d5b3afcdf48705ff01c320ad556c0a45e"
+    "sha256": "af152808735391b1b47f0c388122ad6c9437e93f4517293ded21edb5ed7ab579"
   }
 }

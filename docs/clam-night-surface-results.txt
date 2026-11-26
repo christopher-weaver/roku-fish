@@ -3,3 +3,4 @@ PASS clam pearl, staggered rising bubble pool, single safe live-fish birth, norm
 PASS slow continuous hinge motion with open/closed pauses
 PASS selectable Night lighting with blue-green coral and plankton emission confined to Night/dark Automatic
 PASS every species reserves full posed outline below surface ripples
+PASS blocked birth becomes a preexisting pearl; no repeated clone attempts or late appearance

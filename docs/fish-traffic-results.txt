@@ -1,7 +1,7 @@
 PASS ten differently sized fish spawn without fish-to-fish overlap across four seeds
-PASS swept and interpolated body/tail/fin clearance, encounter  0  progress  417.7071 540.9738
-PASS swept and interpolated body/tail/fin clearance, encounter  1  progress  360.2088 453.421
-PASS swept and interpolated body/tail/fin clearance, encounter  2  progress  638.836 445.351
-PASS swept and interpolated body/tail/fin clearance, encounter  3  progress  353.525 469.5378
-PASS swept and interpolated body/tail/fin clearance, encounter  4  progress  78.16429 416.9758
+PASS swept and interpolated body/tail/fin clearance, encounter  0  progress  417.2794 541.5657
+PASS swept and interpolated body/tail/fin clearance, encounter  1  progress  358.854 452.9345
+PASS swept and interpolated body/tail/fin clearance, encounter  2  progress  640.0095 443.9429
+PASS swept and interpolated body/tail/fin clearance, encounter  3  progress  343.2671 463.3679
+PASS swept and interpolated body/tail/fin clearance, encounter  4  progress  76.12044 420.8072
 PASS swept guard prevents tunneling across another fish

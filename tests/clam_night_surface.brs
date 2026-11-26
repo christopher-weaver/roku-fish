@@ -2,6 +2,11 @@ sub Main()
     species=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
     occ=ParseJson(ReadAsciiFile("pkg:/scenes/occupancy.json"))
     s=ReefWorld(ReefValidateSettings(invalid),species,occ,47831)
+    loaded={fish:{}}
+    for i=0 to s.fish.Count()-1
+        parent=s.fish[i] : ReefTailRigInit(parent.sp) : loaded.fish[parent.name]=true
+    end for
+    ReefReleaseAssetMetadata(s,loaded)
     c=s.clam : c.order=[0,1] : c.rng=1000#
     s.time=9# : ReefClamStep(s)
     if c.event<>0 or not c.released or ReefClamOpening(s.time)<>1# then print "FAIL pearl opening" : return
@@ -75,6 +80,16 @@ sub Main()
         if ReefSurfaceBlocked(s,f,f,f) then print "FAIL surface envelope blocks deep fish" : return
     end for
     print "PASS every species reserves full posed outline below surface ripples"
+    fresh=ParseJson(ReadAsciiFile("pkg:/scenes/species.json"))
+    blocked=ReefWorld(ReefValidateSettings(invalid),fresh,occ,47831)
+    count=blocked.fish.Count() : parent=blocked.fish[0]
+    parent.x=1085# : parent.y=970# : parent.z=.97
+    blocked.clam.rng=1# : ReefClamStep(blocked)
+    if blocked.clam.event<>0 or blocked.fish.Count()<>count then print "FAIL blocked birth was not replaced before opening" : return
+    parent.x=250# : parent.y=400# : parent.z=.12 : ReefSavePose(parent)
+    blocked.time=9# : ReefClamStep(blocked)
+    if blocked.fish.Count()<>count then print "FAIL late fish appeared in an already open clam" : return
+    print "PASS blocked birth becomes a preexisting pearl; no repeated clone attempts or late appearance"
 end sub
 function LifeCapture(x as integer,y as integer,sx as float,sy as float,source as dynamic,tint as integer) as boolean
     m.calls.Push({x:x,y:y,tint:tint}) : return true
