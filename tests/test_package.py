@@ -137,7 +137,7 @@ class PackageChecks(unittest.TestCase):
             self.assertEqual(sp['bodyHeightFactor'],.92)
             # Anatomy remains slim; collision depth also reserves the larger
             # S/C sweep and must not be capped at the old resting-body value.
-            self.assertLessEqual(sp['modelWidthRatio'],.15)
+            self.assertLessEqual(sp['modelWidthRatio'],.20)
             self.assertGreaterEqual(sp['bodyThickness'],sp['modelWidthRatio'])
     def test_settings_rows_have_system_fonts_above_highlight(self):
         import xml.etree.ElementTree as ET

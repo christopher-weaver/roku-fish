@@ -1,9 +1,9 @@
-ACTIVITY  green_chromis  lateral travel= 542.42986589  span= 542.429863414892
+ACTIVITY  green_chromis  lateral travel= 542.2732208899997  span= 542.2732176825407
 ACTIVITY  copperband_butterflyfish  lateral travel= 466.3697274200003  span= 466.36972688504716
-ACTIVITY  blue_tang  lateral travel= 291.9754650699998  span= 291.97546209694383
-ACTIVITY  emperor_angelfish  lateral travel= 497.0214632199997  span= 497.02146517322683
-ACTIVITY  mandarin_dragonet  lateral travel= 241.07708010000013  span= 241.07708029211767
-ACTIVITY  banggai_cardinalfish  lateral travel= 221.53786979  span= 221.53787014831119
-ACTIVITY  moorish_idol  lateral travel= 555.3086292300003  span= 555.3086230798824
-ACTIVITY  royal_gramma  lateral travel= 377.52932112999963  span= 377.5293292084074
+ACTIVITY  blue_tang  lateral travel= 291.47925277  span= 291.479248558539
+ACTIVITY  emperor_angelfish  lateral travel= 496.92666421999985  span= 496.9266667648184
+ACTIVITY  mandarin_dragonet  lateral travel= 241.07664367000004  span= 241.07664414584497
+ACTIVITY  banggai_cardinalfish  lateral travel= 221.53795626999988  span= 221.5379567160137
+ACTIVITY  moorish_idol  lateral travel= 554.51615523  span= 554.516145912251
+ACTIVITY  royal_gramma  lateral travel= 377.8769529300002  span= 377.8769604975947
 PASS sustained lateral activity over 12 seconds with full reef/floor clearance

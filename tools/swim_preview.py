@@ -3,24 +3,12 @@ from pathlib import Path
 import json,math,sys
 from PIL import Image,ImageDraw,ImageFont
 root=Path(__file__).resolve().parents[1];sys.path.insert(0,str(root/'tools'))
-from tail_check import CACHE
+from capture_raster import render
 samples={}
-for line in (root/'work/v34-swim-preview.txt').read_text().splitlines():
+for line in (root/'work/v35-swim-preview.txt').read_text().splitlines():
  if line.startswith('SWIM '):
   f=json.loads(line[5:]);samples[f['name'],f['view'],f['tick']]=f
 assert len(samples)==360,len(samples)
-def render(f,size=(380,260)):
- ox=f['p']['x']-size[0]/2;oy=f['p']['y']-size[1]/2;canvas=Image.new('RGBA',size)
- for d in f['draws']:
-  path=d['file']
-  if path not in CACHE:CACHE[path]=Image.open(root/'roku'/path[5:]).convert('RGBA')
-  im=CACHE[path].crop((d['cropX'],d['cropY'],d['cropX']+d['w'],d['cropY']+d['h']))
-  a=math.radians(d['angle']);co=math.cos(a);sn=math.sin(a);x=d['x']-ox;y=d['y']-oy
-  matrix=(co/d['sx'],-sn/d['sx'],(-co*x+sn*y)/d['sx']-d['px'],sn/d['sy'],co/d['sy'],(-sn*x-co*y)/d['sy']-d['py'])
-  im=im.transform(size,Image.Transform.AFFINE,matrix,Image.Resampling.BILINEAR)
-  if d['alpha']<255:im.putalpha(im.getchannel('A').point(lambda v:round(v*d['alpha']/255)))
-  canvas.alpha_composite(im)
- return canvas
 frames=[];names=['blue_tang','emperor_angelfish'];labels=['Regal blue tang','Emperor angelfish'];views=['Profile S swim','Oblique S swim','Front / raised eyes','Turning left / C bend','Turning right / C bend']
 for tick in range(36):
  sheet=Image.new('RGBA',(1900,590),(19,42,55,255));draw=ImageDraw.Draw(sheet)

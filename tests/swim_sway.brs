@@ -3,7 +3,8 @@ sub Main()
     body=[] : tails=[] : fins=[]
     for i=0 to sp.frames.Count()-1
         source="body:"+i.ToStr()
-        body.Push({wholeSwim:true,normal:source,fractional:source,offsetX:.5,offsetY:.5})
+        frame=sp.frames[i]
+        body.Push({wholeSwim:true,normal:source,fractional:source,offsetX:.5,offsetY:.5,width:frame.w,height:frame.h,anchorX:frame.anchorX,anchorY:frame.anchorY})
     end for
     for i=0 to sp.tailFrames.Count()-1
         tails.Push({normal:"tail",fractional:"tail",offsetX:.5,offsetY:.5})
@@ -15,6 +16,12 @@ sub Main()
     r={screen:screen,scale:1#,canvasOffset:0#,rotation:true,fractionalFish:true,placement:{}}
     s={camera:64#,displayTime:0#,lighting:[1#,0#,0#,0#],settings:{lighting:"Sunset"}}
     a={fish:{yellow_tang:body},tails:{yellow_tang:tails},fins:{yellow_tang:fins}}
+    cores=[]
+    for i=0 to sp.turnCoreFrames.Count()-1
+        frame=sp.turnCoreFrames[i]
+        cores.Push({normal:"core",fractional:"core",offsetX:.5,offsetY:.5,refWidth:frame.coreWidth,refAnchor:frame.coreAnchor})
+    end for
+    a.turnCores={yellow_tang:cores}
     f={name:"yellow_tang",sp:sp,size:1#,speed:sp.speed,renderPose:{x:900#,y:400#,z:.7,heading:.35,pitch:.12,phase:0#,finPhase:0#}}
     ReefTailRigInit(sp)
     draws=0 : partial=0
@@ -68,14 +75,37 @@ sub Main()
         f.renderPose.yawVelocity=turnSide*.3
         screen.angles=[] : screen.sources=[] : screen.opacity=[] : ReefDrawFish(r,s,a,f)
         count=screen.sources.Count()
-        if count>6 then print "FAIL C-turn exceeds body draw budget" : return
+        if count>7 or screen.sources[1]<>"core" then print "FAIL C-turn draw budget or missing opaque interior" : return
         if turnSide*r.waveTurn<.999 then print "FAIL C turn points opposite steering" : return
         for i=1 to count-2
-            index=Val(Mid(screen.sources[i],6))
-            if index<sp.turnOffset then print "FAIL full turn retains stiff neutral body" : return
+            if screen.sources[i]<>"core"
+                index=Val(Mid(screen.sources[i],6))
+                if index<sp.turnOffset then print "FAIL full turn retains stiff neutral body" : return
+                if screen.opacity[i]>=255 then print "FAIL outgoing C outline remains opaque" : return
+            end if
         end for
     end for
-    print "PASS signed left/right C-turn bodies retain four body submissions and attached appendages"
+    for each rate in [.04,.08,.18,.26,-.18]
+        f.renderPose.yawVelocity=rate
+        screen.angles=[] : screen.sources=[] : screen.opacity=[] : ReefDrawFish(r,s,a,f)
+        if screen.sources.Count()>7 then print "FAIL partial C turn exceeds bounded draw budget" : return
+        for i=0 to screen.opacity.Count()-1
+            if screen.opacity[i]<1 or screen.opacity[i]>255 then print "FAIL transparent or invalid C submission" : return
+        end for
+    end for
+    print "PASS signed C turns fade outgoing outlines over an opaque interior, with at most five body submissions and attached appendages"
+    previous=invalid
+    for tick=0 to 119
+        f.renderPose.heading=.2+tick*.3/60# : f.renderPose.yawVelocity=.3
+        f.renderPose.phase=tick*sp.beat*6.283185307#/60#
+        screen.angles=[] : screen.sources=[] : screen.opacity=[] : ReefDrawFish(r,s,a,f)
+        if previous<>invalid
+            if Abs(ReefAngleDelta(previous,f.swimPose.heading)-.3/60#)>.000001 then print "FAIL head sway reverses a deliberate turn" : return
+        end if
+        if screen.sources.Count()>7 then print "FAIL turning submission budget" : return
+        previous=f.swimPose.heading
+    end for
+    print "PASS deliberate turns retain steady displayed angular velocity while the swim phase advances"
     print "PASS 120 frames use ";draws;" transforms: complete S/inverse-S body poses, shared pitch, opaque base, smooth yaw/phase blends, one attached tail and fin; no body slices"
 end sub
 function SwimCapture(x as integer,y as integer,angle as float,sx as float,sy as float,source as dynamic,tint as integer) as boolean

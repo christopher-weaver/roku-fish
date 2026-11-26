@@ -1,2 +1,3 @@
-PASS signed left/right C-turn bodies retain four body submissions and attached appendages
+PASS signed C turns fade outgoing outlines over an opaque interior, with at most five body submissions and attached appendages
+PASS deliberate turns retain steady displayed angular velocity while the swim phase advances
 PASS 120 frames use  707  transforms: complete S/inverse-S body poses, shared pitch, opaque base, smooth yaw/phase blends, one attached tail and fin; no body slices

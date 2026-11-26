@@ -37,7 +37,9 @@ class WholeSwimChecks(unittest.TestCase):
             c=turn_flex(v,1)
             np.testing.assert_array_equal(c[:,:2],v[:,:2])
             self.assertTrue(np.all(c[:,2]>=v[:,2]))
-            self.assertGreater(np.max(c[:,2]-v[:,2]),.1)
+            deflection=np.max(c[:,2]-v[:,2])/np.ptp(v[:,0])
+            self.assertGreater(deflection,.035)
+            self.assertLess(deflection,.045)
             with np.load(ROOT/'assets/source'/(name+'.npz')) as mesh:
                 self.assertGreater(len(mesh['eye_faces']),1000)
                 self.assertTrue(np.any(mesh['eye_vertices'][:,2]>0))

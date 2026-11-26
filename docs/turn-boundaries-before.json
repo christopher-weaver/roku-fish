@@ -1,0 +1,124 @@
+{
+  "boundary_pairs": 360,
+  "max_centroid_jump_px": 8.864312760148117,
+  "max_area_jump_fraction": 0.5275574004366987,
+  "max_rgb_jump_per_body_pixel": 49.594202243327835,
+  "species": {
+    "banggai_cardinalfish": {
+      "centroid_jump_px": 3.5247352421944393,
+      "area_jump_fraction": 0.3161420171154379,
+      "rgb_jump_per_body_pixel": 14.978850992315257
+    },
+    "blue_tang": {
+      "centroid_jump_px": 2.7786752880034165,
+      "area_jump_fraction": 0.22796921785364482,
+      "rgb_jump_per_body_pixel": 7.438831873977955
+    },
+    "copperband_butterflyfish": {
+      "centroid_jump_px": 8.864312760148117,
+      "area_jump_fraction": 0.5275574004366987,
+      "rgb_jump_per_body_pixel": 49.594202243327835
+    },
+    "emperor_angelfish": {
+      "centroid_jump_px": 1.880359062127597,
+      "area_jump_fraction": 0.26146625351278835,
+      "rgb_jump_per_body_pixel": 10.489203991240226
+    },
+    "green_chromis": {
+      "centroid_jump_px": 1.9727249372870523,
+      "area_jump_fraction": 0.29048216078834055,
+      "rgb_jump_per_body_pixel": 18.18969165744759
+    },
+    "mandarin_dragonet": {
+      "centroid_jump_px": 2.9638781878548692,
+      "area_jump_fraction": 0.22096497708072865,
+      "rgb_jump_per_body_pixel": 8.971452721900215
+    },
+    "moorish_idol": {
+      "centroid_jump_px": 3.6362293910257413,
+      "area_jump_fraction": 0.4396111808532756,
+      "rgb_jump_per_body_pixel": 31.003006808414327
+    },
+    "ocellaris_clownfish": {
+      "centroid_jump_px": 2.340728952335821,
+      "area_jump_fraction": 0.2511114368068787,
+      "rgb_jump_per_body_pixel": 17.444842942795372
+    },
+    "royal_gramma": {
+      "centroid_jump_px": 1.790388185750316,
+      "area_jump_fraction": 0.27270676720969744,
+      "rgb_jump_per_body_pixel": 12.018541348256637
+    },
+    "yellow_tang": {
+      "centroid_jump_px": 2.621115128569742,
+      "area_jump_fraction": 0.2913056769797572,
+      "rgb_jump_per_body_pixel": 26.286168809577468
+    }
+  },
+  "worst": [
+    {
+      "name": "copperband_butterflyfish",
+      "turn_direction": 1,
+      "yaw_degrees": 101.25,
+      "centroid_jump_px": 8.86193258470225,
+      "area_jump_fraction": 0.5275574004366987,
+      "rgb_jump_per_body_pixel": 49.594202243327835
+    },
+    {
+      "name": "copperband_butterflyfish",
+      "turn_direction": 1,
+      "yaw_degrees": 281.25,
+      "centroid_jump_px": 8.864312760148117,
+      "area_jump_fraction": 0.5273592260815605,
+      "rgb_jump_per_body_pixel": 46.3292424923787
+    },
+    {
+      "name": "moorish_idol",
+      "turn_direction": 1,
+      "yaw_degrees": 281.25,
+      "centroid_jump_px": 3.0227274356282154,
+      "area_jump_fraction": 0.4396111808532756,
+      "rgb_jump_per_body_pixel": 31.003006808414327
+    },
+    {
+      "name": "moorish_idol",
+      "turn_direction": 1,
+      "yaw_degrees": 101.25,
+      "centroid_jump_px": 3.0347533340759316,
+      "area_jump_fraction": 0.4394295286558157,
+      "rgb_jump_per_body_pixel": 30.78473277688077
+    },
+    {
+      "name": "yellow_tang",
+      "turn_direction": 1,
+      "yaw_degrees": 281.25,
+      "centroid_jump_px": 2.613648710192484,
+      "area_jump_fraction": 0.2911532636907022,
+      "rgb_jump_per_body_pixel": 26.286168809577468
+    },
+    {
+      "name": "yellow_tang",
+      "turn_direction": 1,
+      "yaw_degrees": 101.25,
+      "centroid_jump_px": 2.621115128569742,
+      "area_jump_fraction": 0.2913056769797572,
+      "rgb_jump_per_body_pixel": 25.85946483705695
+    },
+    {
+      "name": "copperband_butterflyfish",
+      "turn_direction": -1,
+      "yaw_degrees": 78.75,
+      "centroid_jump_px": 2.070460202212976,
+      "area_jump_fraction": 0.2294149290574857,
+      "rgb_jump_per_body_pixel": 22.33063817315289
+    },
+    {
+      "name": "copperband_butterflyfish",
+      "turn_direction": -1,
+      "yaw_degrees": 258.75,
+      "centroid_jump_px": 2.0718452843386284,
+      "area_jump_fraction": 0.22929428266662286,
+      "rgb_jump_per_body_pixel": 20.809705849815003
+    }
+  ]
+}

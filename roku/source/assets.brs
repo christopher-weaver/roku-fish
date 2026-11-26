@@ -13,6 +13,7 @@ function ReefLoadAssets(s as object,useFractional=invalid as dynamic) as object
     a = { plate: ReefLayer(water), formations: [], surfaceShadows: [], clamFront: [], mote: ReefLayer(ReefBitmap("pkg:/images/mote.png")), bubble: ReefLayer(ReefBitmap("pkg:/images/bubble.png")), ray: ReefLayer(ReefBitmap("pkg:/images/ray.png")), caustics: [], fish: {}, fins: {}, tails: {}, sandShadows: [], surface: [] }
     floorPath="pkg:/images/seafloor-sunset.webp"
     a.floor=ReefLayer(ReefBitmap(floorPath))
+    a.turnCores={}
     a.glow=ReefLayer(ReefBitmap("pkg:/images/bioluminescence.png"))
     a.pearl=ReefLayer(ReefBitmap("pkg:/images/clam-pearl.png"))
     a.waveConfig = ParseJson(ReadAsciiFile("pkg:/scenes/waves.json"))
@@ -88,6 +89,10 @@ function ReefLoadAssets(s as object,useFractional=invalid as dynamic) as object
         ReefTailRigInit(sp)
         b = ReefBitmap(sp.image)
         if b <> invalid then a.fish[name] = ReefFishFrames(b,sp.frames,s.settings.quality,sp.bodyRenderMode="whole-swim",useFractional)
+        if sp.turnCoreImage<>invalid
+            b=ReefBitmap(sp.turnCoreImage)
+            if b<>invalid then a.turnCores[name]=ReefFishFrames(b,sp.turnCoreFrames,s.settings.quality,false,useFractional)
+        end if
         b = ReefBitmap(sp.tailImage)
         if b <> invalid then a.tails[name] = ReefFishFrames(b,sp.tailFrames,s.settings.quality,false,useFractional)
         b = ReefBitmap(sp.finImage)
@@ -103,7 +108,7 @@ sub ReefReleaseAssetMetadata(s as object,a as object)
     names=s.species.Keys() : released=0 : unused=0
     for index=0 to names.Count()-1
         name=names[index] : sp=s.species[name]
-        for each key in ["frames","tailFrames","finFrames"]
+        for each key in ["frames","tailFrames","finFrames","turnCoreFrames"]
             if sp[key]<>invalid then released=released+sp[key].Count() : sp.Delete(key)
         end for
         if a.fish[name]=invalid then s.species.Delete(name) : unused=unused+1
@@ -141,6 +146,10 @@ function ReefFishFrames(bitmap as object, metadata as object, quality as string,
                 fractional.SetScaleMode(1)
             end if
             cache[key] = {wholeSwim:wholeSwim,width:frame.w,height:frame.h,anchorX:frame.anchorX,anchorY:frame.anchorY,normal:reg,fractional:fractional,offsetX:Int(frame.anchorX)-frame.anchorX,offsetY:Int(frame.anchorY)-frame.anchorY}
+            if frame.coreWidth<>invalid
+                cache[key].refWidth=frame.coreWidth : cache[key].refAnchor=frame.coreAnchor
+                if reg<>invalid then reg.SetScaleMode(1)
+            end if
 
         end if
         frames.Push(cache[key])

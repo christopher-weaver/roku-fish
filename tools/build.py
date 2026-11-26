@@ -82,6 +82,13 @@ def validate():
                 if min(f['x'],f['y'])<0 or min(f['w'],f['h'])<1 or f['x']+f['w']>w or f['y']+f['h']>h:errors.append('Out-of-bounds frame '+name)
                 if 'anchorX' not in f or 'anchorY' not in f:errors.append('Missing cropped-frame anchor '+name)
     tank=json.loads((ROKU/'scenes/tank.json').read_text())
+    for name,sp in species.items():
+        if 'turnCoreImage' not in sp:continue
+        w,h=dimensions(ROKU/sp['turnCoreImage'][5:])
+        if len(sp['turnCoreFrames'])!=sp['turnViews']['bodyYawCount']*2:errors.append('Turn interior frame count '+name)
+        for f in sp['turnCoreFrames']:
+            if f['x']<0 or f['y']<0 or f['x']+f['w']>w or f['y']+f['h']>h:errors.append('Turn interior outside atlas '+name)
+            if f['coreWidth']<=0:errors.append('Invalid turn interior reference '+name)
     for f in tank['formations']:
         if 'animation'not in f:continue
         cfg=f['animation']

@@ -352,8 +352,9 @@ sub ReefTailRigInit(sp as object)
         u=ReefClamp(((sp.swimExtent[1]-root[0])/sp.swimSpan-sp.turnStart)/(1#-sp.turnStart),0#,1#)
         for i=0 to sp.turnViews.bodyAngles.Count()-1
             angle=sp.turnViews.bodyAngles[i] : co=Cos(angle) : sn=Sin(angle)
-            width=sp.turnViews.bodyViewWidths[i]
-            sp.tailTurnPoints.Push({x:(root[0]*co-root[2]*sn)*sp.frameW*.45/width,offset:0#-sn*sp.swimSpan*sp.bodyTurnAmplitude*u*u*sp.frameW*.45/width,y:0#-root[1]*sp.frameH*.45})
+            weight=1#
+            if sp.turnViews.bendWeights<>invalid then weight=sp.turnViews.bendWeights[i]
+            sp.tailTurnPoints.Push({x:(root[0]*co-root[2]*sn)*sp.frameW*.45,offset:0#-sn*sp.swimSpan*sp.bodyTurnAmplitude*u*u*sp.frameW*.45*weight,y:0#-root[1]*sp.frameH*.45})
         end for
     end if
     count=sp.tailPoseCount

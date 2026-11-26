@@ -18,7 +18,10 @@ def compact():
                 f=sp['frames'][idx*3+pose];im=atlas.crop((f['x'],f['y'],f['x']+f['w'],f['y']+f['h']));shots.append((im,dict(f)))
         turn=sp['turnViews'];old_turn={round(math.degrees(a),6):i for i,a in enumerate(turn['bodyAngles'])}
         turn_unique=TURN_ANGLES;turn_yaws=turn_unique+[360-a for a in reversed(turn_unique[1:-1])]
+        if any(round(yaw,6) not in old_turn for yaw in turn_unique):
+            raise ValueError('Missing true turn views; rebuild with tools/lateral_swim.py before repacking')
         turn_widths=[turn['bodyViewWidths'][old_turn[round(yaw,6)]]for yaw in turn_yaws]
+        turn_weights=[turn.get('bendWeights',[1]*len(old_turn))[old_turn[round(yaw,6)]]for yaw in turn_yaws]
         for yaw in turn_unique:
             i=old_turn[round(yaw,6)]
             for pose in range(2):
@@ -27,7 +30,7 @@ def compact():
         body=directions(frames[:len(unique)*3],3,yaws,unique,True)
         bends=directions(frames[len(unique)*3:],2,turn_yaws,turn_unique,True)
         for yaw in yaws:widths.append(sp['bodyViewWidths'][lookup[round(yaw,6)]])
-        sp.update(frames=body+bends,width=out.width,height=out.height,bodyAngles=[math.radians(a)for a in yaws],bodyYawCount=len(yaws),bodyViewWidths=widths,turnOffset=len(body),turnViews={'bodyAngles':[math.radians(a)for a in turn_yaws],'bodyYawCount':len(turn_yaws),'bodyViewWidths':turn_widths})
+        sp.update(frames=body+bends,width=out.width,height=out.height,bodyAngles=[math.radians(a)for a in yaws],bodyYawCount=len(yaws),bodyViewWidths=widths,turnOffset=len(body),turnViews={'bodyAngles':[math.radians(a)for a in turn_yaws],'bodyYawCount':len(turn_yaws),'bodyViewWidths':turn_widths,'bendWeights':turn_weights})
         rs=rest[name];rs.update(frames=[rs['frames'][lookup[round(yaw,6)]]for yaw in yaws],bodyAngles=sp['bodyAngles'],bodyYawCount=len(yaws),bodyViewWidths=widths)
         print(name,'views',len(yaws),'bytes',path.stat().st_size,flush=True)
     p.write_text(json.dumps(species,indent=2));rp.write_text(json.dumps(rest,indent=2))

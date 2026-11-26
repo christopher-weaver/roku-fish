@@ -6,7 +6,8 @@ sub Main()
         body=ReefFishFrames({part:"body",file:sp.image},sp.frames,"High",true,true)
         tails=ReefFishFrames({part:"tail",file:sp.tailImage},sp.tailFrames,"High",false,true)
         fins=ReefFishFrames({part:"fin",file:sp.finImage},sp.finFrames,"High",false,true)
-        a={fish:{},tails:{},fins:{}} : a.fish[name]=body : a.tails[name]=tails : a.fins[name]=fins
+        a={fish:{},tails:{},fins:{},turnCores:{}} : a.fish[name]=body : a.tails[name]=tails : a.fins[name]=fins
+        if sp.turnCoreFrames<>invalid then a.turnCores[name]=ReefFishFrames({part:"body",file:sp.turnCoreImage},sp.turnCoreFrames,"High",false,true)
         s={camera:64#,displayTime:0#,lighting:[1#,0#,0#,0#],settings:{lighting:"Sunset"}}
         for view=0 to 4
             heading=0# : yawVelocity=0#
@@ -33,6 +34,6 @@ end sub
 sub JointScale(mode as integer)
 end sub
 function JointCapture(x as integer,y as integer,angle as float,sx as float,sy as float,source as object,tint as integer) as boolean
-        m.draws.Push({x:x,y:y,angle:angle,sx:sx,sy:sy,part:source.part,file:source.file,cropX:source.x,cropY:source.y,w:source.w,h:source.h,px:source.px,py:source.py,alpha:tint and 255})
+        m.draws.Push({x:x,y:y,angle:angle,sx:sx,sy:sy,part:source.part,file:source.file,cropX:source.x,cropY:source.y,w:source.w,h:source.h,px:source.px,py:source.py,alpha:tint and 255,rgba:tint})
     return true
 end function

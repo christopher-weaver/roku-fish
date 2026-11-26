@@ -10,11 +10,12 @@ sub Main()
     expected=0
     for each name in species.Keys()
         item=species[name] : expected=expected+item.frames.Count()+item.tailFrames.Count()+item.finFrames.Count()
+        if item.turnCoreFrames<>invalid then expected=expected+item.turnCoreFrames.Count()
     end for
     world={species:species} : a={fish:{blue_tang:true}}
     ReefReleaseAssetMetadata(world,a)
     if world.species.Count()<>1 or world.species.blue_tang=invalid then print "FAIL lost loaded species" : return
-    if sp.frames<>invalid or sp.tailFrames<>invalid or sp.finFrames<>invalid then print "FAIL retained decoded frame metadata" : return
+    if sp.frames<>invalid or sp.tailFrames<>invalid or sp.finFrames<>invalid or sp.turnCoreFrames<>invalid then print "FAIL retained decoded frame metadata" : return
     if world.assetMemory.released_frame_objects<>expected then print "FAIL unexpected released frame table count" : return
     ReefTailRigInit(sp)
     if sp.tailBodyPoints=invalid or sp.tailSourcePoints=invalid then print "FAIL lost runtime attachments" : return

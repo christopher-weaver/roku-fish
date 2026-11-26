@@ -13,11 +13,11 @@ from fish_eyes import build as build_eyes
 from dense_turns import angles
 from tail_rig import build as bind
 ROOT=fm.ROOT
-TURN_ANGLES=[i*11.25 for i in range(17) if i not in [1,3,13,15]]
 def swim_angles():
     # Retain all 25 dense frontal views. Profile views blend over a wider arc;
     # fewer redundant side images make room for genuine eyes and C-turn poses.
     return [a for a in angles() if 78.75<=a<=101.25 or a in [0,22.5,45,67.5,112.5,135,157.5,180]]
+TURN_ANGLES=sorted(set(swim_angles()+[56.25,73.125,106.875,123.75]))
 VS=fm.VS.replace('uniform float finAngle;', 'uniform float swim;uniform float turning;uniform vec2 extent;uniform float finAngle;')
 VS=VS.replace('float c=cos(yaw)', '''float u=clamp(((extent.y-p.x)/(extent.y-extent.x)-0.28)/0.72,0.0,1.0);
 float amount=swim*(extent.y-extent.x);
@@ -81,26 +81,35 @@ def build(names=None,supersample=2,body_only=False):
             for pose in range(3):
                 reset(yaw);program['swim'].value=(pose-1)*AMPLITUDE;render_body();shots.append(read(yaw,pose))
         turn_angles=TURN_ANGLES;turn_yaws=turn_angles+[360-a for a in reversed(turn_angles[1:-1])]
-        turn_shots=[];turn_neutral=[]
+        turn_shots=[];turn_neutral=[];turn_sources=[];turn_weights=[]
         for yaw in turn_angles:
+            if yaw<=45 or yaw>=135:
+                source=dense.index(yaw)*3+1
+                turn_neutral.append(max(1,shots[source][0].width-4))
+                turn_sources.extend([source,source]);turn_weights.append(0)
+                continue
             reset(yaw);render_body();piece,meta=read(yaw,1);turn_neutral.append(max(1,piece.width-4))
+            turn_weights.append(1)
             for pose in range(2):
+                turn_sources.append(len(dense)*3+len(turn_shots))
                 reset(yaw);program['turning'].value=(pose*2-1)*TURN_AMPLITUDE;render_body();turn_shots.append(read(yaw,pose))
         shots+=turn_shots
-        size,frames=save(shots,ROOT/'roku'/sp['image'][5:],96 if name=='mandarin_dragonet' else 64)
-        sp['bodyPaletteColors']=96 if name=='mandarin_dragonet' else 64
+        colors=sp.get('bodyPaletteColors',96 if name=='mandarin_dragonet' else 64)
+        size,frames=save(shots,ROOT/'roku'/sp['image'][5:],colors)
+        sp['bodyPaletteColors']=colors
         bodyframes=directions(frames[:len(dense)*3],3,yaws,dense,True)
-        turnframes=directions(frames[len(dense)*3:],2,turn_yaws,turn_angles,True)
+        turnframes=directions([frames[i]for i in turn_sources],2,turn_yaws,turn_angles,True)
         turn_widths=[]
         for yaw in turn_yaws:
             turn_widths.append(turn_neutral[turn_angles.index(round(min(yaw,360-yaw),6))])
-        sp.update(turnOffset=len(bodyframes),turnViews={'bodyAngles':[math.radians(yaw) for yaw in turn_yaws],'bodyYawCount':len(turn_yaws),'bodyViewWidths':turn_widths},bodyTurnAmplitude=TURN_AMPLITUDE,turnStart=TURN_START,eyes=eye_info)
+        sp.update(turnOffset=len(bodyframes),turnViews={'bodyAngles':[math.radians(yaw) for yaw in turn_yaws],'bodyYawCount':len(turn_yaws),'bodyViewWidths':turn_widths,'bendWeights':[turn_weights[turn_angles.index(round(min(yaw,360-yaw),6))]for yaw in turn_yaws]},bodyTurnAmplitude=TURN_AMPLITUDE,turnStart=TURN_START,eyes=eye_info)
         neutral=[shots[i*3+1] for i in range(len(dense))]
         nsize,nframes=save(neutral,fm.SRC/'fish-rest'/(name+'.webp'),96,1024)
         neutralframes=directions(nframes,1,yaws,dense)
         if body_only:
             sp.update(frames=bodyframes+turnframes,width=size[0],height=size[1],bodySwimAmplitude=AMPLITUDE,swimStart=START,bodyAngles=[math.radians(yaw) for yaw in yaws],bodyYawCount=len(yaws),bodyViewWidths=[max(1,f['w']-4) for f in neutralframes],finSwimOffset=float(span*AMPLITUDE*curve((extent[1]-float(data['fin_hinge'][0]))/span)*fw*.45))
             rest[name]=dict(sp,frames=neutralframes,width=nsize[0],height=nsize[1],poseCount=1);rest[name].pop('bodyRenderMode',None)
+            for key in ['turnCoreImage','turnCoreFrames','turnCoreScale','turnCoreColor']:rest[name].pop(key,None)
             for obj in [body,bv,bi,tail,tv,ti,fin,fv,fi,eyes,ev,ei,skin,fintex,eyetex,fbo]:obj.release()
             print(name,'body-only',size,flush=True)
             continue
@@ -116,8 +125,8 @@ def build(names=None,supersample=2,body_only=False):
                 program['depthOnly'].value=0;program['finPass'].value=1;program['finAngle'].value=angle;fintex.use();fin.render()
                 im,meta=read(yaw,pose);im=im.resize((max(1,round(im.width/2)),max(1,round(im.height/2))),Image.Resampling.LANCZOS)
                 finshots.append((im,dict(meta,anchorX=meta['anchorX']/2,anchorY=meta['anchorY']/2)))
-        _,tails=save(tailshots,ROOT/'roku'/sp['tailImage'][5:],80,1024)
-        _,fins=save(finshots,ROOT/'roku'/sp['finImage'][5:],64,512)
+        _,tails=save(tailshots,ROOT/'roku'/sp['tailImage'][5:],sp.get('tailPaletteColors',80),1024)
+        _,fins=save(finshots,ROOT/'roku'/sp['finImage'][5:],sp.get('finPaletteColors',64),512)
         coarseall=[i*360/fm.YAW_COUNT for i in range(fm.YAW_COUNT)]
         tailframes=directions(tails,4,coarseall,coarse,True);finframes=directions(fins,5,coarseall,coarse)
         bw=[max(1,f['w']-4) for f in neutralframes];fullwidth=[]
@@ -132,6 +141,7 @@ def build(names=None,supersample=2,body_only=False):
         sp['collisionHalfWidth']=max(sp['collisionHalfWidth'],max(max(f['anchorX'],f['w']-f['anchorX']) for f in allframes))
         sp['collisionHalfHeight']=max(sp['collisionHalfHeight'],max(max(f['anchorY'],f['h']-f['anchorY']) for f in allframes))
         rest[name]=dict(sp,frames=neutralframes,width=nsize[0],height=nsize[1],poseCount=1);rest[name].pop('bodyRenderMode',None)
+        for key in ['turnCoreImage','turnCoreFrames','turnCoreScale','turnCoreColor']:rest[name].pop(key,None)
         audit[name]={'before_width_length':round(before,5),'after_width_length':round(float(np.ptp(v[:,2])/span),5),'target':WIDTHS[name],'z_scale':round(factor,5)}
         for obj in [body,bv,bi,tail,tv,ti,fin,fv,fi,eyes,ev,ei,skin,fintex,eyetex,fbo]:obj.release()
         print(name,'3D lateral poses',size,'width/length',audit[name]['after_width_length'],flush=True)
@@ -139,6 +149,8 @@ def build(names=None,supersample=2,body_only=False):
     if audit:(ROOT/'work/anatomy-bake.json').write_text(json.dumps(audit,indent=2)+'\n')
     from catalog import catalog
     catalog()
+    from turn_cores import build as build_cores
+    build_cores(names)
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--species',nargs='+',choices=list(WIDTHS));parser.add_argument('--supersample',type=int,default=2);parser.add_argument('--body-only',action='store_true')
     args=parser.parse_args();build(args.species,args.supersample,args.body_only)

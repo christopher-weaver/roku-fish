@@ -18,7 +18,7 @@ def brs_run(test,log):
     extra=['roku/components/ReefSettings.brs'] if test=='settings_ui' else ['roku/source/renderer.brs'] if test in ['render_depth','upright_present','swim_sway','clam_night_surface','clam_contents','wave_equivalence'] else []
     if test=='collision_equivalence':extra+=['tests/collision-reference.brs']
     if test in ['runtime_stability','clam_night_surface']:extra+=['roku/source/assets.brs']
-    if test=='tail_attachment':
+    if test in ['tail_attachment','export_turn_boundaries']:
         assets=(ROOT/'roku/source/assets.brs').read_text().replace('CreateObject("roRegion",','JointRegion(')
         (work/'assets-joint-test.brs').write_text(assets)
         extra+=['roku/source/renderer.brs','work/assets-joint-test.brs']
@@ -54,6 +54,12 @@ if __name__=='__main__':
         if joint['max_fractional_root_error_pixels']>.02 or joint['max_integer_root_error_pixels']>.75 or joint['side_view_collars_without_overlap']or joint['tail_not_before_body_cases']or joint['tail_phase_mismatch_cases']:raise RuntimeError(str(joint))
         (ROOT/'docs/tail-attachment-results.json').write_text(json.dumps(joint,indent=2)+'\n')
         print('PASS shared mesh tail attachment: '+str(joint))
+        brs_run('export_turn_boundaries','work/turn-boundaries-current.txt')
+        from turn_capture_check import validate as validate_turn_boundaries
+        boundaries=validate_turn_boundaries(ROOT/'work/turn-boundaries-current.txt')
+        if boundaries['max_centroid_jump_px']>.5 or boundaries['max_area_jump_fraction']>.02 or boundaries['max_rgb_jump_per_body_pixel']>1.5:raise RuntimeError(str(boundaries))
+        (ROOT/'docs/turn-boundaries-results.json').write_text(json.dumps(boundaries,indent=2)+'\n')
+        print('PASS actual C-turn outline continuity: '+str({k:v for k,v in boundaries.items()if k not in ['species','worst']}))
         print(brs_run('cpu_workload','docs/cpu-workload-results.txt'))
         print(brs_run('collision_equivalence','docs/collision-equivalence-results.txt'))
         print(brs_run('frame_profile','docs/frame-profile-results.txt'))

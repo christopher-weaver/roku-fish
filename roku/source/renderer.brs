@@ -39,20 +39,30 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     if frames = invalid then return
     f.swimPose=ReefSwimPose(f.renderPose,f.sp,f.speed,f.swimPose)
     pose = f.swimPose
-    r.waveSinPhase=Sin(pose.phase) : r.waveCosPhase=0# : r.waveTurn=0#
+    r.waveSinPhase=Sin(pose.phase) : r.waveCosPhase=0# : r.waveTurn=0# : r.turnCoreFrame=invalid
     if f.sp.turnViews<>invalid
         ' A small head counter-sway makes depth-axis flex visible in profile.
         effort=1#
         if f.speed<>invalid then effort=.4+.6*ReefClamp(f.speed/f.sp.speed,0#,1#)
-        pose.heading=pose.heading+r.waveSinPhase*.028*effort
         turn=0#
         if pose.yawVelocity<>invalid then turn=ReefClamp(pose.yawVelocity/.30,-1#,1#)
         amount=Abs(turn)
+        ' Keep the head steady during a deliberate turn; the swim counter-sway
+        ' otherwise periodically reverses the displayed angular velocity.
+        pose.heading=pose.heading+r.waveSinPhase*.028*effort*(1#-ReefEase(amount*3.75))
         r.waveSinPhase=r.waveSinPhase*(1#-ReefEase(amount/.12))
         r.waveTurn=ReefEase((amount-.12)/.88)
         if turn<0# then r.waveTurn=0#-r.waveTurn
         f.turnView=ReefBodyView(pose.heading,f.sp.turnViews,f.turnView)
         r.turnView=f.turnView
+        if Abs(r.waveTurn)>0# then r.turnShape=ReefTurnEnvelope(frames,f.sp,f.turnView,r.waveTurn,r.turnShape)
+        if a.turnCores<>invalid and Abs(r.waveTurn)>0#
+            if a.turnCores[f.name]<>invalid
+                corePose=1
+                if r.waveTurn<0# then corePose=0
+                r.turnCoreFrame=a.turnCores[f.name][f.turnView.first*2+corePose]
+            end if
+        end if
     end if
     f.screenPose = ReefProjection(pose,s.camera,f.screenPose)
     p = f.screenPose
@@ -76,6 +86,7 @@ sub ReefDrawFish(r as object, s as object, a as object, f as object)
     ' Project 3D pitch continuously. A sign(Cos(yaw)) switch flips the full
     ' tilt instantly when the fish passes a front/rear view.
     angle=pose.pitch*57.29578*headingCos
+    if not r.rotation then angle=0#
     if headingCos<0 then r.waveSign=0#-1#
     r.waveBaseCos=Cos(angle/57.295779513#) : r.waveBaseSin=Sin(angle/57.295779513#)
     r.wavePhase=pose.phase : r.waveHeading=pose.heading
@@ -102,21 +113,34 @@ end sub
  ' Bilinear phase/yaw weights, normalized for source-over with an opaque base.
 sub ReefDrawWholeBody(r as object,p as object,sp as object,frames as object,position as double,view as object,scale as double,angle as double,red as integer,green as integer,blue as integer)
     if r.waveTurn<>invalid and Abs(r.waveTurn)>0#
-        ' Two neutral yaw samples and two C-bend samples: the same four-draw
-        ' budget as the S swim. Source-over alpha preserves the linear weights.
+        ' Fade the outgoing outline rather than leaving it opaque until the
+        ' view changes. An interior material mask keeps the torso opaque.
         t=Abs(r.waveTurn) : cv=r.turnView : signPose=1
         if r.waveTurn<0# then signPose=0
-        tint=ReefRGBA(red,green,blue,0)
+        tint=ReefRGBA(red,green,blue,0) : fade=1# : shape=r.turnShape
+        if r.turnCoreFrame<>invalid
+            core=r.turnCoreFrame : coreScale=shape.width/core.refWidth
+            offset=core.refAnchor*coreScale-shape.anchor
+            color=sp.turnCoreColor
+            coreOpacity=Int(255#*t+.5)
+            if coreOpacity>0
+                coreTint=ReefRGBA(Int(red*color[0]/255#),Int(green*color[1]/255#),Int(blue*color[2]/255#),coreOpacity)
+                ReefDrawFishRegion(r,p.x+offset*scale*r.waveBaseCos,p.y-offset*scale*r.waveBaseSin,scale*coreScale*sp.turnCoreScale,scale*sp.turnCoreScale,angle,core,coreTint)
+            end if
+            fade=1#-.06*t
+        end if
+        w0=(1#-t)*(1#-view.blend) : w1=(1#-t)*view.blend
+        w2=t*(1#-cv.blend) : w3=t*cv.blend
         if t<1#
-            ReefDrawFishRegion(r,p.x,p.y,scale*view.width/sp.bodyViewWidths[view.first],scale,angle,frames[view.first*sp.poseCount+1],tint or 255)
-            opacity=Int(255#*view.blend+.5)
+            opacity=ReefTurnAlpha(w0,1#-w0,fade)
+            if opacity>0 then ReefDrawFishRegion(r,p.x,p.y,scale*view.width/sp.bodyViewWidths[view.first],scale,angle,frames[view.first*sp.poseCount+1],tint or opacity)
+            opacity=ReefTurnAlpha(w1,t,fade)
             if opacity>0 then ReefDrawFishRegion(r,p.x,p.y,scale*view.width/sp.bodyViewWidths[view.second],scale,angle,frames[view.second*sp.poseCount+1],tint or opacity)
         end if
-        denominator=1#-t*cv.blend : opacity=0
-        if denominator>.0000001 then opacity=Int(255#*t*(1#-cv.blend)/denominator+.5)
-        if opacity>0 then ReefDrawFishRegion(r,p.x,p.y,scale*cv.width/sp.turnViews.bodyViewWidths[cv.first],scale,angle,frames[sp.turnOffset+cv.first*2+signPose],tint or opacity)
-        opacity=Int(255#*t*cv.blend+.5)
-        if opacity>0 then ReefDrawFishRegion(r,p.x,p.y,scale*cv.width/sp.turnViews.bodyViewWidths[cv.second],scale,angle,frames[sp.turnOffset+cv.second*2+signPose],tint or opacity)
+        opacity=ReefTurnAlpha(w2,w3,fade)
+        if opacity>0 then ReefDrawFishRegion(r,p.x+shape.firstOffset*scale*r.waveBaseCos,p.y-shape.firstOffset*scale*r.waveBaseSin,scale*shape.firstScale,scale,angle,frames[sp.turnOffset+cv.first*2+signPose],tint or opacity)
+        opacity=ReefTurnAlpha(w3,0#,fade)
+        if opacity>0 then ReefDrawFishRegion(r,p.x+shape.secondOffset*scale*r.waveBaseCos,p.y-shape.secondOffset*scale*r.waveBaseSin,scale*shape.secondScale,scale,angle,frames[sp.turnOffset+cv.second*2+signPose],tint or opacity)
         return
     end if
     first=Int(position) : second=first+1
@@ -139,6 +163,30 @@ sub ReefDrawWholeBody(r as object,p as object,sp as object,frames as object,posi
     if opacity>0 then ReefDrawFishRegion(r,p.x,p.y,secondScale,scale,angle,frames[secondBase+second],tint or opacity)
 end sub
 
+' Morph the actual signed C silhouette, not the resting body's width. Matching
+' both crop edges also keeps an asymmetric curved body centered through yaw.
+function ReefTurnEnvelope(frames as object,sp as object,view as object,turn as double,result=invalid as dynamic) as object
+    pose=1
+    if turn<0# then pose=0
+    a=frames[sp.turnOffset+view.first*2+pose] : b=frames[sp.turnOffset+view.second*2+pose]
+    aw=ReefMax(1#,a.width-4#) : bw=ReefMax(1#,b.width-4#)
+    width=aw+(bw-aw)*view.blend
+    anchor=a.anchorX-2#+(b.anchorX-a.anchorX)*view.blend
+    if result=invalid then result={}
+    result.firstScale=width/aw : result.secondScale=width/bw
+    result.width=width : result.anchor=anchor
+    result.firstOffset=(a.anchorX-2#)*result.firstScale-anchor
+    result.secondOffset=(b.anchorX-2#)*result.secondScale-anchor
+    return result
+end function
+
+function ReefTurnAlpha(weight as double,after as double,coverage as double) as integer
+    if weight<=0# then return 0
+    denominator=1#-coverage*after
+    if denominator<=.0000001 then return 0
+    return Int(255#*coverage*weight/denominator+.5)
+end function
+
  ' The caudal root stays fixed while its texture envelope changes at the tip.
 sub ReefDrawBoundTail(r as object,p as object,sp as object,frames as object,position as double,view as object,body as object,scale as double,angle as double,red as integer,green as integer,blue as integer)
     ReefTailRigInit(sp)
@@ -156,9 +204,13 @@ sub ReefDrawBoundTail(r as object,p as object,sp as object,frames as object,posi
         ty=scale*(a.y+(b.y-a.y)*body.blend)
         if sp.turnViews<>invalid and Abs(r.waveTurn)>0#
             cv=r.turnView : c=sp.tailTurnPoints[cv.first] : d=sp.tailTurnPoints[cv.second]
-            turnX=cv.width*(c.x+(d.x-c.x)*cv.blend)
-            turnOffset=cv.width*(c.offset+(d.offset-c.offset)*cv.blend)
-            tx=tx*(1#-Abs(r.waveTurn))+scale*(turnX*Abs(r.waveTurn)+turnOffset*r.waveTurn)
+            sign=1#
+            if r.waveTurn<0# then sign=-1#
+            shape=r.turnShape
+            first=(c.x+c.offset*sign)*shape.firstScale+shape.firstOffset
+            second=(d.x+d.offset*sign)*shape.secondScale+shape.secondOffset
+            turnX=first+(second-first)*cv.blend
+            tx=tx*(1#-Abs(r.waveTurn))+scale*turnX*Abs(r.waveTurn)
         end if
         drawAngle=angle
     else

@@ -1,84 +1,85 @@
 {
-  "swim_amplitude_fraction": 0.055,
-  "turn_amplitude_fraction": 0.065,
-  "native_body_heading_slots": 64,
-  "dense_frontal_samples": 25,
-  "turn_heading_slots": 24,
-  "unique_body_regions_per_species": 125,
-  "previous_unique_body_regions_per_species": 123,
-  "maximum_body_draws": 4,
-  "maximum_total_fish_draws": 6,
-  "frame_resolution_changed": false,
-  "palette_compaction": {
+  "version": "1.0.35",
+  "native_resolution_changed": false,
+  "s_swim_amplitude": 0.055,
+  "c_turn_amplitude": 0.04,
+  "frontal_swim_samples": 25,
+  "frontal_c_turn_samples": 25,
+  "c_heading_slots": 72,
+  "max_surface_draws": 4,
+  "max_interior_draws": 1,
+  "max_total_fish_draws": 7,
+  "model_changes": {
     "ocellaris_clownfish": {
-      "palette": 64,
-      "before_bytes": 145050,
-      "after_bytes": 132674,
-      "visible_rgb_mae": 2.3831,
-      "alpha_identical": true
+      "old_width_length": 0.145,
+      "new_width_length": 0.18,
+      "profile_xy_vertex_change": 0.0,
+      "old_front_width_height": 0.47458,
+      "new_front_width_height": 0.48571
     },
     "yellow_tang": {
-      "palette": 64,
-      "before_bytes": 206456,
-      "after_bytes": 182686,
-      "visible_rgb_mae": 1.2163,
-      "alpha_identical": true
+      "old_width_length": 0.085,
+      "new_width_length": 0.12,
+      "profile_xy_vertex_change": 0.0,
+      "old_front_width_height": 0.19608,
+      "new_front_width_height": 0.25243
     },
     "royal_gramma": {
-      "palette": 64,
-      "before_bytes": 105506,
-      "after_bytes": 98578,
-      "visible_rgb_mae": 1.3767,
-      "alpha_identical": true
+      "old_width_length": 0.115,
+      "new_width_length": 0.145,
+      "profile_xy_vertex_change": 0.0,
+      "old_front_width_height": 0.35821,
+      "new_front_width_height": 0.41176
     },
     "emperor_angelfish": {
-      "palette": 64,
-      "before_bytes": 202194,
-      "after_bytes": 180566,
-      "visible_rgb_mae": 3.7159,
-      "alpha_identical": true
+      "old_width_length": 0.1,
+      "new_width_length": 0.14,
+      "profile_xy_vertex_change": 0.0,
+      "old_front_width_height": 0.25287,
+      "new_front_width_height": 0.34091
     },
     "moorish_idol": {
-      "palette": 64,
-      "before_bytes": 183752,
-      "after_bytes": 168552,
-      "visible_rgb_mae": 2.5545,
-      "alpha_identical": true
+      "old_width_length": 0.065,
+      "new_width_length": 0.1,
+      "profile_xy_vertex_change": 0.0,
+      "old_front_width_height": 0.18824,
+      "new_front_width_height": 0.20952
     },
     "green_chromis": {
-      "palette": 64,
-      "before_bytes": 120322,
-      "after_bytes": 112908,
-      "visible_rgb_mae": 1.1554,
-      "alpha_identical": true
+      "old_width_length": 0.11,
+      "new_width_length": 0.14,
+      "profile_xy_vertex_change": 0.0,
+      "old_front_width_height": 0.36066,
+      "new_front_width_height": 0.41791
     },
     "blue_tang": {
-      "palette": 64,
-      "before_bytes": 206968,
-      "after_bytes": 185936,
-      "visible_rgb_mae": 2.0476,
-      "alpha_identical": true
+      "old_width_length": 0.09,
+      "new_width_length": 0.125,
+      "profile_xy_vertex_change": 0.0,
+      "old_front_width_height": 0.25532,
+      "new_front_width_height": 0.34043
     },
     "copperband_butterflyfish": {
-      "palette": 64,
-      "before_bytes": 381700,
-      "after_bytes": 349016,
-      "visible_rgb_mae": 2.4367,
-      "alpha_identical": true
+      "old_width_length": 0.06,
+      "new_width_length": 0.16,
+      "profile_xy_vertex_change": 0.0,
+      "old_front_width_height": 0.15254,
+      "new_front_width_height": 0.30534
     },
     "banggai_cardinalfish": {
-      "palette": 64,
-      "before_bytes": 267428,
-      "after_bytes": 247348,
-      "visible_rgb_mae": 1.7501,
-      "alpha_identical": true
+      "old_width_length": 0.09,
+      "new_width_length": 0.125,
+      "profile_xy_vertex_change": 0.0,
+      "old_front_width_height": 0.17518,
+      "new_front_width_height": 0.23358
     },
     "mandarin_dragonet": {
-      "palette": 96,
-      "alpha_identical": true,
-      "visible_rgb_mae": 0,
-      "note": "Retained original colors; lower palette exceeded the color-error limit."
+      "old_width_length": 0.15,
+      "new_width_length": 0.18,
+      "profile_xy_vertex_change": 0.0,
+      "old_front_width_height": 0.36538,
+      "new_front_width_height": 0.42308
     }
   },
-  "validation_boundary": "Host measurements and production draw captures; native Roku FPS and appearance require device validation."
+  "validation_boundary": "Host replay of production draw commands; actual Roku FPS and GPU output are unmeasured."
 }

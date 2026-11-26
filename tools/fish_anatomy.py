@@ -3,13 +3,13 @@
 See docs/FISH_ANATOMY.md for morphological references and limitations.
 """
 import numpy as np
-WIDTHS={'ocellaris_clownfish':.145,'yellow_tang':.085,'royal_gramma':.115,
-        'emperor_angelfish':.10,'moorish_idol':.065,'green_chromis':.11,
-        'blue_tang':.09,'copperband_butterflyfish':.06,
-        'banggai_cardinalfish':.09,'mandarin_dragonet':.15}
+WIDTHS={'ocellaris_clownfish':.18,'yellow_tang':.12,'royal_gramma':.145,
+        'emperor_angelfish':.14,'moorish_idol':.10,'green_chromis':.14,
+        'blue_tang':.125,'copperband_butterflyfish':.16,
+        'banggai_cardinalfish':.125,'mandarin_dragonet':.18}
 AMPLITUDE=.055
 START=.28
-TURN_AMPLITUDE=.065
+TURN_AMPLITUDE=.04
 TURN_START=.15
 def curve(u):
     u=np.clip((u-START)/(1-START),0,1)

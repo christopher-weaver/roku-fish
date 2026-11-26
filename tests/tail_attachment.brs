@@ -13,8 +13,10 @@ sub Main()
             if fractional[0].normal<>invalid or fractional[0].fractional=invalid then print "FAIL unused normal region retained" : return
             if integer[0].fractional<>invalid or integer[0].normal=invalid then print "FAIL unused fractional region retained" : return
         end if
-        sp.Delete("frames") : sp.Delete("tailFrames") : sp.Delete("finFrames")
-        a={fish:{},tails:{},fins:{}} : a.fish[name]=body : a.tails[name]=tails : a.fins[name]=fins
+
+        a={fish:{},tails:{},fins:{},turnCores:{}} : a.fish[name]=body : a.tails[name]=tails : a.fins[name]=fins
+        if sp.turnCoreFrames<>invalid then a.turnCores[name]=ReefFishFrames({part:"body",file:sp.turnCoreImage},sp.turnCoreFrames,"High",false)
+        sp.Delete("frames") : sp.Delete("tailFrames") : sp.Delete("finFrames") : sp.Delete("turnCoreFrames")
         s={camera:64#,displayTime:0#,lighting:[1#,0#,0#,0#],settings:{lighting:"Sunset"}}
         for direction=0 to 7
             heading=direction*6.283185307#/8#+.03
@@ -50,7 +52,7 @@ sub JointScale(mode as integer)
 end sub
 function JointCapture(x as integer,y as integer,angle as float,sx as float,sy as float,source as object,tint as integer) as boolean
     if source.part<>"fin"
-        m.draws.Push({x:x,y:y,angle:angle,sx:sx,sy:sy,part:source.part,file:source.file,cropX:source.x,cropY:source.y,w:source.w,h:source.h,px:source.px,py:source.py,alpha:tint and 255})
+        m.draws.Push({x:x,y:y,angle:angle,sx:sx,sy:sy,part:source.part,file:source.file,cropX:source.x,cropY:source.y,w:source.w,h:source.h,px:source.px,py:source.py,alpha:tint and 255,rgba:tint})
     end if
     return true
 end function

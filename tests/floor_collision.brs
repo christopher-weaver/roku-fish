@@ -13,9 +13,15 @@ sub Main()
         if ReefFloorBlocked(s,f,high,high) then print "FAIL clear water blocked" : return
         if not ReefFloorBlocked(s,f,buried,buried) then print "FAIL buried body allowed" : return
         if not ReefCoralBlocked(s,f,high,buried) then print "FAIL ground sweep allowed" : return
-        rear={x:900#,y:920#,z:.12} : front={x:900#,y:920#,z:.98}
+        ' The fuller copperband needs a few more pixels above the sand.
+        ' Preserve the ground guard rather than accepting its old buried pose.
+        rear={x:900#,y:920#,z:.12} : front={x:900#,y:910#,z:.98}
         if not ReefFloorBlocked(s,f,rear,rear) then print "FAIL rear fish beneath sand" : return
         if ReefFloorBlocked(s,f,front,front) then print "FAIL clear front floor lane blocked" : return
+        if name="copperband_butterflyfish"
+            oldPose={x:900#,y:920#,z:.98}
+            if not ReefFloorBlocked(s,f,oldPose,oldPose) then print "FAIL wider copperband clips into sand" : return
+        end if
         rock={x:900#,y:930#,z:.58}
         if not ReefCoralBlocked(footingWorld,f,rock,rock) then print "FAIL fish under reef footing" : return
         count=count+1

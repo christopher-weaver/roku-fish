@@ -1,0 +1,232 @@
+{
+  "copperband_butterflyfish:body": {
+    "palette": 48,
+    "before_bytes": 356840,
+    "after_bytes": 333574,
+    "visible_rgb_mae": 2.3007,
+    "alpha_identical": true
+  },
+  "mandarin_dragonet:body": {
+    "palette": 80,
+    "before_bytes": 224610,
+    "after_bytes": 219946,
+    "visible_rgb_mae": 1.466,
+    "alpha_identical": true
+  },
+  "banggai_cardinalfish:body": {
+    "palette": 48,
+    "before_bytes": 223756,
+    "after_bytes": 217904,
+    "visible_rgb_mae": 1.4469,
+    "alpha_identical": true
+  },
+  "blue_tang:body": {
+    "palette": 48,
+    "before_bytes": 176676,
+    "after_bytes": 167176,
+    "visible_rgb_mae": 1.5243,
+    "alpha_identical": true
+  },
+  "yellow_tang:body": {
+    "palette": 48,
+    "before_bytes": 168158,
+    "after_bytes": 157726,
+    "visible_rgb_mae": 1.1062,
+    "alpha_identical": true
+  },
+  "emperor_angelfish:body": {
+    "palette": 48,
+    "before_bytes": 165362,
+    "after_bytes": 159810,
+    "visible_rgb_mae": 2.5692,
+    "alpha_identical": true
+  },
+  "moorish_idol:body": {
+    "palette": 48,
+    "before_bytes": 160412,
+    "after_bytes": 154672,
+    "visible_rgb_mae": 2.2944,
+    "alpha_identical": true
+  },
+  "ocellaris_clownfish:body": {
+    "palette": 48,
+    "before_bytes": 120588,
+    "after_bytes": 117406,
+    "visible_rgb_mae": 1.905,
+    "alpha_identical": true
+  },
+  "green_chromis:body": {
+    "palette": 48,
+    "before_bytes": 102988,
+    "after_bytes": 98680,
+    "visible_rgb_mae": 2.0394,
+    "alpha_identical": true
+  },
+  "royal_gramma:body": {
+    "palette": 48,
+    "before_bytes": 98618,
+    "after_bytes": 93262,
+    "visible_rgb_mae": 1.966,
+    "alpha_identical": true
+  },
+  "mandarin_dragonet:tail": {
+    "part": "tail",
+    "palette": 32,
+    "before_bytes": 93642,
+    "after_bytes": 88274,
+    "visible_rgb_mae": 3.7155,
+    "alpha_identical": true
+  },
+  "banggai_cardinalfish:tail": {
+    "part": "tail",
+    "palette": 32,
+    "before_bytes": 93604,
+    "after_bytes": 87728,
+    "visible_rgb_mae": 3.0084,
+    "alpha_identical": true
+  },
+  "blue_tang:tail": {
+    "part": "tail",
+    "palette": 32,
+    "before_bytes": 56766,
+    "after_bytes": 49626,
+    "visible_rgb_mae": 2.63,
+    "alpha_identical": true
+  },
+  "emperor_angelfish:tail": {
+    "part": "tail",
+    "palette": 32,
+    "before_bytes": 51174,
+    "after_bytes": 50618,
+    "visible_rgb_mae": 2.5379,
+    "alpha_identical": true
+  },
+  "yellow_tang:tail": {
+    "part": "tail",
+    "palette": 32,
+    "before_bytes": 41258,
+    "after_bytes": 38254,
+    "visible_rgb_mae": 1.4474,
+    "alpha_identical": true
+  },
+  "moorish_idol:tail": {
+    "part": "tail",
+    "palette": 32,
+    "before_bytes": 34136,
+    "after_bytes": 31194,
+    "visible_rgb_mae": 1.5724,
+    "alpha_identical": true
+  },
+  "copperband_butterflyfish:tail": {
+    "part": "tail",
+    "palette": 32,
+    "before_bytes": 32048,
+    "after_bytes": 29990,
+    "visible_rgb_mae": 1.6294,
+    "alpha_identical": true
+  },
+  "green_chromis:tail": {
+    "part": "tail",
+    "palette": 32,
+    "before_bytes": 29916,
+    "after_bytes": 29182,
+    "visible_rgb_mae": 1.3366,
+    "alpha_identical": true
+  },
+  "ocellaris_clownfish:tail": {
+    "part": "tail",
+    "palette": 32,
+    "before_bytes": 26146,
+    "after_bytes": 22844,
+    "visible_rgb_mae": 2.4359,
+    "alpha_identical": true
+  },
+  "royal_gramma:tail": {
+    "part": "tail",
+    "palette": 32,
+    "before_bytes": 26934,
+    "after_bytes": 25162,
+    "visible_rgb_mae": 1.8786,
+    "alpha_identical": true
+  },
+  "mandarin_dragonet:fin": {
+    "part": "fin",
+    "palette": 48,
+    "before_bytes": 49598,
+    "after_bytes": 48398,
+    "visible_rgb_mae": 2.9738,
+    "alpha_identical": true
+  },
+  "ocellaris_clownfish:fin": {
+    "part": "fin",
+    "palette": 32,
+    "before_bytes": 27272,
+    "after_bytes": 26104,
+    "visible_rgb_mae": 3.5006,
+    "alpha_identical": true
+  },
+  "banggai_cardinalfish:fin": {
+    "part": "fin",
+    "palette": 32,
+    "before_bytes": 25390,
+    "after_bytes": 24440,
+    "visible_rgb_mae": 2.2833,
+    "alpha_identical": true
+  },
+  "emperor_angelfish:fin": {
+    "part": "fin",
+    "palette": 32,
+    "before_bytes": 22022,
+    "after_bytes": 21612,
+    "visible_rgb_mae": 1.7302,
+    "alpha_identical": true
+  },
+  "yellow_tang:fin": {
+    "part": "fin",
+    "palette": 32,
+    "before_bytes": 21550,
+    "after_bytes": 21030,
+    "visible_rgb_mae": 2.1234,
+    "alpha_identical": true
+  },
+  "green_chromis:fin": {
+    "part": "fin",
+    "palette": 32,
+    "before_bytes": 20712,
+    "after_bytes": 20272,
+    "visible_rgb_mae": 1.9742,
+    "alpha_identical": true
+  },
+  "copperband_butterflyfish:fin": {
+    "part": "fin",
+    "palette": 32,
+    "before_bytes": 19828,
+    "after_bytes": 19186,
+    "visible_rgb_mae": 3.7059,
+    "alpha_identical": true
+  },
+  "moorish_idol:fin": {
+    "part": "fin",
+    "palette": 32,
+    "before_bytes": 18906,
+    "after_bytes": 18218,
+    "visible_rgb_mae": 3.1204,
+    "alpha_identical": true
+  },
+  "royal_gramma:fin": {
+    "part": "fin",
+    "palette": 32,
+    "before_bytes": 16512,
+    "after_bytes": 16402,
+    "visible_rgb_mae": 1.8977,
+    "alpha_identical": true
+  },
+  "blue_tang:fin": {
+    "part": "fin",
+    "palette": 48,
+    "before_bytes": 14262,
+    "after_bytes": 14082,
+    "visible_rgb_mae": 1.6641,
+    "alpha_identical": true
+  }
+}

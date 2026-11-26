@@ -31,12 +31,18 @@ def targets(f,overlap):
     ty=scale*(points[0][1]+(points[1][1]-points[0][1])*mix)
     if turn:
         cv=f['turnBody'];q=np.clip(((sp['swimExtent'][1]-root[0])/sp['swimSpan']-sp['turnStart'])/(1-sp['turnStart']),0,1)
-        z=root[2]+math.copysign(sp['swimSpan']*sp['bodyTurnAmplitude']*q*q,turn)
+        ids=[cv['first'],cv['second']];sign_pose=1 if turn>0 else 0
+        frames=[sp['frames'][sp['turnOffset']+i*2+sign_pose]for i in ids]
+        width=(frames[0]['w']-4)*(1-cv['blend'])+(frames[1]['w']-4)*cv['blend']
+        anchor=(frames[0]['anchorX']-2)*(1-cv['blend'])+(frames[1]['anchorX']-2)*cv['blend']
         projected=[]
-        for i in [cv['first'],cv['second']]:
+        for i,frame in zip(ids,frames):
+            weight=sp['turnViews'].get('bendWeights',[1]*sp['turnViews']['bodyYawCount'])[i]
+            z=root[2]+math.copysign(sp['swimSpan']*sp['bodyTurnAmplitude']*q*q*weight,turn)
             a=sp['turnViews']['bodyAngles'][i]
-            projected.append((root[0]*math.cos(a)-z*math.sin(a))*sp['frameW']*.45/sp['turnViews']['bodyViewWidths'][i])
-        cx=scale*cv['width']*(projected[0]+(projected[1]-projected[0])*cv['blend'])
+            sx=width/(frame['w']-4);offset=(frame['anchorX']-2)*sx-anchor
+            projected.append((root[0]*math.cos(a)-z*math.sin(a))*sp['frameW']*.45*sx+offset)
+        cx=scale*(projected[0]+(projected[1]-projected[0])*cv['blend'])
         tx=tx*(1-abs(turn))+cx*abs(turn)
     tx+=overlap*scale*math.cos(f['heading'])
     angle=f['pitch']*math.cos(f['heading'])*57.29578

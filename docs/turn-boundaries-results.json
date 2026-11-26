@@ -1,0 +1,124 @@
+{
+  "boundary_pairs": 1320,
+  "max_centroid_jump_px": 0.08875723810770353,
+  "max_area_jump_fraction": 0.008858045176394847,
+  "max_rgb_jump_per_body_pixel": 0.7545151425412027,
+  "species": {
+    "banggai_cardinalfish": {
+      "centroid_jump_px": 0.03599503863668187,
+      "area_jump_fraction": 0.004194574752843374,
+      "rgb_jump_per_body_pixel": 0.26758315424107115
+    },
+    "blue_tang": {
+      "centroid_jump_px": 0.07477607008531405,
+      "area_jump_fraction": 0.005172739484510036,
+      "rgb_jump_per_body_pixel": 0.20507929097289743
+    },
+    "copperband_butterflyfish": {
+      "centroid_jump_px": 0.06340594710128222,
+      "area_jump_fraction": 0.0047174370952186,
+      "rgb_jump_per_body_pixel": 0.5231361088588596
+    },
+    "emperor_angelfish": {
+      "centroid_jump_px": 0.04483190434246097,
+      "area_jump_fraction": 0.0051973844057341964,
+      "rgb_jump_per_body_pixel": 0.25899901028891864
+    },
+    "green_chromis": {
+      "centroid_jump_px": 0.023118616848274907,
+      "area_jump_fraction": 0.0052314148342599105,
+      "rgb_jump_per_body_pixel": 0.3377580334294407
+    },
+    "mandarin_dragonet": {
+      "centroid_jump_px": 0.046210252767141385,
+      "area_jump_fraction": 0.004294898393589446,
+      "rgb_jump_per_body_pixel": 0.3144159493003111
+    },
+    "moorish_idol": {
+      "centroid_jump_px": 0.0582399659572865,
+      "area_jump_fraction": 0.006193506967105233,
+      "rgb_jump_per_body_pixel": 0.40716682854599323
+    },
+    "ocellaris_clownfish": {
+      "centroid_jump_px": 0.07667588936669474,
+      "area_jump_fraction": 0.006944272215471103,
+      "rgb_jump_per_body_pixel": 0.7545151425412027
+    },
+    "royal_gramma": {
+      "centroid_jump_px": 0.08875723810770353,
+      "area_jump_fraction": 0.008858045176394847,
+      "rgb_jump_per_body_pixel": 0.40787171995896865
+    },
+    "yellow_tang": {
+      "centroid_jump_px": 0.03965085085722509,
+      "area_jump_fraction": 0.007043876790301475,
+      "rgb_jump_per_body_pixel": 0.670515671864433
+    }
+  },
+  "worst": [
+    {
+      "name": "ocellaris_clownfish",
+      "turn_direction": -1,
+      "yaw_degrees": 123.75,
+      "centroid_jump_px": 0.060194241324331994,
+      "area_jump_fraction": 0.006443295114283099,
+      "rgb_jump_per_body_pixel": 0.7545151425412027
+    },
+    {
+      "name": "ocellaris_clownfish",
+      "turn_direction": 1,
+      "yaw_degrees": 236.25,
+      "centroid_jump_px": 0.060194241324331994,
+      "area_jump_fraction": 0.006443295114283099,
+      "rgb_jump_per_body_pixel": 0.7545151425412027
+    },
+    {
+      "name": "ocellaris_clownfish",
+      "turn_direction": -1,
+      "yaw_degrees": 303.75,
+      "centroid_jump_px": 0.0764616166903922,
+      "area_jump_fraction": 0.004080403726289331,
+      "rgb_jump_per_body_pixel": 0.7539569480457552
+    },
+    {
+      "name": "ocellaris_clownfish",
+      "turn_direction": 1,
+      "yaw_degrees": 56.25,
+      "centroid_jump_px": 0.0764616166903922,
+      "area_jump_fraction": 0.004080403726289331,
+      "rgb_jump_per_body_pixel": 0.7539569480457552
+    },
+    {
+      "name": "yellow_tang",
+      "turn_direction": -1,
+      "yaw_degrees": 67.5,
+      "centroid_jump_px": 0.03767993439663474,
+      "area_jump_fraction": 0.007043876790301475,
+      "rgb_jump_per_body_pixel": 0.670515671864433
+    },
+    {
+      "name": "yellow_tang",
+      "turn_direction": 1,
+      "yaw_degrees": 292.5,
+      "centroid_jump_px": 0.03767993439663474,
+      "area_jump_fraction": 0.007043876790301475,
+      "rgb_jump_per_body_pixel": 0.670515671864433
+    },
+    {
+      "name": "yellow_tang",
+      "turn_direction": -1,
+      "yaw_degrees": 247.5,
+      "centroid_jump_px": 0.03965085085722509,
+      "area_jump_fraction": 0.0070333755633555225,
+      "rgb_jump_per_body_pixel": 0.664855275637431
+    },
+    {
+      "name": "yellow_tang",
+      "turn_direction": 1,
+      "yaw_degrees": 112.5,
+      "centroid_jump_px": 0.03965085085722509,
+      "area_jump_fraction": 0.0070333755633555225,
+      "rgb_jump_per_body_pixel": 0.664855275637431
+    }
+  ]
+}

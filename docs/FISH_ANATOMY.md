@@ -1,31 +1,27 @@
-# Fish anatomy and lateral swimming — 1.0.34
+# Fish anatomy and turning — 1.0.35
 
-The former swim atlas shifted image columns in screen Y. That made the rear body move vertically. Complete body poses now come from the textured volume mesh, bending in model Z (left/right), before yaw projection. Model Y stays fixed. The forebody remains steady and the rear body forms an S and inverse S. Caudal deflection continues the rear-body S curve with the matching opposite stroke. Tails bind to the projected 3D attachment; no vertical swim tangent is applied to the tail or pectoral image.
+The copperband reference has a substantial frontal face/body rather than a paper edge. Its neutral rendered body width/height is now 40/131 (30.5%), versus 18/131 (13.7%). These measurements exclude the independently drawn pectoral fins. The other nine species also have fuller cross-sections. Source model X/Y vertices are unchanged, preserving the approved side silhouettes; Z extents and normals are updated, and the modeled eyeballs are refitted to the head.
 
-The widths below are measured model extents: maximum left/right body width divided by tip-to-tip model length. The targets are visual modeling choices informed by species/family morphology, not published specimen measurements or a claim of exact biological ratios. They distinguish compressed tangs, angels, butterflies and idols from fuller clownfish/grammas and cylindrical dragonets. Peripheral fins remain thin. Existing conservative collision padding is retained.
+These are visual modeling targets, not specimen measurements or a claim of exact biological proportions.
 
-| Species | Previous width/length | Revised width/length |
+| Species | Previous body width/length | Fuller body width/length |
 | --- | ---: | ---: |
-| Ocellaris clownfish | 35.9% | 14.5% |
-| Yellow tang | 25.3% | 8.5% |
-| Royal gramma | 27.3% | 11.5% |
-| Emperor angelfish | 26.0% | 10.0% |
-| Moorish idol | 20.9% | 6.5% |
-| Blue-green chromis | 29.5% | 11.0% |
-| Regal blue tang | 20.5% | 9.0% |
-| Copperband butterflyfish | 17.5% | 6.0% |
-| Banggai cardinalfish | 18.5% | 9.0% |
-| Mandarin dragonet | 24.3% | 15.0% |
+| Ocellaris clownfish | 14.5% | 18% |
+| Yellow tang | 8.5% | 12% |
+| Royal gramma | 11.5% | 14.5% |
+| Emperor angelfish | 10% | 14% |
+| Moorish idol | 6.5% | 10% |
+| Blue-green chromis | 11% | 14% |
+| Regal blue tang | 9% | 12.5% |
+| Copperband butterflyfish | 6% | 16% |
+| Banggai cardinalfish | 9% | 12.5% |
+| Mandarin dragonet | 15% | 18% |
 
-The prior thickness coefficient did not directly express width/length: cropped mesh spans differed by species. The review measured actual vertices and rescales Z explicitly, then transforms the normals and rebakes body, tail and fin views. Side profiles retain their shape.
+S/inverse-S swimming remains a depth-axis mesh deformation. The C-turn coefficient is reduced from 6.5% to 4% of model span for a gentler bend. The turn bank now retains all 25 refined frontal samples; broadside slots share neutral projections, while visible curved poses are baked from the volume mesh. Actual signed C-crop edges drive the interpolation, instead of incorrectly stretching curved bodies using resting-body widths.
 
-The atlas retains all 25 refined frontal samples from 78.75° through 101.25°. Profile views use wider spacing, with continuous yaw and phase interpolation. There are 80 heading slots from 41 unique angles, three complete body poses, and independent 64-slot tails and fins. Reverse-side body slots reverse bend phase rather than reflecting the image. Texture dimensions and lossless encoding are retained.
+The outgoing textured outline can fade rather than staying opaque until a view changes. Small quarter-resolution material masks keep the shared interior opaque. These masks contain no skin texture; body, fin, eye and tail sprite resolution stays unchanged. Head counter-sway fades during deliberate steering, preserving a steady displayed turn rate. Both S and C tail roots follow the same projected deformation and envelope as the body.
 
-Validation checks every species' width ratio and mesh coordinates: opposite swim poses have identical X/Y and opposite Z displacement. Rendered profile silhouettes retain their vertical row coverage. Production tail/whole-body tests also run after the raw frame metadata has been released.
-
-![Profile and frontal model proportions](previews/fish-proportions.png)
-
-[Animated production-draw reconstruction](previews/lateral-swim.gif) — a host reconstruction, not a Roku screenshot.
+[Full-turn comparison](previews/turn-comparison.gif) · [Copperband frontal comparison](previews/copperband-front.png). Previews replay native draw commands on the host.
 
 ## Morphology references
 
@@ -40,9 +36,3 @@ Validation checks every species' width ratio and mesh coordinates: opposite swim
 - [University of Hawaii, fish structure and swimming](https://manoa.hawaii.edu/exploringourfluidearth/biological/fish/structure-and-function-fish): lateral muscle contraction and caudal propulsion.
 
 Rebuild artwork with `python tools/whole_swim.py`; it uses the approved source meshes/textures and `tools/lateral_swim.py`. This is offline work; the Roku renders prebuilt regions.
-
-## 1.0.34 articulation and eyes
-
-The lateral S-curve coefficient is now 5.5% of model length, with the trunk bend starting 28% of the way back from the head; the caudal fin retains its separate rig and stroke. A small head counter-sway makes that depth movement visible in profile. C-turn poses use a smooth, one-sided quadratic bend up to 6.5% of length and follow signed, eased yaw velocity. S motion eases through neutral before the C bend grows; both transitions stay within four body draws. Neither curve changes model Y. Anatomical width targets above remain unchanged; collision depth additionally reserves the bend envelope.
-
-Every fish has two actual ellipsoidal eyeball meshes, positioned on its photographed eye centers. Iris/pupil textures use the existing photographs. The copperband's false eyespot remains a skin marking; its true eye is modeled on the head. Fine frontal S views retain all 25 samples. Retained sprites keep their native resolution; the atlas adds C poses while removing redundant side views. Projected pitch scales continuously with yaw instead of switching signs at front/rear views.
